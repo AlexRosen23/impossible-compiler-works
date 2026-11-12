@@ -1,0 +1,7 @@
+// expect-fault: R002 @ 5:31
+scene "Index Out of Range" {
+  let xs = [10, 20, 30];
+  repeat i in 0..4 {
+    circle(x: 40 + i * 40, y: xs[i], radius: 6);
+  }
+}

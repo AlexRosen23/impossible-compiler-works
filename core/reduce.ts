@@ -22,7 +22,6 @@ const literalFor = (t: string): A.Expr | null => {
 
 function candidates(p: A.Program, types: Map<number, string>): Edit[] {
   const edits: Edit[] = [];
-  let blockIdx = 0;
   const blocks: A.Block[] = [];
   const exprs: A.Expr[] = [];
   const walkExpr = (e: A.Expr) => { exprs.push(e); if (e.kind === 'Binary') { walkExpr(e.left); walkExpr(e.right); } else if (e.kind === 'Unary') walkExpr(e.operand); else if (e.kind === 'Call') e.args.forEach(walkExpr); else if (e.kind === 'Index') { walkExpr(e.target); walkExpr(e.index); } else if (e.kind === 'Field') walkExpr(e.target); else if (e.kind === 'List') e.items.forEach(walkExpr); };
@@ -47,7 +46,6 @@ function candidates(p: A.Program, types: Map<number, string>): Edit[] {
     if (s.kind === 'Repeat' && s.to && !(s.to.kind === 'Num' && s.to.value <= 1)) edits.push((q) => { const st = collectBlocks(q)[bi]?.stmts[si] as A.RepeatStmt; if (!st?.to) return false; st.to = { kind: 'Num', id: 0, value: 1, span: st.to.span }; return true; });
     if (s.kind === 'Group') edits.push((q) => { const bb = collectBlocks(q)[bi]; const st = bb?.stmts[si] as A.GroupStmt; if (!st) return false; bb.stmts.splice(si, 1, ...st.body.stmts); return true; });
   }));
-  void blockIdx;
   exprs.forEach((e, ei) => {
     const lit = literalFor(types.get(e.id) ?? '');
     if (lit && !(e.kind === lit.kind)) edits.push((q) => replaceExpr(q, ei, () => lit));

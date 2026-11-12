@@ -21,3 +21,6 @@ export * from './vm.ts';
 export * from './pipeline.ts';
 export * from './receipt.ts';
 export * from './format.ts';
+export * from './debugger.ts';
+export * from './fuzz.ts';
+export * from './reduce.ts';

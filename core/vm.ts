@@ -64,7 +64,7 @@ export class VMRun {
 
   /** Execute up to `max` instructions; stops early on halt, fault, or when `stop(this)` returns true *before* an instruction. */
   run(max = Infinity, stop?: (vm: VMRun) => boolean): void {
-    if (this.done) return;
+    if (this.done || max <= 0) return;
     this.status = 'running';
     const fuel = this.limits.fuelPerFrame;
     let budget = max;

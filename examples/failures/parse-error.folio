@@ -1,0 +1,6 @@
+// expect: P001 @ 4:3
+scene "Parse Error" {
+  let r = 4
+  circle(x: 10, y: 10, radius: r);
+  rect(x: 0, y: 0, width: 10 height: 4);
+}

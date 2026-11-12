@@ -22,7 +22,7 @@ export class DebugSession {
   private limits: Limits;
   readonly frameIndex: number;
 
-  constructor(m: BCModule, data: Map<string, Value>, limits: Limits, frameIndex = 0, interval = 256, maxCheckpoints = 512) {
+  constructor(m: BCModule, data: Map<string, Value>, limits: Limits, frameIndex = 0, interval = 256, maxCheckpoints = 256) {
     this.m = m; this.data = data; this.limits = limits; this.frameIndex = frameIndex;
     this.interval = interval; this.maxCheckpoints = maxCheckpoints;
     this.consts = m.consts.map(decodeValue);

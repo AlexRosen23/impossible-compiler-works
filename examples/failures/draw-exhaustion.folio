@@ -1,0 +1,8 @@
+// expect-fault: R005 @ 5:7
+scene "Resource Exhaustion" {
+  repeat i in 0..200 {
+    repeat j in 0..200 {
+      circle(x: i, y: j, radius: 1);
+    }
+  }
+}

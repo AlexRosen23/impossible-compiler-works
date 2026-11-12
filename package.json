@@ -17,6 +17,7 @@
     "fuzz": "NODE_NO_WARNINGS=1 node scripts/fuzz.ts",
     "bench": "NODE_NO_WARNINGS=1 node scripts/bench.ts",
     "reproduce": "NODE_NO_WARNINGS=1 node scripts/reproduce.ts",
+    "receipt": "NODE_NO_WARNINGS=1 node scripts/receipt.ts",
     "folio": "NODE_NO_WARNINGS=1 node scripts/folio.ts",
     "check": "npm run typecheck && npm run lint && npm test && npm run build"
   },

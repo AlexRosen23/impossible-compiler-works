@@ -1,0 +1,11 @@
+// expect: C012 @ 2:4
+fn down(n: Number) -> Number {
+  if n <= 0 {
+    return 0;
+  }
+  return down(n - 1);
+}
+
+scene "Recursion Attempt" {
+  circle(x: down(3), y: 10, radius: 2);
+}

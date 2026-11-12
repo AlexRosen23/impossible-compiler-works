@@ -1,0 +1,24 @@
+{
+  "seeds": [
+    1,
+    2000
+  ],
+  "configs": [
+    "none",
+    "constfold+dce+cse"
+  ],
+  "runs": 4000,
+  "agree": 4000,
+  "divergent": 0,
+  "rejected": 0,
+  "compilerCrashesOnMutations": 0,
+  "faultsObserved": {
+    "R001": 2260,
+    "R003": 1092,
+    "R010": 24,
+    "R002": 268,
+    "R008": 44
+  },
+  "seconds": 16.89,
+  "node": "v24.14.0"
+}

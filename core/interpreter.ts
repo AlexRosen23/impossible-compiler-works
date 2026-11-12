@@ -21,12 +21,18 @@ class Env {
   vars = new Map<string, { v: Value; mutable: boolean }>();
   parent: Env | null;
   constructor(parent: Env | null) { this.parent = parent; }
+  find(n: string): { v: Value; mutable: boolean } | undefined {
+    const b = this.vars.get(n);
+    return b ?? this.parent?.find(n);
+  }
   get(n: string): Value {
-    for (let e: Env | null = this; e; e = e.parent) { const b = e.vars.get(n); if (b) return b.v; }
+    const b = this.find(n);
+    if (b) return b.v;
     throw new Error(`reference interpreter: unbound ${n} (checker should have rejected this)`);
   }
   set(n: string, v: Value) {
-    for (let e: Env | null = this; e; e = e.parent) { const b = e.vars.get(n); if (b) { b.v = v; return; } }
+    const b = this.find(n);
+    if (b) { b.v = v; return; }
     throw new Error(`reference interpreter: unbound ${n}`);
   }
   define(n: string, v: Value, mutable = false) { this.vars.set(n, { v, mutable }); }

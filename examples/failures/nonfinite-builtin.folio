@@ -1,0 +1,6 @@
+// expect-fault: R001 @ 4:11
+scene "Square Root of a Negative" {
+  let depth = 10 - 30;
+  let r = sqrt(depth);
+  circle(x: 10, y: 10, radius: r);
+}

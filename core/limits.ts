@@ -1,7 +1,9 @@
 // Language safety bounds. These are enforced by the core (lexer, parser, checker, interpreter, VM), never by
 // the UI. The reference interpreter and the VM enforce the *semantic* limits (iterations, draws, string length)
-// identically, so a program that hits one fails the same way in both. Fuel and stack depth are VM-only
-// machine limits, set high enough that the semantic limits trip first for any checked program.
+// identically, so a program that hits one fails the same way in both. The VM's call-depth limit is also
+// enforced statically by the checker (S004), so it never rejects a checked program at run time. Fuel and the
+// operand-stack size are VM-only machine limits: a long but legal program can exhaust fuel (R006) where the
+// reference interpreter finishes; receipts and the IDE report that as a VM resource limit, not a divergence.
 export interface Limits {
   maxSourceChars: number;
   maxTokens: number;
@@ -22,8 +24,6 @@ export interface Limits {
   maxStack: number;
   maxCallDepth: number;
   maxBytecodeInstrs: number;
-  /** Trace capture (debugger) bounds. */
-  maxTraceSteps: number;
 }
 
 export const DEFAULT_LIMITS: Limits = Object.freeze({
@@ -45,5 +45,4 @@ export const DEFAULT_LIMITS: Limits = Object.freeze({
   maxStack: 1_024,
   maxCallDepth: 64,
   maxBytecodeInstrs: 200_000,
-  maxTraceSteps: 2_000_000,
 });

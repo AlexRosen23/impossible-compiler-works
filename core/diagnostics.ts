@@ -45,7 +45,6 @@ export const DIAGNOSTIC_CODES: Record<string, string> = {
   P001: 'unexpected token',
   P002: 'missing scene declaration',
   P003: 'more than one scene declaration',
-  P004: 'invalid scene option',
   P005: 'too many syntax errors; parsing stopped',
   C001: 'undeclared name',
   C002: 'type mismatch',
@@ -77,4 +76,5 @@ export const DIAGNOSTIC_CODES: Record<string, string> = {
   S001: 'source too large',
   S002: 'program too large (AST nodes)',
   S003: 'too many symbols',
+  S004: 'call chain deeper than the call-depth limit',
 };

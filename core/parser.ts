@@ -203,7 +203,15 @@ class Parser {
   }
 
   // --- statements ----------------------------------------------------------------------------
+  blockDepth = 0;
   block(): A.Block {
+    if (++this.blockDepth > this.limits.maxExprDepth) {
+      this.error('S002', `blocks nested more than ${this.limits.maxExprDepth} levels`, this.peek().span);
+      throw new Bail();
+    }
+    try { return this.blockInner(); } finally { this.blockDepth--; }
+  }
+  blockInner(): A.Block {
     const open = this.expect('{');
     const stmts: A.Stmt[] = [];
     while (!this.at('}') && this.peek().kind !== 'eof') {

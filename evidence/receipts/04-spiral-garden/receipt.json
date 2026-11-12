@@ -1,0 +1,53 @@
+{
+  "format": "paper-tiger-receipt/0.1",
+  "versions": {
+    "compiler": "0.1.0",
+    "grammar": "folio-grammar/0.1",
+    "ir": "folio-ir/0.1",
+    "bytecode": "folio-bc/0.1",
+    "scene": "folio-scene/0.1"
+  },
+  "project": "04-spiral-garden.folio",
+  "files": [
+    {
+      "name": "main.folio",
+      "sha256": "a5f5ee91e439904d6bc94d1555f38e5378649f33d012dc88f63cd1509a0b65d6"
+    }
+  ],
+  "source": "// User-defined functions with local returns, called from a bounded loop.\nfn golden(i: Number) -> Number {\n  return i * 137.508 * PI / 180;\n}\n\nfn petalRadius(i: Number, count: Number) -> Number {\n  if i < count / 3 {\n    return 2 + i * 0.04;\n  }\n  return 3 + sqrt(i) * 0.35;\n}\n\nscene \"Spiral Garden\" size 800 x 480 background #101013 {\n  let n = 420;\n  repeat i in 0..n {\n    let a = golden(i);\n    let d = sqrt(i) * 10.5;\n    circle(\n      x: WIDTH / 2 + cos(a) * d,\n      y: HEIGHT / 2 + sin(a) * d,\n      radius: petalRadius(i, n),\n      fill: mix(#b2534f, #bb9c67, i / n)\n    );\n  }\n}\n",
+  "sourceHash": "a5f5ee91e439904d6bc94d1555f38e5378649f33d012dc88f63cd1509a0b65d6",
+  "fixtures": {},
+  "fixtureHash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "optimizations": [
+    "constfold",
+    "dce",
+    "cse"
+  ],
+  "seed": null,
+  "limits": {
+    "fuelPerFrame": 20000000,
+    "maxIterationsPerFrame": 100000,
+    "maxDrawsPerFrame": 10000,
+    "maxStack": 1024,
+    "maxCallDepth": 64
+  },
+  "bytecodeHash": "bba52f16f37d1fb142bf35f224ca07ee70e2f5a7cfeb498493ffb23d4d806a98",
+  "traceHash": "2c2d6852e5957dfb5be90eb475aa6184a9d2a6ef07c2410f4daaa203fe649e48",
+  "sceneHash": "304c9f705ab967bf5e5e65dcd7f71bc2497029615325f2881fce54fc726dd572",
+  "fault": null,
+  "oracle": {
+    "engine": "reference-interpreter",
+    "sceneHash": "304c9f705ab967bf5e5e65dcd7f71bc2497029615325f2881fce54fc726dd572",
+    "agrees": true,
+    "status": "agree"
+  },
+  "warnings": [],
+  "timingMs": {
+    "compile": 16.724,
+    "vm": 4.646,
+    "reference": 5.52
+  },
+  "commit": "9f5ffd9c17393b3b60f8e689c4469612c9a0725c",
+  "createdAt": "2026-11-12T16:45:05.002Z",
+  "digest": "a34c51fb2aea224d876436d3d158cf4c72da2552dcbe655c40868d48a4f81f81"
+}

@@ -9,16 +9,17 @@
   ],
   "runs": 4000,
   "agree": 4000,
+  "completedWithoutFault": 1694,
   "divergent": 0,
   "rejected": 0,
   "compilerCrashesOnMutations": 0,
   "faultsObserved": {
-    "R001": 2260,
-    "R003": 1092,
-    "R010": 24,
-    "R002": 268,
-    "R008": 44
+    "R001": 866,
+    "R002": 798,
+    "R003": 434,
+    "R010": 110,
+    "R008": 98
   },
-  "seconds": 16.89,
+  "seconds": 18.28,
   "node": "v24.14.0"
 }

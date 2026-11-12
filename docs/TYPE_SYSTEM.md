@@ -75,7 +75,7 @@ Declarations:
 |---|---|---|
 | `fn f(p: T, ...) -> R { }` | signature collected in pass 1 (order-independent); body checked in pass 2; every path must return | `C020` duplicate; `C017` reserved; `C015` nested list type; `C009` missing return; `C012` recursion |
 | `data d: List<T> from "name";` | type must be a list | `C002` not a list; `C015`; `C020` |
-| `scene "t" options { }` | options valid and not repeated | `C019` |
+| `scene "t" options { }` | options valid and not repeated; longest call chain from the scene within the call-depth limit | `C019`; `S004` |
 
 Scene options: `size W x H` with whole numbers 1 to 4,096; `frames N` with a whole number 1 to 240; `background`
 any colour literal. A repeated option is `C019`.
@@ -100,7 +100,7 @@ The checker computes, for each statement, whether every path through it ends in 
 Because the checker proves definite return, the lowering ends every function with a `halt` terminator that is
 unreachable in a checked program (`core/lower.ts`).
 
-## 5. Recursion check
+## 5. Recursion and call-depth checks
 
 The checker builds a call graph over user functions while checking their bodies (calls from the scene are not
 edges, because the scene is not callable). A depth-first search reports any back edge as `C012`, at the name of
@@ -108,7 +108,14 @@ the function where the cycle closes, with the cycle in the message (for example 
 down → down`). Each cycle is reported once. Direct and mutual recursion are both rejected (tested in
 `tests/frontend.test.ts`).
 
-The same property is re-checked twice later as defence in depth: on the IR (`irCallGraphAcyclic` in
+Call depth. When the call graph is acyclic, the checker also computes the longest call chain that starts in the
+scene: the scene frame counts as 1 and each nested user-function call adds 1 (built-ins add nothing). If it
+exceeds `maxCallDepth` (64), that is `S004`, reported on the scene declaration, for example `the longest call
+chain is 64 functions deep; the limit is 63`. This turns the VM's run-time call-depth limit into a static rule,
+so the VM and the reference interpreter accept exactly the same programs (`tests/regressions.test.ts`, finding
+2a). Functions not reachable from the scene do not count.
+
+The no-recursion property is re-checked twice later as defence in depth: on the IR (`irCallGraphAcyclic` in
 `core/irverify.ts`, run in the `lower` stage) and on bytecode (`verifyBytecode` rejects a `CALLF` cycle).
 
 ## 6. Warnings versus errors
@@ -142,7 +149,6 @@ section 12.
 | P001 | error | parse | unexpected token | any "expected X, found Y"; also chained comparisons and reserved words used as names |
 | P002 | error | parse | missing scene declaration | no `scene` item and no other syntax errors |
 | P003 | error | parse | more than one scene declaration | a second `scene` item |
-| P004 | error | parse | invalid scene option | listed in the table; the current parser reports bad scene headers as `P001` and never emits `P004` |
 | P005 | error | parse | too many syntax errors; parsing stopped | 50 syntax errors reached |
 | C001 | error | check | undeclared name | a name, assignment target or callee that resolves to nothing |
 | C002 | error | check | type mismatch | an operand, argument, initializer, condition, return value or list item of the wrong type; a dataset declared with a non-list type |
@@ -172,12 +178,13 @@ section 12.
 | F003 | error | fixture | invalid fixture name | the name does not match `^[a-z][a-z0-9_-]{0,63}$` |
 | F004 | error | fixture | fixture too large | more than 10,000 items |
 | S001 | error | lex | source too large | more than 64,000 characters, or more than 20,000 tokens |
-| S002 | error | limits / parse | program too large (AST nodes) | more than 20,000 AST nodes (stage `limits`); also expression nesting over 200 levels (stage `parse`) |
+| S002 | error | limits / parse | program too large (AST nodes) | more than 20,000 AST nodes (stage `limits`); also expression nesting or block nesting over 200 levels (stage `parse`) |
 | S003 | error | check | too many symbols | more than 2,000 declared symbols |
+| S004 | error | check | call chain deeper than the call-depth limit | the longest chain of user-function calls starting in the scene, counting the scene's own frame, exceeds `maxCallDepth` (64); reported on the scene declaration |
 
 Not in the table: `ICE` (internal compiler error). The pipeline turns any exception thrown inside a compiler
 stage, and any IR or bytecode verifier failure, into a diagnostic with code `ICE` instead of crashing the host.
-An `ICE` is always a compiler bug (or, today, the deep-statement-nesting case noted in `LIMITATIONS.md`).
+An `ICE` is always a compiler bug.
 
 ## 8. Fixture binding
 
@@ -199,6 +206,5 @@ are the `F` codes above. A program with fixture errors does not proceed to lower
 | `trace` | one derivation step per typed expression, in checking order |
 | `scene` | title, width, height, frames, background after defaults |
 
-Known imprecision: when a local binding has the same name as a function, the checker records the call's
-resolution against the local symbol even though the call runs the function. This affects only IDE features that
-read `resolutions` (for example hover or go-to-definition), not compilation.
+A call's resolution always points at the function's symbol, even when a local `let` with the same name is in
+scope (the `let` shadows the name as a value, never as a callee).

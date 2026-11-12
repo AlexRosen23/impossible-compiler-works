@@ -64,6 +64,7 @@ class Checker {
   fns = new Map<string, FnSig>();
   data: CheckResult['data'] = [];
   callGraph: Record<string, string[]> = {};
+  sceneCalls: string[] = [];
   trace: TraceEntry[] = [];
   scene: SceneInfo | null = null;
   /** Lexical scope chain: each map name → symbol id. */
@@ -155,7 +156,7 @@ class Checker {
       if (item.kind === 'FnDecl' && this.fns.get(item.name)?.node === item.id) this.fnBody(item);
       else if (item.kind === 'SceneDecl' && !this.scene) this.sceneBody(item);
     }
-    this.checkRecursion(p);
+    if (this.checkRecursion(p)) this.checkCallDepth(p);
     this.popScope();
     return {
       diagnostics: this.diagnostics, types: this.types, resolutions: this.resolutions, symbols: this.symbols, scopes: this.scopes,
@@ -453,15 +454,34 @@ class Checker {
     });
     if (f) {
       if (this.currentFn) { const cg = this.callGraph[this.currentFn.name]; if (!cg.includes(e.callee)) cg.push(e.callee); }
-      const sid = this.lookup(e.callee);
-      if (sid !== null) { this.resolutions.set(e.id, sid); this.symbols[sid].uses.push(e.calleeSpan); }
+      else if (!this.sceneCalls.includes(e.callee)) this.sceneCalls.push(e.callee);
+      // Calls always name the function (a let may shadow the name as a value, never as a callee).
+      const sid = this.symbols.findIndex((s) => s.kind === 'fn' && s.name === e.callee);
+      if (sid >= 0) { this.resolutions.set(e.id, sid); this.symbols[sid].uses.push(e.calleeSpan); }
     }
     const ret = b ? b.ret : f!.ret;
     const sigText = `${e.callee}(${params.map((p) => (p === 'List<*>' ? listArg : p)).join(', ')}) → ${ret}`;
     return this.record(e, ok ? ret : ERR, b ? `built-in ${sigText}` : `fn ${sigText}`);
   }
 
-  checkRecursion(p: A.Program) {
+  /** The VM's call-depth limit, made a static rule: the longest call chain from the scene (scene frame included)
+   * must fit, so both executors accept exactly the same programs. Only runs when the call graph is acyclic. */
+  checkCallDepth(p: A.Program) {
+    const memo = new Map<string, number>();
+    const depth = (f: string): number => {
+      if (memo.has(f)) return memo.get(f)!;
+      const d = 1 + Math.max(0, ...(this.callGraph[f] ?? []).map(depth));
+      memo.set(f, d);
+      return d;
+    };
+    const longest = 1 + Math.max(0, ...this.sceneCalls.map(depth));
+    if (longest > this.limits.maxCallDepth) {
+      const scene = p.items.find((i) => i.kind === 'SceneDecl');
+      this.err('S004', `the longest call chain is ${longest - 1} functions deep; the limit is ${this.limits.maxCallDepth - 1}`, scene?.span ?? p.span, 'flatten the chain of helper functions');
+    }
+  }
+
+  checkRecursion(p: A.Program): boolean {
     // Depth-first search over the call graph; any back edge is (direct or mutual) recursion.
     const state = new Map<string, 0 | 1 | 2>();
     const reported = new Set<string>();
@@ -481,6 +501,7 @@ class Checker {
       state.set(n, 2);
     };
     for (const n of Object.keys(this.callGraph)) if (!state.get(n)) visit(n, [n]);
+    return reported.size === 0;
   }
 }
 

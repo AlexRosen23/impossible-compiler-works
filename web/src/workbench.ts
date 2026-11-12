@@ -42,7 +42,7 @@ export function routeHash(r: Route): string {
   return `#/${r.mode}${r.project ? `/project/${encodeURIComponent(r.project)}` : r.example ? `/example/${encodeURIComponent(r.example)}` : ''}`;
 }
 
-export interface FrameRun { cmds: DrawCmd[]; fault: { code: string; message: string; span: Span | null } | null; steps: number; vmHash: string; refHash: string; refFault: string | null; agree: boolean; ms: number }
+export interface FrameRun { cmds: DrawCmd[]; fault: { code: string; message: string; span: Span | null } | null; steps: number; vmHash: string; refHash: string; refFault: string | null; agree: boolean; resourceLimit: boolean; ms: number }
 const frameCache = new Map<string, FrameRun>();
 /** Run one frame on the VM and on the reference interpreter; cache by bytecode hash + fixtures + frame. */
 export function runFrame(c: CompileResult, frame: number): FrameRun | null {
@@ -60,6 +60,7 @@ export function runFrame(c: CompileResult, frame: number): FrameRun | null {
   const r: FrameRun = {
     cmds: vf?.cmds ?? [], fault, steps: vm.steps[0] ?? 0, vmHash: vf ? frameHash(vf) : '', refHash: rf ? frameHash(rf) : '', refFault,
     agree: !!vf && !!rf && frameHash(vf) === frameHash(rf) && refFault === (vm.fault ? `${vm.fault.code}@${vm.fault.span?.start}` : null), ms,
+    resourceLimit: vm.fault?.code === 'R006' || vm.fault?.code === 'R007',
   };
   if (frameCache.size > 600) frameCache.clear();
   frameCache.set(key, r);

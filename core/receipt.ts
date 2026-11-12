@@ -28,7 +28,9 @@ export interface Receipt {
   traceHash: string;
   sceneHash: string;
   fault: { code: string; frame: number; line: number | null } | null;
-  oracle: { engine: 'reference-interpreter'; sceneHash: string; agrees: boolean };
+  /** status: agree (identical scene and fault), diverge, or vm-resource-limit (the VM stopped on fuel/stack
+   * exhaustion, a machine limit the interpreter does not have; only the prefix before it is comparable). */
+  oracle: { engine: 'reference-interpreter'; sceneHash: string; agrees: boolean; status: OracleStatus };
   warnings: string[];
   timingMs: { compile: number; vm: number; reference: number };
   commit: string | null;
@@ -40,6 +42,13 @@ export interface Receipt {
 export function receiptDigest(r: Omit<Receipt, 'digest'> | Receipt): string {
   const { timingMs: _t, createdAt: _c, digest: _d, ...rest } = r as Receipt;
   return sha256(canonicalJson(rest));
+}
+
+export type OracleStatus = 'agree' | 'diverge' | 'vm-resource-limit';
+export function oracleStatus(vm: { fault: { code: string; span: { start: number } | null } | null }, vmHash: string, ref: { fault: { code: string; span: { start: number } | null } | null }, refHash: string): OracleStatus {
+  if (vm.fault && (vm.fault.code === 'R006' || vm.fault.code === 'R007')) return 'vm-resource-limit';
+  const faultsAgree = (vm.fault?.code ?? null) === (ref.fault?.code ?? null) && (vm.fault?.span?.start ?? null) === (ref.fault?.span?.start ?? null);
+  return vmHash === refHash && faultsAgree ? 'agree' : 'diverge';
 }
 
 const now = () => (typeof performance !== 'undefined' ? performance.now() : Date.now());
@@ -56,7 +65,7 @@ export function makeReceipt(inp: MakeReceiptInput): { receipt: Receipt | null; c
   const ref = interpret(c.program!, c.check!, c.data, limits);
   const t3 = now();
   const vmHash = sceneHash(vm.scene), refHash = sceneHash(ref.scene);
-  const faultsAgree = (vm.fault?.code ?? null) === (ref.fault?.code ?? null) && (vm.fault?.span?.start ?? null) === (ref.fault?.span?.start ?? null);
+  const status = oracleStatus(vm, vmHash, ref, refHash);
   const body: Omit<Receipt, 'digest'> = {
     format: RECEIPT_FORMAT,
     versions: { compiler: COMPILER_VERSION, grammar: GRAMMAR_VERSION, ir: IR_VERSION, bytecode: BYTECODE_VERSION, scene: SCENE_FORMAT },
@@ -73,7 +82,7 @@ export function makeReceipt(inp: MakeReceiptInput): { receipt: Receipt | null; c
     traceHash: vm.traceHash,
     sceneHash: vmHash,
     fault: vm.fault ? { code: vm.fault.code, frame: vm.fault.frame, line: vm.fault.span?.line ?? null } : null,
-    oracle: { engine: 'reference-interpreter', sceneHash: refHash, agrees: vmHash === refHash && faultsAgree },
+    oracle: { engine: 'reference-interpreter', sceneHash: refHash, agrees: status === 'agree', status },
     warnings: c.diagnostics.filter((d) => d.severity === 'warning').map((d) => `${d.code}@${d.span.line}:${d.span.col}`),
     timingMs: { compile: round(t1 - t0), vm: round(t2 - t1), reference: round(t3 - t2) },
     commit: inp.commit ?? null,
@@ -94,7 +103,16 @@ export function reproduce(r: Receipt, bytecodeArtifact?: unknown): ReproduceChec
   add('bytecode version', BYTECODE_VERSION, r.versions?.bytecode);
   add('source hash', r.sourceHash, sha256(r.source ?? ''));
   add('fixture hash', r.fixtureHash, sha256(canonicalJson(r.fixtures ?? {})));
-  const limits: Limits = { ...DEFAULT_LIMITS, ...(r.limits ?? {}) };
+  // A receipt may lower limits but never raise them past this host's defaults (imported receipts are untrusted).
+  const limits: Limits = { ...DEFAULT_LIMITS };
+  let within = true;
+  for (const [k, v] of Object.entries(r.limits ?? {})) {
+    const cap = (DEFAULT_LIMITS as unknown as Record<string, number>)[k];
+    if (cap === undefined || typeof v !== 'number' || !Number.isInteger(v) || v < 1 || v > cap) { within = false; continue; }
+    (limits as unknown as Record<string, number>)[k] = v;
+  }
+  checks.push({ name: "receipt limits within this host's caps", ok: within, actual: within ? 'ok' : 'a limit is missing, invalid or above the host default' });
+  if (!within) return checks;
   const c = compile(r.source ?? '', { passes: r.optimizations ?? [], fixtures: r.fixtures ?? {}, limits });
   if (!c.ok) { checks.push({ name: 'recompile', ok: false, actual: c.diagnostics.map((d) => d.code).join(',') }); return checks; }
   add('bytecode hash', r.bytecodeHash, c.bytecode!.hash);
@@ -108,6 +126,6 @@ export function reproduce(r: Receipt, bytecodeArtifact?: unknown): ReproduceChec
   add('scene hash (VM)', r.sceneHash, sceneHash(vm.scene));
   const ref = interpret(c.program!, c.check!, c.data, limits);
   add('scene hash (independent reference interpreter)', r.oracle?.sceneHash, sceneHash(ref.scene));
-  add('VM and reference agree', true, sceneHash(ref.scene) === sceneHash(vm.scene) && (ref.fault?.code ?? null) === (vm.fault?.code ?? null));
+  add('oracle verdict reproduces', r.oracle?.status, oracleStatus(vm, sceneHash(vm.scene), ref, sceneHash(ref.scene)));
   return checks;
 }

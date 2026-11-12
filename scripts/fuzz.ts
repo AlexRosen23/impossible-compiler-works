@@ -18,7 +18,7 @@ const outcome = (src: string, passes: PassName[]) => {
   return { ok: true, vm: o(vm), ref: o(ref), fault: vm.fault?.code ?? null };
 };
 const t0 = performance.now();
-let agree = 0, rejected = 0, crashes = 0;
+let agree = 0, rejected = 0, crashes = 0, clean = 0;
 const faults: Record<string, number> = {};
 const failures: { seed: number; config: string; reduced: string }[] = [];
 for (let seed = start; seed < start + count; seed++) {
@@ -26,7 +26,7 @@ for (let seed = start; seed < start + count; seed++) {
   for (const cfg of configs) {
     const r = outcome(src, cfg);
     if (!r.ok) { rejected++; failures.push({ seed, config: cfg.join('+') || 'none', reduced: `REJECTED: ${r.why}\n${src}` }); continue; }
-    if (r.vm === r.ref) { agree++; if (r.fault) faults[r.fault] = (faults[r.fault] ?? 0) + 1; continue; }
+    if (r.vm === r.ref) { agree++; if (r.fault) faults[r.fault] = (faults[r.fault] ?? 0) + 1; else clean++; continue; }
     const red = reduce(src, (s) => { const x = outcome(s, cfg); return x.ok && x.vm !== x.ref; });
     failures.push({ seed, config: cfg.join('+') || 'none', reduced: red.source });
   }
@@ -37,7 +37,7 @@ const ms = performance.now() - t0;
 const dir = join(ROOT, 'evidence');
 mkdirSync(join(dir, 'fuzz-failures'), { recursive: true });
 failures.forEach((f) => writeFileSync(join(dir, 'fuzz-failures', `seed-${f.seed}-${f.config}.folio`), f.reduced));
-const summary = { seeds: [start, start + count - 1], configs: configs.map((c) => c.join('+') || 'none'), runs: count * configs.length, agree, divergent: failures.length - rejected, rejected, compilerCrashesOnMutations: crashes, faultsObserved: faults, seconds: Math.round(ms / 10) / 100, node: process.version };
+const summary = { seeds: [start, start + count - 1], configs: configs.map((c) => c.join('+') || 'none'), runs: count * configs.length, agree, completedWithoutFault: clean, divergent: failures.length - rejected, rejected, compilerCrashesOnMutations: crashes, faultsObserved: faults, seconds: Math.round(ms / 10) / 100, node: process.version };
 writeFileSync(join(dir, 'fuzz-summary.json'), JSON.stringify(summary, null, 2) + '\n');
 console.log(JSON.stringify(summary, null, 2));
 process.exit(failures.length || crashes ? 1 : 0);

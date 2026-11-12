@@ -83,8 +83,11 @@ export function showValue(v: Value): string {
 }
 
 /** JSON-safe encoding used in IR constants and serialized bytecode. */
-export type EncodedValue = number | boolean | string | null | { color: string } | { point: [number, number] } | { list: EncodedValue[] };
+/** `{ neg0: true }` exists because JSON (and canonical JSON) writes -0 as 0; FOLIO keeps -0 observable
+ * (atan2, 1 / x), so constants must round-trip it exactly. */
+export type EncodedValue = number | boolean | string | null | { neg0: true } | { color: string } | { point: [number, number] } | { list: EncodedValue[] };
 export function encodeValue(v: Value): EncodedValue {
+  if (typeof v === 'number' && Object.is(v, -0)) return { neg0: true };
   if (v === null || typeof v === 'number' || typeof v === 'boolean' || typeof v === 'string') return v;
   if (Array.isArray(v)) return { list: v.map(encodeValue) };
   if (isColor(v as Value)) return { color: colorHex(v as ColorV) };
@@ -93,6 +96,7 @@ export function encodeValue(v: Value): EncodedValue {
 }
 export function decodeValue(e: EncodedValue): Value {
   if (e === null || typeof e === 'number' || typeof e === 'boolean' || typeof e === 'string') return e;
+  if ('neg0' in e) return -0;
   if ('list' in e) return Object.freeze(e.list.map(decodeValue));
   if ('color' in e) return colorFromHex(e.color);
   return point(e.point[0], e.point[1]);

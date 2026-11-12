@@ -215,7 +215,8 @@ fn scene()  ; 26 regs, 4 slots
 Slots 0 and 1 (`time`, `frame`) are not shown because this scene never reads them. `WIDTH / 2` has become
 `div 800, 2` (constants, not yet folded).
 
-The same function after `--opt` (`constfold`, `dce`, `cse`):
+The same function after `--opt` (`constfold`, `dce`, `cse`), output of
+`node scripts/folio.ts examples/04-spiral-garden.folio --opt --ir` at commit `9f5ffd9`:
 
 ```
 fn scene()  ; 26 regs, 4 slots
@@ -232,15 +233,13 @@ fn scene()  ; 26 regs, 4 slots
     tick                                        ; #23 @15:3
     %4 = load $2:i                              ; #24 @16:20
     %5 = callf golden(%4)                       ; #25 @16:13
-    %6 = mov %5    ; let a                      ; #26 @16:5
     %8 = callb sqrt(%4)                         ; #28 @17:13
     %9 = mul %8, 10.5                           ; #29 @17:13
-    %10 = mov %9    ; let d                     ; #30 @17:5
-    %12 = callb cos(%6)                         ; #32 @19:22
-    %13 = mul %12, %10                          ; #33 @19:22
+    %12 = callb cos(%5)                         ; #32 @19:22
+    %13 = mul %12, %9                           ; #33 @19:22
     %14 = add 400, %13                          ; #34 @19:10
-    %16 = callb sin(%6)                         ; #36 @20:23
-    %17 = mul %16, %10                          ; #37 @20:23
+    %16 = callb sin(%5)                         ; #36 @20:23
+    %17 = mul %16, %9                           ; #37 @20:23
     %18 = add 240, %17                          ; #38 @20:10
     %20 = callf petalRadius(%4, 420)            ; #40 @21:15
     %22 = div %4, 420                           ; #42 @22:35
@@ -259,9 +258,10 @@ What changed and why:
   `div 480, 2` to `240`, and removed `rangechk 0, 420` because both bounds are constant whole numbers.
 - `dce` merged `next3` into `body2` (its only predecessor jumps straight to it).
 - `cse` replaced the repeated `load $2:i` in the merged block (#27, #39, #41, #45) with `%4`, because no `store`
-  to `$2` happens in between.
-- Not done: `%6 = mov %5` stays, because there is no copy propagation of registers. Instruction count went
-  56 → 52 → 51 → 47 (the pass reports, which count instructions plus one per block terminator).
+  to `$2` happens in between, and propagated the register copies `%6 = mov %5` (`let a`) and `%10 = mov %9`
+  (`let d`): every use of `%6` now reads `%5`, every use of `%10` reads `%9`, and the `mov`s are gone.
+  Instruction count went 56 → 52 → 51 → 45 (the pass reports, which count instructions plus one per block
+  terminator).
 
 The draw shows how defaults are materialised: `circle` takes six operands in declared order, and the unspecified
 `stroke` and `strokeWidth` become the constants `none` and `1`.

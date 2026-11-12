@@ -90,16 +90,19 @@ export function validateScene(s: unknown, limits: Limits): string[] {
   const o = s as SceneOutput;
   if (!o || o.format !== SCENE_FORMAT) return ['unknown scene format'];
   if (!(o.width > 0 && o.width <= limits.maxCanvas && o.height > 0 && o.height <= limits.maxCanvas)) errs.push('canvas size out of range');
+  if (typeof o.background !== 'string' || !/^#[0-9a-f]{6}([0-9a-f]{2})?$/i.test(o.background)) errs.push('bad background colour');
   if (!Array.isArray(o.frames) || o.frames.length > limits.maxFrames) return [...errs, 'bad frame list'];
   for (const f of o.frames) {
     if (!Array.isArray(f.cmds) || f.cmds.length > limits.maxDrawsPerFrame) { errs.push('bad command list'); continue; }
     for (const c of f.cmds) {
       if (!(c.k in PRIMITIVES)) errs.push(`unknown primitive ${String(c.k)}`);
       if (!Array.isArray(c.m) || c.m.length !== 6 || !c.m.every(Number.isFinite)) errs.push('bad transform');
+      if (typeof c.o !== 'number' || !(c.o >= 0 && c.o <= 1)) errs.push('bad opacity');
       for (const [k, v] of Object.entries(c.a ?? {})) {
         if (typeof v === 'number' && !Number.isFinite(v)) errs.push(`non-finite ${k}`);
         if (typeof v === 'string' && k !== 'value' && !/^#[0-9a-f]{8}$/.test(v)) errs.push(`bad colour ${k}`);
         if (typeof v === 'string' && v.length > limits.maxStringLength) errs.push('string too long');
+        if (Array.isArray(v) && !v.every((pt) => Array.isArray(pt) && pt.length === 2 && pt.every((x) => typeof x === 'number' && Number.isFinite(x)))) errs.push(`bad point in ${k}`);
       }
     }
     if (errs.length > 20) break;

@@ -258,9 +258,8 @@ Consequences: unary operators bind tighter than every binary operator, so `not a
 - Expression nesting deeper than `maxExprDepth` (200), counting both parenthesised and unary nesting, is `S002`
   and stops the parse.
 - A program with more than `maxAstNodes` (20,000) nodes is `S002`.
-- Statement nesting (blocks inside blocks) has no explicit depth limit. Very deep nesting (about 2,000 nested
-  `if` blocks in a probe) exhausts the JavaScript stack; the pipeline catches this and reports an internal
-  compiler error (`ICE`) rather than crashing. See `LIMITATIONS.md`.
+- Block nesting deeper than `maxExprDepth` (200), counting every block including the function or scene body,
+  is `S002` ("blocks nested more than 200 levels") and stops the parse.
 
 ---
 
@@ -349,30 +348,36 @@ All built-ins are pure. No built-in performs I/O or reads a clock or random sour
 checked for finiteness (`R001`), every string result for length (`R009`), and both coordinates of a `Point`
 result for finiteness (`R001`).
 
-| Function | Signature | Semantics |
-|---|---|---|
-| `sin` `cos` `tan` | `(x: Number) -> Number` | `Math.sin` etc., radians |
-| `sqrt` | `(x: Number) -> Number` | `R001` for `x < 0` (NaN) |
-| `abs` `floor` `ceil` `sign` | `(x: Number) -> Number` | `Math.*` |
-| `round` | `(x: Number) -> Number` | `Math.round`: halves round toward +infinity |
-| `exp` | `(x: Number) -> Number` | `R001` on overflow |
-| `log` | `(x: Number) -> Number` | natural log; `R001` for `x <= 0` |
-| `min` `max` | `(a: Number, b: Number) -> Number` | |
-| `pow` | `(a: Number, b: Number) -> Number` | `R001` if the result is not finite |
-| `atan2` | `(y: Number, x: Number) -> Number` | |
-| `noise` | `(a: Number, b: Number) -> Number` | `fract(sin(a * 12.9898 + b * 78.233) * 43758.5453)`, a deterministic hash in [0, 1) |
-| `clamp` | `(x: Number, lo: Number, hi: Number) -> Number` | `min(max(x, lo), hi)` |
-| `lerp` | `(a: Number, b: Number, t: Number) -> Number` | `a + (b - a) * t`, `t` not clamped |
-| `point` | `(x: Number, y: Number) -> Point` | |
-| `dist` | `(a: Point, b: Point) -> Number` | `Math.hypot` of the difference |
-| `rgb` | `(r: Number, g: Number, b: Number) -> Color` | components rounded and clamped to 0..255, alpha 1 |
-| `rgba` | `(r: Number, g: Number, b: Number, a: Number) -> Color` | as `rgb`; `a` clamped to [0, 1] and quantized to /255 |
-| `hsl` | `(h: Number, s: Number, l: Number) -> Color` | `h` in degrees (wrapped), `s` and `l` clamped to [0, 1] |
-| `mix` | `(a: Color, b: Color, t: Number) -> Color` | component-wise linear blend, `t` clamped to [0, 1] |
-| `alpha` | `(c: Color, a: Number) -> Color` | replaces alpha (clamped, quantized) |
-| `len` | `(xs: List<T>) -> Number` | the only polymorphic function: any list element type |
-| `str` | `(x: Number) -> String` | JavaScript `String(x)` (may produce exponent notation, e.g. for very large values) |
-| `fmt` | `(x: Number, digits: Number) -> String` | `x.toFixed(d)` with `d = round(digits)` clamped to 0..6 |
+| Signature | Semantics |
+|---|---|
+| `sin(x: Number) -> Number` | `Math.sin`, radians |
+| `cos(x: Number) -> Number` | `Math.cos`, radians |
+| `tan(x: Number) -> Number` | `Math.tan`, radians |
+| `sqrt(x: Number) -> Number` | `R001` for `x < 0` (NaN) |
+| `abs(x: Number) -> Number` | `Math.abs` |
+| `floor(x: Number) -> Number` | `Math.floor` |
+| `ceil(x: Number) -> Number` | `Math.ceil` |
+| `round(x: Number) -> Number` | `Math.round`: halves round toward +infinity |
+| `sign(x: Number) -> Number` | `Math.sign` |
+| `exp(x: Number) -> Number` | `R001` on overflow |
+| `log(x: Number) -> Number` | natural log; `R001` for `x <= 0` |
+| `min(a: Number, b: Number) -> Number` | |
+| `max(a: Number, b: Number) -> Number` | |
+| `pow(a: Number, b: Number) -> Number` | `R001` if the result is not finite |
+| `atan2(y: Number, x: Number) -> Number` | |
+| `noise(a: Number, b: Number) -> Number` | `fract(sin(a * 12.9898 + b * 78.233) * 43758.5453)`, a deterministic hash in [0, 1); `R001` if the inner product overflows |
+| `clamp(x: Number, lo: Number, hi: Number) -> Number` | `min(max(x, lo), hi)` |
+| `lerp(a: Number, b: Number, t: Number) -> Number` | `a + (b - a) * t`, `t` not clamped |
+| `point(x: Number, y: Number) -> Point` | |
+| `dist(a: Point, b: Point) -> Number` | `Math.hypot` of the difference |
+| `rgb(r: Number, g: Number, b: Number) -> Color` | components rounded and clamped to 0..255, alpha 1 |
+| `rgba(r: Number, g: Number, b: Number, a: Number) -> Color` | as `rgb`; `a` clamped to [0, 1] and quantized to /255 |
+| `hsl(h: Number, s: Number, l: Number) -> Color` | `h` in degrees (wrapped), `s` and `l` clamped to [0, 1] |
+| `mix(a: Color, b: Color, t: Number) -> Color` | component-wise linear blend, `t` clamped to [0, 1] |
+| `alpha(c: Color, a: Number) -> Color` | replaces alpha (clamped, quantized) |
+| `len(xs: List<T>) -> Number` | the only polymorphic function: any list element type |
+| `str(x: Number) -> String` | JavaScript `String(x)` (may produce exponent notation, e.g. for very large values) |
+| `fmt(x: Number, digits: Number) -> String` | `x.toFixed(d)` with `d = round(digits)` clamped to 0..6 |
 
 Built-in names are reserved (section 5, rule 4).
 
@@ -508,19 +513,25 @@ raise it under the same conditions, with the same code and source span.
 | `R004` | iteration limit | the 100,001st loop iteration in one frame (all loops in the scene and in called functions count) | both |
 | `R005` | drawing limit | the 10,001st draw in one frame, or a `path` with more than 10,000 points (unreachable in practice: lists come from literals of at most 1,000 items or fixtures of at most 10,000) | both (shared scene builder) |
 | `R006` | fuel exhausted | the VM would execute more than 20,000,000 instructions in one frame | VM only |
-| `R007` | call depth / stack | a call is made while 64 VM frames are already active (the scene plus 63 nested calls), or the operand stack exceeds 1,024 values | VM only |
+| `R007` | call depth / stack | a call is made while 64 VM frames are already active, or the operand stack exceeds 1,024 values | VM only; not reachable from a checked, verified program (call depth is enforced statically by `S004`, stack depth statically by the bytecode verifier) |
 | `R008` | bad range | a range bound is not a whole number | both |
 | `R009` | string too long | concatenation or a built-in produces a string over 1,000 code units | both |
 | `R010` | negative size | a non-negative primitive argument (radius, width, height, strokeWidth, corner, text size) is negative | both (shared scene builder) |
 | `R011` | groups too deep | a 33rd nested `group` is entered | both (shared scene builder) |
 | `R012` | invalid bytecode at run time | `HALT` inside a function, `RET` with no caller, or an unknown opcode | VM only; not reachable from verified compiler output |
 
-`R006` and `R007` are not part of the language semantics; the reference interpreter has neither limit. Their
-budgets are meant to be large enough that the semantic limits trip first, but this is not guaranteed for every
-well-typed program: a non-recursive call chain 64 functions deep faults `R007` in the VM only, and a loop of up to
-100,000 iterations whose body executes more than about 200 VM instructions faults `R006` in the VM only. Both
-were reproduced with probe programs while writing this document. In those cases the two executors disagree and a
-receipt records `oracle.agrees: false`.
+`R006` and `R007` are not part of the language semantics; the reference interpreter has neither limit.
+
+- Call depth is part of static checking: the longest chain of calls starting in the scene, counting the scene's
+  own frame, must be at most `maxCallDepth` (64), otherwise `S004` (so at most 63 nested function calls). The
+  checker therefore rejects every program whose calls could hit the VM's call-depth limit, and both executors
+  accept exactly the same programs.
+- The operand stack is bounded statically by the bytecode verifier (`maxStack`), so its run-time check does not
+  fire for verified compiler output.
+- Fuel remains a VM-only machine limit. A legal program can exhaust it where the reference interpreter finishes:
+  for example a loop of up to 100,000 iterations whose body executes more than about 200 VM instructions. A run
+  receipt then records `oracle.status: "vm-resource-limit"` rather than `"diverge"` (`COMPILER_PIPELINE.md`
+  section 5).
 
 ---
 
@@ -531,7 +542,7 @@ receipt records `oracle.agrees: false`.
 | `maxSourceChars` | 64,000 | lexer | `S001` | compile-time |
 | `maxTokens` | 20,000 | lexer | `S001` | compile-time |
 | `maxAstNodes` | 20,000 | parser | `S002` | compile-time |
-| `maxExprDepth` | 200 | parser | `S002` | compile-time |
+| `maxExprDepth` | 200 | parser (expression nesting and block nesting) | `S002` | compile-time |
 | `maxErrors` | 50 | parser | `P005` | compile-time |
 | `maxSymbols` | 2,000 | checker | `S003` | compile-time |
 | `maxListLiteral` | 1,000 | checker; bytecode verifier (`LIST` operand) | `C016` | compile-time |
@@ -542,12 +553,12 @@ receipt records `oracle.agrees: false`.
 | `maxIterationsPerFrame` | 100,000 | both executors | `R004` | semantic |
 | `maxDrawsPerFrame` | 10,000 | shared scene builder | `R005` | semantic |
 | `maxGroupDepth` | 32 | shared scene builder | `R011` | semantic |
+| `maxCallDepth` | 64 | checker (longest call chain from the scene, scene frame included); VM (dynamic) | `S004`; `R007` | compile-time rule mirroring a VM limit |
 | `fuelPerFrame` | 20,000,000 | VM | `R006` | VM-only machine limit |
 | `maxStack` | 1,024 | bytecode verifier (static), VM (dynamic) | verify error; `R007` | VM-only machine limit |
-| `maxCallDepth` | 64 | VM | `R007` | VM-only machine limit |
 | `maxBytecodeInstrs` | 200,000 | bytecode verifier | verify error | VM-only machine limit |
-| `maxTraceSteps` | 2,000,000 | defined only; not referenced by `core/`, `server/`, `scripts/` or `tests/` | none | debugger bound (declared) |
 
 "Semantic" limits are enforced identically by both executors, so a program that hits one fails the same way in
-both (this is tested for `R004` and `R005` in `tests/differential.test.ts`). "VM-only" limits exist only in the
-VM; see the caveat at the end of section 12.
+both (this is tested for `R004` and `R005` in `tests/differential.test.ts`). The call-depth limit is enforced
+statically, so it never separates the executors. Fuel is the one VM-only limit a checked program can reach; see
+the end of section 12.

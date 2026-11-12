@@ -96,7 +96,7 @@ function fixturesOf(v: unknown, library: FixtureTable): FixtureTable {
 
 type Row = Record<string, unknown>;
 function runSummary(r: Row) {
-  return { id: r.id, project: r.project_id, version: r.version_id, createdAt: r.created_at, sourceHash: r.source_hash, bytecodeHash: r.bytecode_hash, sceneHash: r.scene_hash, traceHash: r.trace_hash, oracleAgrees: r.agrees === 1, fault: r.fault ? JSON.parse(String(r.fault)) : null, passes: JSON.parse(String(r.passes)), timingMs: JSON.parse(String(r.timing)) };
+  return { id: r.id, project: r.project_id, version: r.version_id, createdAt: r.created_at, sourceHash: r.source_hash, bytecodeHash: r.bytecode_hash, sceneHash: r.scene_hash, traceHash: r.trace_hash, oracleAgrees: r.agrees === 1, oracleStatus: (JSON.parse(String(r.receipt)) as Receipt).oracle.status, fault: r.fault ? JSON.parse(String(r.fault)) : null, passes: JSON.parse(String(r.passes)), timingMs: JSON.parse(String(r.timing)) };
 }
 
 export function createHandler(cfg: AppConfig) {

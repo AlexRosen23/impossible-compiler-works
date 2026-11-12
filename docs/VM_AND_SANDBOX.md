@@ -14,7 +14,7 @@ A `BCModule` is plain JSON:
 | `version` | `"folio-bc/0.1"` |
 | `scene` | title, width, height, frames, background |
 | `data` | dataset names and types (indexed by `GLOBAL`) |
-| `consts` | constant pool, JSON-encoded values (`{color}`, `{point}`, `{list}` or a JSON scalar) |
+| `consts` | constant pool, JSON-encoded values: a JSON scalar, `{neg0: true}`, `{color}`, `{point}` or `{list}` (section 7) |
 | `functions` | one `BCFunction` per IR function |
 | `main` | index of the scene function |
 
@@ -96,15 +96,15 @@ golden:
 and the loop back-edge of the scene:
 
 ```
-    72  DRAW circle                          -6 +0  line 18
-    73  LOADR %4                             -0 +1  line 15
-    74  CONST 1                              -0 +1  line 15
-    75  ADD                                  -2 +1  line 15
-    76  STORER %25                           -1 +0  line 15
-    77  LOADR %25                            -0 +1  line 15
-    78  STORES $2 (i)                        -1 +0  line 15
-    79  JMP → 4                              -0 +0  line 15
-    80  HALT                                 -0 +0  line 13
+    68  DRAW circle                          -6 +0  line 18
+    69  LOADR %4                             -0 +1  line 15
+    70  CONST 1                              -0 +1  line 15
+    71  ADD                                  -2 +1  line 15
+    72  STORER %25                           -1 +0  line 15
+    73  LOADR %25                            -0 +1  line 15
+    74  STORES $2 (i)                        -1 +0  line 15
+    75  JMP → 4                              -0 +0  line 15
+    76  HALT                                 -0 +0  line 13
 ```
 
 ## 2. Serialization and content hash
@@ -174,7 +174,9 @@ module.
   source span. Any other exception is not caught (it would be a VM bug).
 - **Limits.** `TICK` counts iterations (`R004`), `CALLF` checks call depth (`R007` when 64 frames are already
   active), the operand stack is checked after every instruction (`R007` above 1,024), and fuel is checked before
-  every instruction (`R006`).
+  every instruction (`R006`). For checked, verified programs the two `R007` checks are second lines of defence:
+  the checker's `S004` rule bounds call depth and the bytecode verifier bounds stack depth. Fuel is the only VM
+  limit a checked program can reach.
 - **Result.** `runVM` returns the scene, the first fault (code, message, span, frame), per-frame step counts and
   a `traceHash`: SHA-256 over the per-frame step counts, per-frame fingerprints and the fault code and frame. Two
   runs with the same trace hash executed the same instruction sequence.
@@ -214,37 +216,42 @@ oracle depends on how much it shares with the compiled path. Exactly:
 | Built-in function implementations and their result checks | `core/builtins.ts` | `core/builtins.ts` | shared |
 | Primitive signatures and defaults | `core/primitives.ts` | `core/primitives.ts` | shared |
 | Output device: draw limit, negative sizes, group depth, quantization | `core/scene.ts` | `core/scene.ts` | shared |
-| Fuel (`R006`) and call depth (`R007`) | VM only | none | not modelled in the oracle |
+| Fuel (`R006`) | VM only | none | not modelled in the oracle; receipts report it as `vm-resource-limit` |
+| Call depth | checker rule `S004` plus the VM's `R007` check | accepts only programs that passed `S004` | the static rule makes both accept the same programs |
 
 Consequences, stated plainly:
 
 - Differential testing checks the lowering, the optimizer, the code generator and the VM against an independent
   evaluator. It cannot detect a bug in the shared front end, in a built-in, in the primitive table or in the scene
-  builder, because both sides would inherit it. Those modules have little direct test coverage: there are no
-  dedicated unit tests for `builtins.ts` or `primitives.ts`; `scene.ts` is covered through `validateScene` and
-  through every example's expected agreement. (The header comment of `interpreter.ts` says these modules "are
-  covered by their own unit tests"; the test suite does not currently contain such tests.)
+  builder, because both sides would inherit it. Those modules are therefore tested directly:
+  `tests/regressions.test.ts` checks colour clamping and rounding, `hsl`, `mix` and `alpha` on known values,
+  `noise` determinism and range, `fmt` digit clamping, non-finite results faulting, and the scene builder's
+  transform composition, opacity multiplication and limits; `validateScene` has its own tests. There is no
+  separate unit test of the primitive table beyond its use by every example.
 - Constant folding uses the VM's own operator semantics (`ops.ts`), which makes folded results identical to run
   time results by construction; the interpreter is what checks that both are right.
-- Where VM-only limits trip (`R006`, `R007`), the two executors disagree by design. See
-  `FOLIO_LANGUAGE_SPEC.md` section 12 and `LIMITATIONS.md`.
+- Where fuel runs out (`R006`), the VM stops and the reference interpreter may finish; this is by design, and a
+  receipt records it as `oracle.status: "vm-resource-limit"`, not as a divergence. See
+  `FOLIO_LANGUAGE_SPEC.md` section 12 and `COMPILER_PIPELINE.md` section 5.
 
-## 7. Known defect: `-0` constants
+## 7. Constant encoding and `-0`
 
-The code generator interns constants by their canonical JSON, and canonical JSON writes `-0` as `0`. A function
-whose optimized IR contains both a `0` and a `-0` constant therefore gets one pool entry for both, whichever was
-interned first. Without optimization `-0` is only ever produced at run time (by `NEG` or `MUL`), so the issue
-needs constant folding to create a `-0` constant. A probe program written while preparing these documents shows
-an observable difference through `atan2`:
+FOLIO keeps `-0` observable: `atan2(0, -0)` is π while `atan2(0, 0)` is 0, and `1 / -0` faults with
+`-Infinity` rather than `Infinity`. JSON, and the canonical JSON used for hashing, write `-0` as `0`. Constants
+are therefore encoded explicitly (`encodeValue` in `core/values.ts`): the number `-0` becomes `{ "neg0": true }`
+and decodes back to `-0`. Because the code generator interns constants by the canonical JSON of their encoding,
+and the CSE pass keys constant operands the same way, `0` and `-0` are distinct constants in the pool, in CSE and
+in serialized bytecode, and both survive a JSON round trip.
+
+This was a real miscompile before the explicit encoding existed, found during the documentation review: with
+`constfold`, a `-0` constant and a `0` constant in the same function shared one pool entry, and this program
 
 ```
 scene "s" { let x = -0 * frame; let a = atan2(0, x + 0); let b = atan2(0, x + -0);
             text(x: 10, y: 10, value: str(a) + " " + str(b)); }
 ```
 
-The reference interpreter and the unoptimized VM draw `0 3.141592653589793`; with `constfold` (alone or with the
-other passes) the VM draws `-3.141592653589793 -3.141592653589793`, and VM and reference diverge. The CSE value
-key (`optimize.ts`) uses the same canonical encoding for constants and has the same 0/-0 conflation. JSON
-serialization of the bytecode also writes `-0` as `0`. The existing test "preserves -0" passes because its
-program has no `0` constant next to the `-0` one and its observable result is a fault in both executors. Not fixed
-in this version.
+drew `-3.141592653589793 -3.141592653589793` in the optimized VM but `0 3.141592653589793` in the reference
+interpreter. It now draws `0 3.141592653589793` in both, with and without optimization (re-checked on
+2026-11-12), and `tests/regressions.test.ts` ("-0 survives constant folding, the constant pool and CSE keys")
+guards it.

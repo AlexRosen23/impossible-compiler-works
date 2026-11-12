@@ -1,7 +1,7 @@
 // The reference interpreter: a direct tree-walking evaluator of the checked AST. It is the semantic oracle for
 // differential testing, so it deliberately shares nothing with the IR, the optimizer, the bytecode or the VM.
 // It does share the value representation, the pure built-ins, the primitive table and the scene builder (the
-// output device); those are covered by their own unit tests. See docs/OPTIMIZATION_CORRECTNESS.md.
+// output device); those have direct unit tests in tests/regressions.test.ts. See docs/OPTIMIZATION_CORRECTNESS.md.
 import type * as A from './ast.ts';
 import { CONSTANTS, callBuiltin, BUILTINS } from './builtins.ts';
 import type { CheckResult } from './checker.ts';

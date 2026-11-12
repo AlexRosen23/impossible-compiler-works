@@ -103,8 +103,12 @@ export class Generator {
           body: { kind: 'Block', id: 0, stmts: this.stmts(inner, depth - 1, inScene, 1 + Math.floor(this.r() * 3)), span: S }, span: S,
         }];
       }
-      case 'assert':
-        return [{ kind: 'Assert', id: 0, cond: this.chance(0.7) ? bin('==', this.expr('Number', scope, 1), this.expr('Number', scope, 1)) : this.expr('Boolean', scope, 2), message: this.chance(0.5) ? 'fuzz assert' : null, span: S }];
+      case 'assert': {
+        // Mostly invariants that hold (e == e for the same expression; only a fault inside e can stop it),
+        // sometimes an arbitrary condition (exercises R003 in both executors).
+        const e = this.expr('Number', scope, 2);
+        return [{ kind: 'Assert', id: 0, cond: this.chance(0.75) ? bin('==', e, structuredClone(e)) : this.expr('Boolean', scope, 2), message: this.chance(0.5) ? 'fuzz assert' : null, span: S }];
+      }
       case 'group':
         return [{
           kind: 'Group', id: 0, args: this.named([['translate', 'Point'], ['rotate', 'Number'], ['scale', 'Number'], ['opacity', 'Number']], scope, true),
@@ -146,10 +150,20 @@ export class Generator {
     switch (t) {
       case 'Number': {
         const c = this.pick(['bin', 'bin', 'bin', 'neg', 'call', 'call', 'fn', 'field', 'index', 'len']);
-        if (c === 'bin') return bin(this.pick(['+', '-', '*', '/', '%'] as A.BinaryOp[]), this.expr('Number', scope, d), this.expr('Number', scope, d));
+        if (c === 'bin') {
+          const op = this.pick(['+', '-', '*', '+', '-', '*', '/', '%'] as A.BinaryOp[]);
+          // Loop variables start at 0, so most divisors are made provably non-zero (abs(e) + 1); the rest are
+          // left alone so division-by-zero faults stay covered. Measured before this guard: ~98% of R001 faults
+          // in the campaign were "/" or "%" by zero.
+          const right = (op === '/' || op === '%') && this.chance(0.7) ? bin('+', call('abs', [this.expr('Number', scope, d)]), num(1)) : this.expr('Number', scope, d);
+          return bin(op, this.expr('Number', scope, d), right);
+        }
         if (c === 'neg') return { kind: 'Unary', id: 0, op: '-', operand: this.expr('Number', scope, d), span: S };
         if (c === 'call') {
           const [f, n] = this.pick<[string, number]>([['sin', 1], ['cos', 1], ['sqrt', 1], ['abs', 1], ['floor', 1], ['round', 1], ['min', 2], ['max', 2], ['clamp', 3], ['lerp', 3], ['pow', 2], ['noise', 2]]);
+          // Mostly keep sqrt in its domain and pow small; the unguarded forms still appear (fault coverage).
+          if (f === 'sqrt' && this.chance(0.85)) return call('sqrt', [call('abs', [this.expr('Number', scope, d)])]);
+          if (f === 'pow' && this.chance(0.85)) return call('pow', [this.expr('Number', scope, d), num(Math.floor(this.r() * 4))]);
           return call(f, Array.from({ length: n }, () => this.expr('Number', scope, d)));
         }
         if (c === 'fn' && this.fns.length) { const f = this.pick(this.fns); return call(f.name, Array.from({ length: f.arity }, () => this.expr('Number', scope, d))); }
@@ -185,7 +199,7 @@ export class Generator {
 
   leaf(t: T, scope: Scope): A.Expr {
     switch (t) {
-      case 'Number': return this.chance(0.15) ? num(0) : num(this.chance(0.5) ? Math.floor(this.r() * 100) : Math.round(this.r() * 1000) / 100);
+      case 'Number': return this.chance(0.05) ? num(0) : num(this.chance(0.5) ? Math.floor(this.r() * 100) : Math.round(this.r() * 1000) / 100);
       case 'Boolean': return { kind: 'Bool', id: 0, value: this.chance(0.5), span: S };
       case 'String': return { kind: 'Str', id: 0, value: this.pick(['a', 'tiger', 'ü', '', '"q"', '紙']), span: S };
       case 'Color': return { kind: 'Color', id: 0, value: this.pick(['#b2534f', '#bb9c67', '#98abb9', '#8db7a2ff', '#f0eadd80']), span: S };

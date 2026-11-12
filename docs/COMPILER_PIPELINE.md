@@ -17,8 +17,8 @@ source ──lex+parse──▶ tokens + AST ──check──▶ symbols + type
 
 | # | Stage name (`StageName`) | Module | Input | Output | Fails on |
 |---|---|---|---|---|---|
-| 1 | `lex+parse` | `lexer.ts`, `parser.ts` | source string | token list (including comments) and AST (`Program`) | any `L`, `P` or `S001`/`S002` error |
-| 2 | `check` | `checker.ts` | AST | `CheckResult`: symbols, scopes, node types, resolutions, call graph, type trace, scene info | any `C` or `S003` error (warnings do not fail) |
+| 1 | `lex+parse` | `lexer.ts`, `parser.ts` | source string | token list (including comments) and AST (`Program`) | any `L`, `P` or `S001`/`S002` error (`S002` covers AST size, expression nesting and block nesting) |
+| 2 | `check` | `checker.ts` | AST | `CheckResult`: symbols, scopes, node types, resolutions, call graph, type trace, scene info | any `C`, `S003` or `S004` error (warnings do not fail) |
 | 3 | `fixtures` | `fixtures.ts` | `CheckResult` + host fixture table | map from dataset name to frozen value | any `F` error |
 | 4 | `lower` | `lower.ts`, `irverify.ts` | AST + `CheckResult` | IR module (`IRModule`) | IR verifier error or IR call-graph cycle (reported as `ICE`) |
 | 5 | `optimize` | `optimize.ts` | IR module + pass list | optimized IR module + one `PassReport` per pass | IR verifier error after any pass (thrown, recorded as `ICE`) |
@@ -52,13 +52,13 @@ Every stage appends one record to `CompileResult.stages`:
 Real output of `node scripts/folio.ts examples/04-spiral-garden.folio --opt` (timings vary per run):
 
 ```
-  [ok ] lex+parse    3.469 ms  154 tokens, 3 top-level items
-  [ok ] check        1.517 ms  15 symbols in 6 scopes, 57 typed expressions
-  [ok ] fixtures     0.167 ms  0 dataset(s) bound
-  [ok ] lower        2.687 ms  3 function(s), 9 blocks
-  [ok ] optimize      1.77 ms  constfold: 56→52, dce: 52→51, cse: 51→47
-  [ok ] codegen       0.65 ms  138 instructions, 16 constants
-  [ok ] verify       0.746 ms  bytecode 2b8c36b558cc… verified
+  [ok ] lex+parse    5.514 ms  154 tokens, 3 top-level items
+  [ok ] check        2.164 ms  15 symbols in 6 scopes, 57 typed expressions
+  [ok ] fixtures     0.175 ms  0 dataset(s) bound
+  [ok ] lower         2.38 ms  3 function(s), 9 blocks
+  [ok ] optimize     1.819 ms  constfold: 56→52, dce: 52→51, cse: 51→45
+  [ok ] codegen       0.71 ms  134 instructions, 16 constants
+  [ok ] verify       0.824 ms  bytecode bba52f16f37d… verified
 ```
 
 ## 3. What is hashed
@@ -120,18 +120,36 @@ the evidence files). See `LIMITATIONS.md`.
 | `limits` | `fuelPerFrame`, `maxIterationsPerFrame`, `maxDrawsPerFrame`, `maxStack`, `maxCallDepth` |
 | `bytecodeHash`, `traceHash`, `sceneHash` | results of the VM run |
 | `fault` | `{ code, frame, line }` or `null` |
-| `oracle` | the reference interpreter's scene hash and whether VM and reference agree (scene hash, fault code and fault offset) |
+| `oracle` | `engine` (`reference-interpreter`), the reference interpreter's `sceneHash`, `status` and `agrees` (true exactly when `status` is `agree`); see below |
 | `warnings` | warning codes with positions |
 | `timingMs` | compile, VM and reference wall times |
 | `commit`, `createdAt` | git commit of the compiler (if known) and creation time |
 | `digest` | SHA-256 over every field except `timingMs`, `createdAt` and `digest` |
 
-`reproduce(receipt, bytecode?)` re-derives everything that can be recomputed: format, digest, compiler and
-bytecode versions, source hash, fixture hash, a fresh compile to the same bytecode hash, optional loading and
-verification of an exported bytecode artifact and its hash, a VM re-run to the same trace and scene hashes, the
-reference interpreter's scene hash, and VM/reference agreement. `npm run reproduce <receipt.json>
-[bytecode.json]` prints one PASS/FAIL line per check and exits 1 if any fails. The committed evidence receipt
-`evidence/receipts/02-rainfall-ledger/` passes all 13 checks (run on 2026-11-12, see `TEST_AND_EVIDENCE.md`).
+The oracle verdict (`oracleStatus` in `core/receipt.ts`) has three values:
+
+| `oracle.status` | When |
+|---|---|
+| `vm-resource-limit` | the VM stopped with `R006` (fuel) or `R007` (stack or call depth), machine limits the reference interpreter does not have; scene and fault are then not compared, because only the part before the VM stopped is comparable |
+| `agree` | otherwise, when the scene hashes are equal and the fault code and fault source offset are equal (or both runs have no fault) |
+| `diverge` | anything else |
+
+`reproduce(receipt, bytecode?)` re-derives everything that can be recomputed, as named checks:
+
+1. receipt format; receipt digest (no field edited); compiler version; bytecode version; source hash; fixture
+   hash;
+2. receipt limits within this host's caps: every entry of the receipt's `limits` must name a known limit and be a
+   whole number from 1 up to this host's default; otherwise the check fails and reproduction stops there. A
+   receipt can lower limits but never raise them. Valid entries replace the defaults for the re-run; a receipt
+   without a `limits` object is re-run with the defaults;
+3. recompile (fails with the diagnostic codes if the source no longer compiles), then the same bytecode hash;
+4. if a bytecode artifact is supplied: it loads and verifies, and its hash equals the receipt's;
+5. a VM re-run to the same trace hash and scene hash;
+6. the reference interpreter's scene hash;
+7. the oracle verdict reproduces: the recomputed `oracleStatus` equals the receipt's `oracle.status`.
+
+`npm run reproduce <receipt.json> [bytecode.json]` prints one PASS/FAIL line per check and exits 1 if any fails.
+Results for the committed receipts are in `TEST_AND_EVIDENCE.md`.
 
 ## 6. Command-line entry points
 

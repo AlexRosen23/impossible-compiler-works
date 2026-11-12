@@ -60,22 +60,23 @@
     "maxStack": 1024,
     "maxCallDepth": 64
   },
-  "bytecodeHash": "9d5df4fa1a11fa0347dd934380e09badc8ed2593472a70fe330f5f1fed6c0dcd",
-  "traceHash": "2ec7610ead968f76c1a38b33e40ba7c5331f575c623c80a65e8df0b4f810ace0",
+  "bytecodeHash": "e71fe164b8dcd1fe7496c460c5132682e1ee1f09907de55a29762898feeeb9a8",
+  "traceHash": "cba7b2c4d4809fbfa326bb8b60114a6dfca9ce4e64fa07f7692841281573a702",
   "sceneHash": "f66812f02eb913219ab995ed207d06d25f744e26651164b964040088855ff120",
   "fault": null,
   "oracle": {
     "engine": "reference-interpreter",
     "sceneHash": "f66812f02eb913219ab995ed207d06d25f744e26651164b964040088855ff120",
-    "agrees": true
+    "agrees": true,
+    "status": "agree"
   },
   "warnings": [],
   "timingMs": {
-    "compile": 16.992,
-    "vm": 1.476,
-    "reference": 1.059
+    "compile": 13.456,
+    "vm": 0.992,
+    "reference": 1.006
   },
-  "commit": "7d3e705db978f1f26b30185f3000b4329fa38318",
-  "createdAt": "2026-11-12T16:08:26.794Z",
-  "digest": "38ee3d26cd8221e9de38a3bde72875a871d27bb98373592dc1a01713c9334b40"
+  "commit": "9f5ffd9c17393b3b60f8e689c4469612c9a0725c",
+  "createdAt": "2026-11-12T16:45:04.713Z",
+  "digest": "9b02d9e636bcb708f81a5c9f180ae092e2eadb2aaaf2fbe013f84604f6c937bc"
 }

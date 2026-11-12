@@ -74,7 +74,7 @@ export function Cabinet({ project }: { project: { id: string; name: string } | n
               <div className="subhead">Receipt {sel.id}</div>
               <dl className="kv">
                 {(['sourceHash', 'fixtureHash', 'bytecodeHash', 'traceHash', 'sceneHash', 'digest'] as const).map((k) => <Fragment key={k}><dt>{k}</dt><dd>{sel.receipt[k]}</dd></Fragment>)}
-                <dt>oracle</dt><dd>{sel.receipt.oracle.engine}: {sel.receipt.oracle.sceneHash.slice(0, 16)} · {sel.receipt.oracle.agrees ? 'agrees' : 'DIVERGES'}</dd>
+                <dt>oracle</dt><dd>{sel.receipt.oracle.engine}: {sel.receipt.oracle.sceneHash.slice(0, 16)} · {sel.receipt.oracle.status ?? (sel.receipt.oracle.agrees ? 'agree' : 'diverge')}</dd>
                 <dt>optimizations</dt><dd>{sel.receipt.optimizations.join(', ') || 'none'}</dd>
                 <dt>timing</dt><dd>compile {sel.receipt.timingMs.compile} ms · VM {sel.receipt.timingMs.vm} ms · reference {sel.receipt.timingMs.reference} ms</dd>
                 <dt>commit</dt><dd>{sel.receipt.commit ?? '—'}</dd>

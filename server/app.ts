@@ -42,7 +42,7 @@ export function loadExamples(root: string) {
 
 function send(res: ServerResponse, status: number, body: unknown) {
   const s = JSON.stringify(body);
-  res.writeHead(status, { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store', 'x-content-type-options': 'nosniff' });
+  res.writeHead(status, { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store', 'x-content-type-options': 'nosniff', ...(status === 413 ? { connection: 'close' } : {}) });
   res.end(s);
 }
 
@@ -53,9 +53,12 @@ async function readJson(req: IncomingMessage, max: number): Promise<unknown> {
   let n = 0;
   for await (const c of req) {
     n += (c as Buffer).length;
-    if (n > max) throw new HttpError(413, `body over ${max} bytes`);
+    // Over the cap: stop keeping data but keep draining (bounded) so the client sees a clean 413 instead of a
+    // connection reset mid-upload; past 16x the cap, drop the connection.
+    if (n > max) { if (n > max * 16) { req.destroy(); break; } continue; }
     chunks.push(c as Buffer);
   }
+  if (n > max) throw new HttpError(413, `body over ${max} bytes`);
   try { return JSON.parse(Buffer.concat(chunks).toString('utf8')); } catch { throw new HttpError(400, 'invalid JSON'); }
 }
 

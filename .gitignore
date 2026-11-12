@@ -19,3 +19,4 @@ var/
 test-results/
 playwright-report/
 evidence/tmp/
+.claude/

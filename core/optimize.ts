@@ -5,7 +5,8 @@
 //     same span. `-0` is preserved (folding computes with the same JS operations the VM uses).
 //   * dce removes unreachable blocks, unused results of operations that can neither fault nor have effects,
 //     and stores to slots that are never loaded. It never removes a faulting or effectful instruction.
-//   * cse (local value numbering) reuses an earlier identical pure computation in the same block. Reusing a
+//   * cse (local value numbering) reuses an earlier identical pure computation in the same block, and
+//     propagates register copies (`mov %a`) everywhere (single-assignment registers make that global). Reusing a
 //     result of a faulting op is safe: if the first copy faulted, execution never reached the second.
 //     Operands of commutative ops (add, mul, eq, ne) are put in a canonical order first.
 //   * BAD_cse_commute_all is the deliberately wrong variant for the fault lab: it also treats sub, div, mod
@@ -198,6 +199,13 @@ function cse(f: IRFunction, changes: Change[], bad: boolean) {
         }
         loads.set(i.meta.slot!, i.dst!);
         kept.push(i);
+        continue;
+      }
+      // Copy propagation: registers are single-assignment and `mov` cannot fault, so every use of a copy can
+      // read the original register instead.
+      if (i.op === 'mov' && i.args[0].k === 'r' && i.dst !== null) {
+        substitute(f, i.dst, i.args[0]);
+        changes.push({ pass, fn: f.name, kind: 'reused', instr: i.id, detail: `#${i.id} copy %${i.dst} → %${i.args[0].id}${i.meta.binding ? ` (let ${i.meta.binding})` : ''}` });
         continue;
       }
       if (i.dst === null || !okKind(i.op)) { kept.push(i); continue; }

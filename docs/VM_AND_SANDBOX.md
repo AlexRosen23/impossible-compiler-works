@@ -1,0 +1,250 @@
+# Bytecode, Virtual Machine and Sandbox
+
+Version: `folio-bc/0.1` (`BYTECODE_VERSION`). Implementation: `core/bytecode.ts` (opcodes, code generator,
+serialization, loader, verifier, disassembler), `core/vm.ts` (the VM), `core/ops.ts` (operator semantics shared
+with constant folding), `core/scene.ts` (the output device).
+
+## 1. Bytecode format
+
+A `BCModule` is plain JSON:
+
+| Field | Content |
+|---|---|
+| `format` | `"folio-bc"` |
+| `version` | `"folio-bc/0.1"` |
+| `scene` | title, width, height, frames, background |
+| `data` | dataset names and types (indexed by `GLOBAL`) |
+| `consts` | constant pool, JSON-encoded values (`{color}`, `{point}`, `{list}` or a JSON scalar) |
+| `functions` | one `BCFunction` per IR function |
+| `main` | index of the scene function |
+
+A `BCFunction` has `name`, `nparams`, `nregs`, `nslots`, `slotNames`, `code`, and two debug tables:
+
+- `code` is a flat array of `[opcode, a, b]` triples; the program counter counts triples.
+- `spans[pc]` is `[start, end, line, col]` of the source construct that produced the instruction.
+- `ir[pc]` is the IR instruction id (`-1` for terminator glue).
+
+Each VM frame has registers (`nregs`), slots (`nslots`) and an operand stack. Registers hold IR register values;
+slots hold `var`s, loop state, parameters and, in the scene function, `time` (slot 0) and `frame` (slot 1).
+
+### 1.1 Code generation
+
+For each IR instruction the generator pushes the operands (`LOADR` for a register, `CONST` for a constant),
+emits the operation, then `STORER` into the destination register if there is one. Terminators: `jmp` to the
+next block in layout order is omitted; `br c, T, F` becomes push `c`, `JMPF F`, then `JMP T` unless `T` is the
+next block; `ret v` becomes push `v`, `RET`; `halt` becomes `HALT`. The operand stack is therefore empty between
+IR instructions, and its maximum depth is the largest operand count of a single instruction. There is no stack
+scheduling: every intermediate result goes through a register (visible as `STORER %n` / `LOADR %n` pairs in the
+disassembly below).
+
+### 1.2 Opcodes and stack effects
+
+`stackEffect(op, a)` in `core/bytecode.ts` is the single source for both the verifier and the disassembler.
+
+| Opcode | Operands | Pops | Pushes | Effect |
+|---|---|---|---|---|
+| `CONST` | a = constant index | 0 | 1 | push `consts[a]` |
+| `LOADR` | a = register | 0 | 1 | push register |
+| `STORER` | a = register | 1 | 0 | pop into register |
+| `LOADS` | a = slot | 0 | 1 | push slot |
+| `STORES` | a = slot | 1 | 0 | pop into slot |
+| `GLOBAL` | a = dataset index | 0 | 1 | push dataset |
+| `ADD` `SUB` `MUL` `DIV` `MOD` | | 2 | 1 | arithmetic; `R001` if not finite |
+| `CONCAT` | | 2 | 1 | string concatenation; `R009` if too long |
+| `LT` `LE` `GT` `GE` `EQ` `NE` | | 2 | 1 | comparison / structural equality |
+| `INDEX` | | 2 | 1 | list index; `R002` |
+| `NEG` `NOT` | | 1 | 1 | |
+| `FIELD` | a = field index (`x y r g b a`) | 1 | 1 | |
+| `LEN` | | 1 | 1 | list length |
+| `CALLB` | a = built-in index, b = argc | b | 1 | call a vetted built-in |
+| `CALLF` | a = function index, b = argc | b | 1 (on return) | push a new VM frame; arguments go to slots `0 .. b-1` |
+| `LIST` | a = item count | a | 1 | build an immutable list |
+| `DRAW` | a = primitive index | parameter count of the primitive | 0 | append a draw command |
+| `GPUSH` | | 4 | 0 | push a group transform |
+| `GPOP` | | 0 | 0 | pop a group transform |
+| `ASSERT` | a = message constant or -1 | 1 | 0 | `R003` if false |
+| `TICK` | | 0 | 0 | count one loop iteration; `R004` |
+| `RANGECHK` | | 2 | 0 | `R008` if a bound is not a whole number |
+| `JMP` | a = target pc | 0 | 0 | |
+| `JMPF` | a = target pc | 1 | 0 | jump if the popped value is false |
+| `RET` | | 1 | 0 | return the popped value to the caller's stack |
+| `HALT` | | 0 | 0 | end of the scene frame |
+
+Disassembly excerpt (real output of `node scripts/folio.ts examples/04-spiral-garden.folio --opt --bc`),
+function `golden`, which computes `i * 137.508 * PI / 180`:
+
+```
+golden:
+     0  LOADS $0 (i)                         -0 +1  line 3
+     1  STORER %0                            -1 +0  line 3
+     2  LOADR %0                             -0 +1  line 3
+     3  CONST 137.508                        -0 +1  line 3
+     4  MUL                                  -2 +1  line 3
+     5  STORER %1                            -1 +0  line 3
+     6  LOADR %1                             -0 +1  line 3
+     7  CONST 3.141592653589793              -0 +1  line 3
+     8  MUL                                  -2 +1  line 3
+     9  STORER %2                            -1 +0  line 3
+    10  LOADR %2                             -0 +1  line 3
+    11  CONST 180                            -0 +1  line 3
+    12  DIV                                  -2 +1  line 3
+    13  STORER %3                            -1 +0  line 3
+    14  LOADR %3                             -0 +1  line 3
+    15  RET                                  -1 +0  line 3
+```
+
+and the loop back-edge of the scene:
+
+```
+    72  DRAW circle                          -6 +0  line 18
+    73  LOADR %4                             -0 +1  line 15
+    74  CONST 1                              -0 +1  line 15
+    75  ADD                                  -2 +1  line 15
+    76  STORER %25                           -1 +0  line 15
+    77  LOADR %25                            -0 +1  line 15
+    78  STORES $2 (i)                        -1 +0  line 15
+    79  JMP → 4                              -0 +0  line 15
+    80  HALT                                 -0 +0  line 13
+```
+
+## 2. Serialization and content hash
+
+`serialize(m)` returns the module plus `hash = SHA-256(canonicalJson(module without hash))`. Canonical JSON sorts
+object keys, writes no whitespace and writes `-0` as `0`; it refuses non-finite numbers.
+
+`loadBytecode(json, limits)` treats its input as untrusted and checks, in order:
+
+1. it is an object with `format: "folio-bc"`;
+2. `version` equals the VM's `BYTECODE_VERSION`;
+3. the hash recomputed over the content equals the stored `hash` (a mismatch means the bytecode was modified
+   after it was produced);
+4. `verifyBytecode` finds no structural problem.
+
+Only then is the module returned. The hash detects accidental or naive edits; it is not a signature (anyone can
+recompute it after editing), which is why structural verification follows and why `tests/backend.test.ts`
+re-signs a broken module and confirms the verifier still rejects it.
+
+## 3. Bytecode verifier (`verifyBytecode`)
+
+Module checks: `functions` and `consts` are arrays; `main` is a valid index; every constant decodes.
+
+Per function:
+
+- `code` length is a multiple of 3; `spans` and `ir` have one entry per instruction;
+- `nparams <= nslots`; the scene function has at least 2 slots (`time`, `frame`);
+- an abstract interpretation over the control-flow graph, starting at pc 0 with stack depth 0, visits every
+  reachable instruction and checks:
+  - control never runs past the end of the code;
+  - every instruction is reached with one consistent stack depth;
+  - the opcode exists;
+  - operands are in range: constant index, register, slot, dataset index, built-in index with the exact
+    argument count, function index (not the scene) with the exact argument count, `LIST` size at most
+    `maxListLiteral`, field index, primitive index, `ASSERT` message is -1 or a string constant, jump targets are
+    integers inside the function;
+  - no stack underflow, and depth never exceeds `maxStack` (1,024);
+  - `RET` only outside the scene function and with exactly one value on the stack;
+  - `HALT` with an empty stack.
+
+Whole-module checks: total instruction count at most `maxBytecodeInstrs` (200,000), and the `CALLF` call graph
+is acyclic.
+
+The verifier is structural, not a type checker. It does not check that a register is written before it is read
+(registers start as `0`), or that operand values have the types an opcode expects. Those properties hold for
+compiler output because the checker and lowering guarantee them. Bytecode from outside is never executed by the
+code in `core/` and `server/`: `reproduce` and `/api/import` only load and verify a supplied bytecode artifact and
+compare its hash; they execute bytecode recompiled from the receipt's source.
+
+Negative tests in `tests/backend.test.ts`: unknown opcode, out-of-range jump, out-of-range constant, an `ADD`
+replacing a `CONST` (stack discipline), a truncated function (control runs past the end), an injected recursive
+`CALLF`, a tampered constant (hash mismatch), a wrong version, a non-bytecode object, and a re-signed broken
+module.
+
+## 4. VM design (`core/vm.ts`)
+
+- **One `VMRun` per frame.** `runVM` creates a fresh machine for each frame index, so no state carries between
+  frames. The scene frame's registers and slots start at `0`, then slot 0 is set to `time = frame / frames` and
+  slot 1 to `frame`.
+- **Explicit frame stack.** `CALLF` pushes a `CallFrame { fn, pc, regs, slots, stack }`; `RET` pops it and pushes
+  the result onto the caller's stack. The VM never recurses on the host stack.
+- **Dispatch loop.** `run(max, stop?)` executes up to `max` instructions. Before each instruction it checks the
+  optional `stop` predicate (used by the debugger), increments the step count and faults `R006` if it exceeds
+  `fuelPerFrame`, updates a rolling FNV-1a fingerprint over `(fn, pc)`, then executes the opcode.
+- **Fault handling.** Built-ins, operators and the scene builder signal faults by throwing `FaultSignal`; the VM
+  catches it, sets the pc back to the faulting instruction, and records a `FolioFault` with the instruction's
+  source span. Any other exception is not caught (it would be a VM bug).
+- **Limits.** `TICK` counts iterations (`R004`), `CALLF` checks call depth (`R007` when 64 frames are already
+  active), the operand stack is checked after every instruction (`R007` above 1,024), and fuel is checked before
+  every instruction (`R006`).
+- **Result.** `runVM` returns the scene, the first fault (code, message, span, frame), per-frame step counts and
+  a `traceHash`: SHA-256 over the per-frame step counts, per-frame fingerprints and the fault code and frame. Two
+  runs with the same trace hash executed the same instruction sequence.
+- **Debugger support.** `snapshot()`/`restore()` copy the full machine state; `stateHash()` hashes it canonically
+  (frames, registers, slots, stacks, scene commands, counters, status, fingerprint, fault). See
+  `DEBUGGER_DESIGN.md`.
+
+The same `VMRun` class serves batch runs and the step debugger.
+
+## 5. Host access: what a FOLIO program can reach
+
+The VM's imports are the bytecode tables, `ops.ts`, the primitive table, `SceneBuilder`, scene snapshots, SHA-256
+and the value helpers. A running program can reach exactly:
+
+1. the vetted pure built-ins in `core/builtins.ts` (through `evalPure('callb', ...)`), which use only `Math`
+   functions and string formatting;
+2. the scene builder, which appends validated, quantized draw commands to an in-memory array;
+3. the read-only datasets the host bound before the run.
+
+There is no file system, network, clock, random source, `eval`, `Function` constructor, dynamic import or
+host-object access in `core/` (a search of `core/`, `server/` and `scripts/` for `eval(`, `new Function`,
+`child_process`, `fetch(`, `require(` and `import(` finds none). Fixture names are identifiers resolved against
+a table the host passes in, never paths.
+
+## 6. What the VM and the reference interpreter share
+
+The reference interpreter (`core/interpreter.ts`) is a tree-walking evaluator of the checked AST. Its value as an
+oracle depends on how much it shares with the compiled path. Exactly:
+
+| Component | VM path | Reference interpreter | Shared? |
+|---|---|---|---|
+| Lexer, parser, checker | yes | yes (it runs the checked AST) | shared front end |
+| Lowering, IR, optimizer, code generator, bytecode verifier | yes | no | independent |
+| Operator semantics (`+ - * / %`, comparisons, `not`, index, field, concat) | `core/ops.ts` (also used by constant folding) | implemented separately in `interpreter.ts` | independent |
+| Short-circuit, loops, range check, iteration counting, calls, returns | bytecode + VM | `interpreter.ts` | independent |
+| Value representation, `finite`, `valueEquals`, `color()` | `core/values.ts` | `core/values.ts` | shared |
+| Built-in function implementations and their result checks | `core/builtins.ts` | `core/builtins.ts` | shared |
+| Primitive signatures and defaults | `core/primitives.ts` | `core/primitives.ts` | shared |
+| Output device: draw limit, negative sizes, group depth, quantization | `core/scene.ts` | `core/scene.ts` | shared |
+| Fuel (`R006`) and call depth (`R007`) | VM only | none | not modelled in the oracle |
+
+Consequences, stated plainly:
+
+- Differential testing checks the lowering, the optimizer, the code generator and the VM against an independent
+  evaluator. It cannot detect a bug in the shared front end, in a built-in, in the primitive table or in the scene
+  builder, because both sides would inherit it. Those modules have little direct test coverage: there are no
+  dedicated unit tests for `builtins.ts` or `primitives.ts`; `scene.ts` is covered through `validateScene` and
+  through every example's expected agreement. (The header comment of `interpreter.ts` says these modules "are
+  covered by their own unit tests"; the test suite does not currently contain such tests.)
+- Constant folding uses the VM's own operator semantics (`ops.ts`), which makes folded results identical to run
+  time results by construction; the interpreter is what checks that both are right.
+- Where VM-only limits trip (`R006`, `R007`), the two executors disagree by design. See
+  `FOLIO_LANGUAGE_SPEC.md` section 12 and `LIMITATIONS.md`.
+
+## 7. Known defect: `-0` constants
+
+The code generator interns constants by their canonical JSON, and canonical JSON writes `-0` as `0`. A function
+whose optimized IR contains both a `0` and a `-0` constant therefore gets one pool entry for both, whichever was
+interned first. Without optimization `-0` is only ever produced at run time (by `NEG` or `MUL`), so the issue
+needs constant folding to create a `-0` constant. A probe program written while preparing these documents shows
+an observable difference through `atan2`:
+
+```
+scene "s" { let x = -0 * frame; let a = atan2(0, x + 0); let b = atan2(0, x + -0);
+            text(x: 10, y: 10, value: str(a) + " " + str(b)); }
+```
+
+The reference interpreter and the unoptimized VM draw `0 3.141592653589793`; with `constfold` (alone or with the
+other passes) the VM draws `-3.141592653589793 -3.141592653589793`, and VM and reference diverge. The CSE value
+key (`optimize.ts`) uses the same canonical encoding for constants and has the same 0/-0 conflation. JSON
+serialization of the bytecode also writes `-0` as `0`. The existing test "preserves -0" passes because its
+program has no `0` constant next to the `-0` one and its observable result is a fault in both executors. Not fixed
+in this version.

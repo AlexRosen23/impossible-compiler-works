@@ -8,6 +8,7 @@
   "scripts": {
     "dev": "NODE_NO_WARNINGS=1 node server/index.ts & vite --config web/vite.config.ts",
     "server": "NODE_NO_WARNINGS=1 node server/index.ts",
+    "start": "npm run build && PT_STATIC=1 NODE_NO_WARNINGS=1 node server/index.ts",
     "web": "vite --config web/vite.config.ts",
     "build": "vite build --config web/vite.config.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",

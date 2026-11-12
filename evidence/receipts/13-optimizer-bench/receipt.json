@@ -1,0 +1,53 @@
+{
+  "format": "paper-tiger-receipt/0.1",
+  "versions": {
+    "compiler": "0.1.0",
+    "grammar": "folio-grammar/0.1",
+    "ir": "folio-ir/0.1",
+    "bytecode": "folio-bc/0.1",
+    "scene": "folio-scene/0.1"
+  },
+  "project": "13-optimizer-bench.folio",
+  "files": [
+    {
+      "name": "main.folio",
+      "sha256": "1cfdd37aa803e51e2ebb1c15e4ce788e8271a0b74bd8242bbb1823a7a0197588"
+    }
+  ],
+  "source": "// Built for the Optimization Duel: constants to fold, a dead debug branch, repeated subexpressions.\nscene \"Optimizer Bench\" size 800 x 480 frames 30 background #101013 {\n  let debug = false;\n  let unit = 360 / 24;\n  let scale = 2 * 3 + 4;\n  repeat i in 0..400 {\n    let a = (i * unit + time * 360) * PI / 180;  // the same angle is recomputed below on purpose (CSE)\n    let r = 60 + (i % 40) * scale / 2;\n    if debug {\n      text(x: 10, y: 10, value: \"debug \" + str(i), size: 9);\n    }\n    circle(\n      x: 400 + cos(a) * r,\n      y: 240 + sin((i * unit + time * 360) * PI / 180) * r * 0.55,\n      radius: 2 + (i % 5),\n      fill: hsl(i * unit, 0.5, 0.6)\n    );\n  }\n}\n",
+  "sourceHash": "1cfdd37aa803e51e2ebb1c15e4ce788e8271a0b74bd8242bbb1823a7a0197588",
+  "fixtures": {},
+  "fixtureHash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "optimizations": [
+    "constfold",
+    "dce",
+    "cse"
+  ],
+  "seed": null,
+  "limits": {
+    "fuelPerFrame": 20000000,
+    "maxIterationsPerFrame": 100000,
+    "maxDrawsPerFrame": 10000,
+    "maxStack": 1024,
+    "maxCallDepth": 64
+  },
+  "bytecodeHash": "de3aaabc947c7983140178f353987da1acc0c106fadf60f8f84e4c4635b73161",
+  "traceHash": "00c20f0b45cdac393c8e91671335057f717e941698b161d4dcf9c57e9c12e847",
+  "sceneHash": "722eb8b18e7ab206d7a5500f1ff9bf26910b274efbc6517f3f3eb0886bd0da3d",
+  "fault": null,
+  "oracle": {
+    "engine": "reference-interpreter",
+    "sceneHash": "722eb8b18e7ab206d7a5500f1ff9bf26910b274efbc6517f3f3eb0886bd0da3d",
+    "agrees": true,
+    "status": "agree"
+  },
+  "warnings": [],
+  "timingMs": {
+    "compile": 7.445,
+    "vm": 51.474,
+    "reference": 25.567
+  },
+  "commit": "21123848848e6b5d7b098a15dcad66afdc587177",
+  "createdAt": "2026-11-12T16:49:28.442Z",
+  "digest": "b8ad68e96e7209124301ed0f529376e9498b0ec335dcdd1bdeeb9e8f749b69b0"
+}

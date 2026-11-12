@@ -1,0 +1,9 @@
+// expect: C003 @ 7:11
+fn scale(v: Number, k: Number) -> Number {
+  return v * k;
+}
+
+scene "Wrong Arity" {
+  let s = scale(4);
+  circle(x: s, y: s, radius: 3);
+}

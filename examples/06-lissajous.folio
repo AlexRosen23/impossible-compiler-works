@@ -1,0 +1,17 @@
+// A time-based visual story: a Lissajous figure drawn up to the current time.
+scene "Lissajous Press" size 800 x 480 frames 90 background #101013 {
+  let steps = 240;
+  let shown = floor(time * steps) + 1;
+  repeat s in 1..shown {
+    let a = s / steps * TAU;
+    let b = (s - 1) / steps * TAU;
+    line(
+      from: point(400 + sin(3 * b) * 300, 240 + sin(2 * b) * 180),
+      to: point(400 + sin(3 * a) * 300, 240 + sin(2 * a) * 180),
+      stroke: mix(#98abb9, #b2534f, s / steps),
+      strokeWidth: 2
+    );
+  }
+  let a = shown / steps * TAU;
+  circle(x: 400 + sin(3 * a) * 300, y: 240 + sin(2 * a) * 180, radius: 6, fill: #f0eadd);
+}

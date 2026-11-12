@@ -1,0 +1,7 @@
+// expect-fault: R003 @ 5:3
+scene "Assertion Failure" size 400 x 600 {
+  let w = WIDTH;
+  let h = HEIGHT;
+  assert w > h, "this poster expects landscape";
+  rect(x: 0, y: 0, width: w, height: h);
+}

@@ -1,0 +1,17 @@
+// The prompt's sample program, accepted as written.
+scene "Rainfall Almanac" {
+  let width: Number = 800;
+  let height: Number = 480;
+  let hue: Color = rgb(92, 160, 194);
+
+  repeat i in 0..24 {
+    circle(
+      x: 20 + i * 30,
+      y: 240 + sin(i * 0.4) * 80,
+      radius: 5 + i * 0.2,
+      fill: hue
+    );
+  }
+
+  assert width > height;
+}

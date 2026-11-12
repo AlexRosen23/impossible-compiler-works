@@ -1,0 +1,21 @@
+// Closed paths with computed vertices and a colour fixture.
+data inks: List<Color> from "press-inks";
+
+scene "Ink Wheel" size 800 x 480 background #101013 {
+  let cx = 400;
+  let cy = 240;
+  let wedges = 30;
+  repeat w in 0..wedges {
+    let a0 = w / wedges * TAU;
+    let a1 = (w + 1) / wedges * TAU;
+    let r = 120 + (w % 3) * 40;
+    path(
+      points: [point(cx, cy), point(cx + cos(a0) * r, cy + sin(a0) * r), point(cx + cos(a1) * r, cy + sin(a1) * r)],
+      fill: inks[w % len(inks)],
+      stroke: #101013,
+      strokeWidth: 2,
+      closed: true
+    );
+  }
+  circle(x: cx, y: cy, radius: 46, fill: #101013, stroke: #bb9c67, strokeWidth: 3);
+}

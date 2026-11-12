@@ -43,11 +43,11 @@
   },
   "warnings": [],
   "timingMs": {
-    "compile": 12.261,
-    "vm": 78.673,
-    "reference": 44.245
+    "compile": 7.445,
+    "vm": 51.474,
+    "reference": 25.567
   },
-  "commit": "9f5ffd9c17393b3b60f8e689c4469612c9a0725c",
-  "createdAt": "2026-11-12T16:45:05.551Z",
-  "digest": "5b1d7fd249c8cec2daa39dbddc7d73b04b3c030c53966fb640e19cb1d98690d5"
+  "commit": "21123848848e6b5d7b098a15dcad66afdc587177",
+  "createdAt": "2026-11-12T16:49:28.442Z",
+  "digest": "b8ad68e96e7209124301ed0f529376e9498b0ec335dcdd1bdeeb9e8f749b69b0"
 }

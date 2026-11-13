@@ -1,65 +1,102 @@
-# THE IMPOSSIBLE WITNESS
+# THE IMPOSSIBLE COMPILER WORKS
 
-**Can this system ever reach a state that should be impossible?**
+**Write it, compile it, prove nothing impossible can happen.**
 
-A visual formal-methods laboratory for small concurrent systems. Write a finite model; a real
-explicit-state model checker explores every reachable state and returns the **shortest
-schedule** to a bad state — a witness you can step through, replay with an independent
-evaluator, cross-check with **TLC**, and seal in a tamper-evident receipt — or reports that no
-violation exists *in that bounded model*, or honestly says `INCOMPLETE`.
+*Formerly Paper Tiger Compiler Works and The Impossible Witness.*
 
-![The Possibility Chamber showing the lost-update witness](evidence/screenshots/01-counter-race-witness.png)
+A laboratory with two wings that check each other:
 
-> Evidence covers only the finite model and its stated assumptions. It is never a proof about
-> production software. See [docs/LIMITATIONS.md](docs/LIMITATIONS.md).
+- **Compiler wing.** FOLIO, a small typed diagram language, with a real compiler (lexer → parser → type checker →
+  SSA-style IR → optimizer → bytecode), a bytecode VM, an independent reference interpreter used as an oracle, a
+  differential fuzzer and fault lab, and an eight-mode browser IDE.
+- **Witness wing.** An explicit-state model checker for finite concurrent models: breadth-first search with
+  shortest counterexamples, deadlock detection, fairness-aware liveness, independent trace replay, TLC cross-checks
+  and tamper-evident receipts.
+- **Between them.** The Witness wing model-checks the Compiler wing's optimizer: every order and repetition of the
+  optimization passes, checked against the reference interpreter
+  ([docs/CROSS_FEATURE_PASS_ORDERS.md](docs/CROSS_FEATURE_PASS_ORDERS.md)).
 
-## Quick start
+![Both wings under one shell: the Witness wing](evidence/screenshots/icw-witness-wing.png)
+
+> **Honest scope.** Verdicts cover a finite model, or one program with its fixtures and limits. They are never a
+> proof about production software. See [docs/LIMITATIONS.md](docs/LIMITATIONS.md) and
+> [wings/compiler/docs/LIMITATIONS.md](wings/compiler/docs/LIMITATIONS.md).
+
+## Quick start (about 60 seconds)
+
+You need Node 24 or newer. Docker or Java is optional (only for the TLC cross-check).
 
 ```bash
-scripts/setup      # npm ci + pinned TLC v1.7.4 (checksum-verified)
-scripts/doctor     # what this machine can do (TLC via Docker or Java?)
-scripts/dev        # API 127.0.0.1:5721 + UI http://127.0.0.1:5720
+git clone <this repository> && cd impossible-witness
+scripts/setup      # npm ci, plus the pinned TLC v1.7.4 jar (HTTPS, SHA-256 checked; skip with WITNESS_SKIP_TLC=1)
+scripts/dev        # API on 127.0.0.1:5721, UI on http://127.0.0.1:5720
 ```
 
-Then click **Start the 90-second journey**. No cloud services or API keys are used. Without
-Java/Docker everything works except TLC, which is labelled `INTERNAL_ONLY`.
+Open <http://127.0.0.1:5720/> for the Witness wing (click **Start the 90-second journey**) and
+<http://127.0.0.1:5720/compiler/> for the Compiler wing. Everything runs on your machine, bound to `127.0.0.1`.
+There are no accounts, no cloud services and no API keys. Without Java or Docker, everything works except TLC,
+which is then labelled `INTERNAL_ONLY`.
 
-Command line:
+From a terminal:
 
 ```bash
-node src/cli/witness.ts check examples/counter-race.witness --receipt out/r.json
-node src/cli/witness.ts verify out/r.json
-node src/cli/witness.ts tlc examples/starvation-weak.witness
-scripts/demo        # the whole vertical slice in a terminal
+node src/cli/witness.ts check examples/counter-race.witness --receipt out/r.json   # find the lost update
+node src/cli/witness.ts verify out/r.json                                          # re-check the receipt
+npm run folio -- wings/compiler/examples/03-orrery.folio                           # compile and run FOLIO
+npm run pass-check -- fault-lab-commute --mutant                                   # the cross-feature
 ```
 
-## What's inside
+## What is verified, and how
 
-- **WML**, a typed modelling language with no way to run code ([docs/MODEL_LANGUAGE.md](docs/MODEL_LANGUAGE.md))
-- **BFS explorer** with exact canonical states, shortest witnesses, deadlock vs intended
-  termination, domain checks and hard resource caps ([docs/SEARCH_ALGORITHMS.md](docs/SEARCH_ALGORITHMS.md))
-- **Liveness** (`eventually`, `leadsto`) under explicit weak/strong fairness with TLA+
-  semantics ([docs/LIVENESS_AND_FAIRNESS.md](docs/LIVENESS_AND_FAIRNESS.md))
-- **Independent replay** of every witness, **mutation testing** of models
-- **TLC cross-check**: 150/150 comparisons agree across 34 models ([evidence/tlc-crosscheck.md](evidence/tlc-crosscheck.md))
-- **Receipts** verified by digest, replay and full re-run ([docs/REPRODUCIBILITY.md](docs/REPRODUCIBILITY.md))
-- **Eight rooms** in the UI: Possibility Chamber, Specification Desk, Interleaving Theater,
-  Invariant Hall, Temporal Observatory, Witness Archive, Model Bazaar, Proof Observatory
-  ([docs/PRODUCT.md](docs/PRODUCT.md))
-- 17 scenarios / 35 executable models in [examples/](examples/)
+| Claim | How it is checked | Where |
+|---|---|---|
+| The optimized program draws exactly what the unoptimized one does | every run compares the VM's scene hash with the independent reference interpreter's; a differential fuzzer ran 4,000 programs with 0 divergences | [wings/compiler/evidence/fuzz-summary.json](wings/compiler/evidence/fuzz-summary.json) |
+| No order or repetition of the safe passes changes a shipped program's output | the Witness wing searches the pass-order graph of all 14 shipped seeds; the deliberately wrong pass is caught with a 1-step counterexample | [evidence/bridge/](evidence/bridge/) |
+| The model checker agrees with TLC | 150/150 comparisons agree across 34 models (verdicts, state counts, lassos re-derived by the independent replay evaluator) | [evidence/tlc-crosscheck.md](evidence/tlc-crosscheck.md) |
+| Every counterexample is real | each trace is replayed by a separate evaluator before it is shown | [docs/REPRODUCIBILITY.md](docs/REPRODUCIBILITY.md) |
+| Results are reproducible | receipts pin source, versions and hashes; `scripts/reproduce` re-runs every shipped receipt of both wings | [evidence/](evidence/), [wings/compiler/evidence/receipts/](wings/compiler/evidence/receipts/) |
 
 ## Tests
 
 ```bash
-scripts/test           # typecheck + 110 unit/integration tests
-scripts/test --e2e     # + 15 Playwright browser tests (6 acceptance journeys, a11y, mobile, XSS)
-scripts/test --tlc     # + the live TLC corpus
-scripts/reproduce      # re-verify every receipt in evidence/
+scripts/test           # typecheck, lint, Witness (112), Compiler (126) and bridge (11) tests, all receipts
+scripts/test --e2e     # + Playwright journeys for both wings (27), on 127.0.0.1:5726/5727
+scripts/test --tlc     # + the live TLC corpus (Docker or Java)
+scripts/test --fuzz    # + 2,000 differential fuzz programs
 ```
 
-Status of every feature: [docs/BUILD_LEDGER.md](docs/BUILD_LEDGER.md).
-More: [ARCHITECTURE](docs/ARCHITECTURE.md) · [SECURITY](docs/SECURITY.md) ·
-[TLC_COMPATIBILITY](docs/TLC_COMPATIBILITY.md) · [DESIGN_SYSTEM](docs/DESIGN_SYSTEM.md) ·
-[RECRUITER_DEMO](docs/RECRUITER_DEMO.md) · [CONSTELLATION_INTEGRATION](docs/CONSTELLATION_INTEGRATION.md).
+## Layout
 
-Private repository. Built with Node 24, TypeScript, React, Vite, CodeMirror 6 and TLC (MIT).
+```
+src/, web/, examples/, e2e/   Witness wing (model checker, API server, the shared Vite app and shell)
+wings/compiler/              Compiler wing (FOLIO language, compiler, VM, oracle, fuzzer, IDE, its docs)
+bridge/                      the cross-feature: optimizer pass orders checked by the Witness engine
+evidence/                    receipts, TLC corpus, screenshots, benchmarks
+```
+
+One API process serves both wings (the Compiler wing's API is mounted at `/engine/compiler`), and one Vite app
+serves both UIs. Architecture: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and
+[wings/compiler/docs/ARCHITECTURE.md](wings/compiler/docs/ARCHITECTURE.md).
+
+## Limits
+
+- Models must be finite and small. Search stops at explicit caps and says `INCOMPLETE`, never "safe".
+- FOLIO is a teaching-size language. The VM is sandboxed by construction (no I/O, fuel limits), not by an OS
+  sandbox.
+- The pass-order check covers the shipped seeds, with their fixtures and default limits, and the three
+  optimization passes that exist. It is not a proof that the optimizer is correct for all programs.
+- The server has no authentication. It is meant for one person on their own machine, bound to loopback.
+
+## Security
+
+See [SECURITY.md](SECURITY.md) for how to report a problem, and [docs/SECURITY.md](docs/SECURITY.md) for the
+threat model, the public-release red-team findings and their fixes.
+
+## How this was built
+
+AI coding agents wrote most of the code under my direction and review. Every claim above links to the evidence
+or test that backs it.
+
+## License
+
+MIT, see [LICENSE](LICENSE). Third-party components and their licences: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

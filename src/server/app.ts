@@ -8,16 +8,28 @@ import { spawnSync } from 'node:child_process';
 import { Store, HttpError, type RunRow, type RunKind } from './db.ts';
 import { compileSource } from '../core/model/compile.ts';
 import { clampBounds, ENGINE_NAME, ENGINE_VERSION } from '../core/engine/explore.ts';
-import { verifyReceipt, MAX_RECEIPT_BYTES } from '../core/receipt/receipt.ts';
+import { verifyReceipt, MAX_RECEIPT_BYTES, gitInfo } from '../core/receipt/receipt.ts';
 import { exportTla } from '../core/tla/export.ts';
 import { tlcAvailability, TLC_PIN } from '../core/tla/tlc.ts';
 import { lineDiff } from './diff.ts';
+import { jsonDepth, MAX_JSON_DEPTH } from './json-depth.ts';
+export { jsonDepth, MAX_JSON_DEPTH };
+import { createHandler as createCompilerHandler } from '../../wings/compiler/server/app.ts';
+import { openDb as openCompilerDb } from '../../wings/compiler/server/db.ts';
+import { CSP as COMPILER_CSP } from '../../wings/compiler/server/static.ts';
+import { COMPILER_VERSION } from '../../wings/compiler/core/version.ts';
+import { checkPassOrders, SAFE_ALPHABET, MUTANT_ALPHABET } from '../../bridge/pass-orders.ts';
 import { renderReport } from './report.ts';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 export const ROOT = path.resolve(HERE, '../..');
 export const SERVICE = 'impossible-witness';
-export const VERSION = '0.1.0';
+export const VERSION = '0.2.0';
+export const NAME = 'THE IMPOSSIBLE COMPILER WORKS';
+export const FORMERLY = ['Paper Tiger Compiler Works', 'The Impossible Witness'];
+/** The Compiler wing's API (formerly the PAPER TIGER server on 5580) is mounted unchanged under this prefix. */
+export const COMPILER_MOUNT = '/engine/compiler';
+export const COMPILER_ROOT = path.join(ROOT, 'wings', 'compiler');
 const MAX_BODY = 512 * 1024;
 const JOB_WALL_MS = 10 * 60_000;
 
@@ -26,6 +38,10 @@ export interface AppOptions {
   concurrency?: number;
   staticDir?: string | null;
   seedExamples?: boolean;
+  /** SQLite file for the Compiler wing (projects, versions, runs). Default: next to dbFile. */
+  compilerDbFile?: string;
+  /** Commit recorded in Compiler wing receipts; default: `git rev-parse HEAD` (null outside a checkout). */
+  commit?: string | null;
 }
 
 /** Public-safe text: printable, no markup characters, bounded length. */
@@ -43,6 +59,11 @@ export function createApp(opts: AppOptions) {
   const progress = new Map<string, unknown>();
   const concurrency = Math.max(1, Math.min(opts.concurrency ?? 1, 4));
   const catalog = JSON.parse(readFileSync(path.join(ROOT, 'examples/catalog.json'), 'utf8'));
+  const compilerDbFile = opts.compilerDbFile ?? path.join(path.dirname(opts.dbFile), path.basename(opts.dbFile).replace(/\.db$/, '') + '-compiler.sqlite');
+  const commit = opts.commit !== undefined ? opts.commit : (() => { const c = gitInfo(ROOT).commit; return c === 'unknown' ? null : c; })();
+  const bridgeCache = new Map<string, ReturnType<typeof checkPassOrders>>();
+  const compilerSeeds = new Set(readdirSync(path.join(COMPILER_ROOT, 'examples')).filter((f) => f.endsWith('.folio')).map((f) => f.replace(/\.folio$/, '')));
+  const compiler = createCompilerHandler({ db: openCompilerDb(compilerDbFile), root: COMPILER_ROOT, commit, startedAt: Date.now() });
 
   if (opts.seedExamples !== false) {
     for (const f of readdirSync(path.join(ROOT, 'examples')).filter((x) => x.endsWith('.witness')).sort()) {
@@ -140,7 +161,9 @@ export function createApp(opts: AppOptions) {
     });
     req.on('end', () => {
       if (!chunks.length) return resolve({});
-      try { resolve(JSON.parse(Buffer.concat(chunks).toString('utf8'))); } catch { reject(new HttpError(400, 'body is not valid JSON')); }
+      const text = Buffer.concat(chunks).toString('utf8');
+      if (jsonDepth(text) > MAX_JSON_DEPTH) return reject(new HttpError(400, `JSON nested deeper than ${MAX_JSON_DEPTH} levels`));
+      try { resolve(JSON.parse(text)); } catch { reject(new HttpError(400, 'body is not valid JSON')); }
     });
     req.on('error', reject);
   });
@@ -246,16 +269,19 @@ export function createApp(opts: AppOptions) {
   const serveStatic = (req: http.IncomingMessage, res: http.ServerResponse, pathname: string): boolean => {
     const dir = opts.staticDir;
     if (!dir || !existsSync(dir)) return false;
-    let rel = decodeURIComponent(pathname);
+    let rel: string;
+    try { rel = decodeURIComponent(pathname); } catch { return false; }
     if (rel.includes('\0')) return false;
-    if (rel === '/' || !path.extname(rel)) rel = '/index.html';
+    const compilerPage = rel === '/compiler' || rel.startsWith('/compiler/');
+    if (rel === '/' || !path.extname(rel)) rel = compilerPage ? '/compiler/index.html' : '/index.html';
     const file = path.resolve(dir, '.' + rel);
     if (!file.startsWith(path.resolve(dir) + path.sep) || !existsSync(file) || !statSync(file).isFile()) return false;
     const types: Record<string, string> = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.png': 'image/png', '.woff2': 'font/woff2', '.json': 'application/json' };
     res.writeHead(200, {
       'content-type': types[path.extname(file)] ?? 'application/octet-stream',
       'x-content-type-options': 'nosniff',
-      'content-security-policy': "default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'",
+      'referrer-policy': 'no-referrer',
+      'content-security-policy': compilerPage ? COMPILER_CSP : "default-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'",
     });
     createReadStream(file).pipe(res);
     void req;
@@ -272,11 +298,31 @@ export function createApp(opts: AppOptions) {
     const m = req.method ?? 'GET';
     let match: RegExpExecArray | null;
 
+    // Cross-site guard (same rule as the Compiler wing): browsers label every request with where it came from.
+    // API and contract paths answer only this origin's own pages and typed-in URLs; another site, or another local
+    // port, gets a 403 (not even a GET that would make the server work). Non-browser clients send no such header.
+    // Bodies must be declared JSON, so a cross-site "simple" text/plain POST can never be parsed as a command.
+    const apiPath = p.startsWith('/api/') || p === '/health' || p === '/capabilities' || p === '/runs' || p.startsWith('/runs/');
+    if (apiPath) {
+      const site = req.headers['sec-fetch-site'];
+      if (site !== undefined && site !== 'same-origin' && site !== 'none') return send(res, 403, { error: 'requests from other sites are refused' });
+      if (m !== 'GET' && m !== 'HEAD') {
+        const origin = req.headers.origin;
+        if (origin !== undefined && origin !== `http://${String(req.headers.host)}`) return send(res, 403, { error: 'requests from other origins are refused' });
+        const hasBody = Number(req.headers['content-length'] ?? 0) > 0 || req.headers['transfer-encoding'] !== undefined;
+        if (hasBody && !/^application\/json\s*(;|$)/i.test(String(req.headers['content-type'] ?? ''))) return send(res, 415, { error: 'send JSON with content-type: application/json' });
+      }
+    }
+
     // read-only contract
     if (m === 'GET' && p === '/health') {
       const last = store.runs(1)[0];
       return send(res, 200, {
-        status: 'ok', ok: true, project_id: SERVICE, service: SERVICE, version: VERSION, mode: 'bounded-model',
+        status: 'ok', ok: true, project_id: SERVICE, service: SERVICE, name: NAME, formerly: FORMERLY, version: VERSION, mode: 'bounded-model',
+        wings: {
+          witness: { status: 'ok', engine: ENGINE_NAME, engine_version: ENGINE_VERSION, ui: '/' },
+          compiler: { status: 'ok', compiler_version: COMPILER_VERSION, api: COMPILER_MOUNT, ui: '/compiler/' },
+        },
         uptime_s: Math.round((Date.now() - started) / 1000), queue: { active: active.size }, recovered, problems: [],
         last_run: last ? { run_id: last.id, kind: last.kind, status: STATUS_WORD[last.status] ?? last.status } : null,
       });
@@ -294,9 +340,33 @@ export function createApp(opts: AppOptions) {
       return send(res, 200, { schema_version: 1, project_id: SERVICE, run: publicRun(r) });
     }
 
+    // Compiler wing: the former PAPER TIGER API, unchanged, behind one prefix
+    if (p === COMPILER_MOUNT || p.startsWith(COMPILER_MOUNT + '/')) {
+      req.url = (req.url ?? '/').slice(COMPILER_MOUNT.length) || '/';
+      return compiler(req, res);
+    }
+
     if (!p.startsWith('/api/')) {
       if (m === 'GET' && serveStatic(req, res, p)) return;
       return send(res, 404, { error: 'not found' });
+    }
+
+    // cross-feature: model-check every optimizer pass order of a shipped FOLIO example (bridge/pass-orders.ts)
+    if (m === 'POST' && p === '/api/bridge/pass-orders') {
+      const body = (await readBody(req)) as Record<string, unknown>;
+      const seed = String(body.seed ?? '');
+      const alphabet = body.alphabet === 'mutant' ? 'mutant' : body.alphabet === 'safe' ? 'safe' : null;
+      if (!alphabet || !SLUG_RE.test(seed) || !compilerSeeds.has(seed)) return send(res, 400, { error: 'seed must be a shipped Compiler wing example and alphabet safe|mutant' });
+      const key = `${seed}:${alphabet}`;
+      const r = bridgeCache.get(key) ?? checkPassOrders(seed, alphabet === 'mutant' ? MUTANT_ALPHABET : SAFE_ALPHABET);
+      bridgeCache.set(key, r); // deterministic for a given checkout; at most 2 × shipped seeds entries
+      const slug = `pass-orders-${seed}-${alphabet}`.slice(0, 63);
+      const model = store.modelBySlug(slug) ?? store.createModel(slug, `Pass orders: ${seed} (${alphabet})`, 'user');
+      store.addRevision(model.id, r.wml, `generated by bridge/pass-orders.ts from ${seed}`);
+      return send(res, 200, {
+        seed, alphabet, slug, verdict: r.verdict, complete: r.abstraction.complete, programs: r.abstraction.states.length,
+        diverging: r.abstraction.states.filter((s) => s.label === 'diverge').length, shortestPassSequence: r.shortestPassSequence, receipt: r.receipt,
+      });
     }
 
     // app API
@@ -436,6 +506,7 @@ export function createApp(opts: AppOptions) {
       for (const w of active.values()) await w.terminate();
       await new Promise<void>((r) => server.close(() => r()));
       store.db.close();
+      await compiler.close();
     },
   };
 }

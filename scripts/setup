@@ -11,7 +11,10 @@ mkdir -p tools
 if [ ! -f "$JAR" ] || [ "$(shasum -a 256 "$JAR" | cut -d' ' -f1)" != "$PIN_SHA" ]; then
   if [ "${WITNESS_SKIP_TLC:-0}" = "1" ]; then echo "skipping TLC download (WITNESS_SKIP_TLC=1): the app runs INTERNAL_ONLY"; else
     echo "downloading TLC v1.7.4 (MIT licence, tlaplus/tlaplus) ..."
-    curl -fsSL --proto '=https' -o "$JAR.part" "$URL"
+    # HTTPS only (also on redirects), fail on HTTP errors, and never leave a partial file behind.
+    if ! curl -fsSL --proto '=https' --proto-redir '=https' --retry 2 --max-time 120 -o "$JAR.part" "$URL"; then
+      rm -f "$JAR.part"; echo "TLC download failed; nothing installed. The app still runs (INTERNAL_ONLY). Re-run scripts/setup to retry."; exit 1
+    fi
     GOT=$(shasum -a 256 "$JAR.part" | cut -d' ' -f1)
     if [ "$GOT" != "$PIN_SHA" ]; then rm -f "$JAR.part"; echo "checksum mismatch ($GOT); refusing to install"; exit 1; fi
     mv "$JAR.part" "$JAR"

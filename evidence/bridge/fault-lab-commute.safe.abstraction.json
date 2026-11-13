@@ -1,0 +1,132 @@
+{
+  "seed": "fault-lab-commute",
+  "sourceHash": "a3d46fff8bf777a91db843eeddf20ae177640b96c61b556bc035ebbc61755e07",
+  "alphabet": [
+    "constfold",
+    "cse",
+    "dce"
+  ],
+  "compilerVersion": "0.2.0",
+  "referenceSceneHash": "fd750730769cc5e0e94b65c0f9f56de3a5b2c705aae7515df0496ab87635bb9c",
+  "complete": true,
+  "states": [
+    {
+      "id": 0,
+      "irHash": "353022bccfe7dbf6693d7a05b47dd671aba74af70525e360264e75417b28417d",
+      "via": "unoptimized",
+      "label": "agree",
+      "vmSceneHash": "fd750730769cc5e0e94b65c0f9f56de3a5b2c705aae7515df0496ab87635bb9c",
+      "bytecodeHash": "a8b5a2832d56e30f5e0def42ce65c3d69c86b3f911c10bc310e9d68011d33d15"
+    },
+    {
+      "id": 1,
+      "irHash": "a09ff2f46391ab351bd4536f1ea0b3e4b1c49621e6012a0d71ee666cfe6eef12",
+      "via": "unoptimized → constfold",
+      "label": "agree",
+      "vmSceneHash": "fd750730769cc5e0e94b65c0f9f56de3a5b2c705aae7515df0496ab87635bb9c",
+      "bytecodeHash": "4f91ebe68ce573ebb70a9a3b3732d60fbb60336d2df082cee9ab60ac9b1e5876"
+    },
+    {
+      "id": 2,
+      "irHash": "501f1236b0844a920ad9c47dc50473f6aa0ddee226c7f99c5f07f3be0262c243",
+      "via": "unoptimized → cse",
+      "label": "agree",
+      "vmSceneHash": "fd750730769cc5e0e94b65c0f9f56de3a5b2c705aae7515df0496ab87635bb9c",
+      "bytecodeHash": "459cd11544b3b9f8b5191712ed3f0456ab82c50e2b3c1d4ac07ca311ba91e95b"
+    },
+    {
+      "id": 3,
+      "irHash": "4de261a715253f159ea4082e01891f496e6f1062eebfa99a3f127ad051e41887",
+      "via": "unoptimized → dce",
+      "label": "agree",
+      "vmSceneHash": "fd750730769cc5e0e94b65c0f9f56de3a5b2c705aae7515df0496ab87635bb9c",
+      "bytecodeHash": "a8b5a2832d56e30f5e0def42ce65c3d69c86b3f911c10bc310e9d68011d33d15"
+    },
+    {
+      "id": 4,
+      "irHash": "a25f7614fcd3aac47bcf0a8d6ac998e19c7a3789b6f3e548869fc34b5a5ff450",
+      "via": "unoptimized → constfold → cse",
+      "label": "agree",
+      "vmSceneHash": "fd750730769cc5e0e94b65c0f9f56de3a5b2c705aae7515df0496ab87635bb9c",
+      "bytecodeHash": "eb4734c44af149a5126472f955860fbc7bb9e4edf3c8a514cdb3028ad834fdb2"
+    },
+    {
+      "id": 5,
+      "irHash": "85d153d4c1a231909a4c8b5454665c8e0b8e8c82e50e879c65487d2f2a93489e",
+      "via": "unoptimized → constfold → dce",
+      "label": "agree",
+      "vmSceneHash": "fd750730769cc5e0e94b65c0f9f56de3a5b2c705aae7515df0496ab87635bb9c",
+      "bytecodeHash": "4f91ebe68ce573ebb70a9a3b3732d60fbb60336d2df082cee9ab60ac9b1e5876"
+    },
+    {
+      "id": 6,
+      "irHash": "c8b7fc5d72010493de1827913fd5bb3655205a8f61734058fb6da43c3873dedc",
+      "via": "unoptimized → cse → dce",
+      "label": "agree",
+      "vmSceneHash": "fd750730769cc5e0e94b65c0f9f56de3a5b2c705aae7515df0496ab87635bb9c",
+      "bytecodeHash": "459cd11544b3b9f8b5191712ed3f0456ab82c50e2b3c1d4ac07ca311ba91e95b"
+    },
+    {
+      "id": 7,
+      "irHash": "78949eef7d9c5a7c238fe28ddbc32f9f79ac44b49363ecaf9f8035e964bc8ff5",
+      "via": "unoptimized → dce → cse",
+      "label": "agree",
+      "vmSceneHash": "fd750730769cc5e0e94b65c0f9f56de3a5b2c705aae7515df0496ab87635bb9c",
+      "bytecodeHash": "005c064cd22d82ff8312a88e094f2f1073f083593d363658db911b2aab226854"
+    },
+    {
+      "id": 8,
+      "irHash": "770ecc361a89a905c2fc8972f54538e68c69c20fa9e3b6297614140103704eb5",
+      "via": "unoptimized → constfold → cse → dce",
+      "label": "agree",
+      "vmSceneHash": "fd750730769cc5e0e94b65c0f9f56de3a5b2c705aae7515df0496ab87635bb9c",
+      "bytecodeHash": "eb4734c44af149a5126472f955860fbc7bb9e4edf3c8a514cdb3028ad834fdb2"
+    },
+    {
+      "id": 9,
+      "irHash": "4de468f33f1822ac89f741c817a16c3070438f6728d3f319143aa5cad685c9f9",
+      "via": "unoptimized → constfold → dce → cse",
+      "label": "agree",
+      "vmSceneHash": "fd750730769cc5e0e94b65c0f9f56de3a5b2c705aae7515df0496ab87635bb9c",
+      "bytecodeHash": "02d25cd804edc8a6a76fe3e0fba225a90dbee9fca8418be9c7ee47a69d1b328b"
+    }
+  ],
+  "edges": {
+    "constfold": [
+      1,
+      1,
+      4,
+      5,
+      4,
+      5,
+      8,
+      9,
+      8,
+      9
+    ],
+    "cse": [
+      2,
+      4,
+      2,
+      7,
+      4,
+      9,
+      7,
+      7,
+      9,
+      9
+    ],
+    "dce": [
+      3,
+      5,
+      6,
+      3,
+      8,
+      5,
+      6,
+      7,
+      8,
+      9
+    ]
+  }
+}

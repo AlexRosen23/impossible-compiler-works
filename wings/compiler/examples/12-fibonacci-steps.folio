@@ -1,0 +1,23 @@
+// Mutable `var` bindings, a function with several return paths, and assertions.
+fn fib(n: Number) -> Number {
+  if n < 2 {
+    return n;
+  }
+  var a = 0;
+  var b = 1;
+  repeat k in 1..n {
+    let next = a + b;
+    a = b;
+    b = next;
+  }
+  return b;
+}
+
+scene "Fibonacci Steps" size 800 x 480 background #101013 {
+  assert fib(10) == 55, "fib(10) is 55";
+  repeat n in 1..15 {
+    let h = fib(n) * 0.75;
+    rect(x: 40 + n * 50, y: 440 - h, width: 34, height: h, fill: hsl(20 + n * 8, 0.5, 0.55));
+    text(x: 42 + n * 50, y: 462, value: str(fib(n)), size: 10, fill: #f0eadd);
+  }
+}

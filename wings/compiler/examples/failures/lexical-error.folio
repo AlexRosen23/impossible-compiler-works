@@ -1,0 +1,4 @@
+// expect: L004 @ 3:41
+scene "Lexical Error" {
+  circle(x: 10, y: 10, radius: 4, fill: #12zz99);
+}

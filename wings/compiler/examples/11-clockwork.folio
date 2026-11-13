@@ -1,0 +1,18 @@
+// Groups compose explicit transforms: translate, rotate (degrees), scale, opacity.
+scene "Clockwork" size 800 x 480 frames 120 background #101013 {
+  group(translate: point(400, 240)) {
+    circle(x: 0, y: 0, radius: 200, fill: #202126, stroke: #bb9c67, strokeWidth: 3);
+    repeat h in 0..12 {
+      group(rotate: h * 30) {
+        rect(x: -3, y: -190, width: 6, height: 22, fill: #f0eadd);
+      }
+    }
+    group(rotate: time * 360) {
+      line(from: point(0, 0), to: point(0, -170), stroke: #b2534f, strokeWidth: 3);
+    }
+    group(rotate: time * 30, scale: 0.8, opacity: 0.85) {
+      line(from: point(0, 0), to: point(0, -150), stroke: #f0eadd, strokeWidth: 7);
+    }
+    circle(x: 0, y: 0, radius: 9, fill: #bb9c67);
+  }
+}

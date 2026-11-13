@@ -1,4 +1,4 @@
-/* THE IMPOSSIBLE WITNESS — design tokens (docs/DESIGN_SYSTEM.md) */
+/* THE IMPOSSIBLE COMPILER WORKS, Witness wing — design tokens (docs/DESIGN_SYSTEM.md) */
 :root {
   --void: #11101B;
   --void-2: #161524;
@@ -184,3 +184,7 @@ pre.code { background: var(--void-2); border: 1px solid var(--line); border-radi
   .split { grid-template-columns: 1fr; }
   .stats { grid-template-columns: repeat(2, 1fr); }
 }
+
+/* THE IMPOSSIBLE COMPILER WORKS: the shared shell strip sits above this wing. */
+#root { display: flex; flex-direction: column; }
+#root > .shell { flex: 1 0 auto; min-height: 0; }

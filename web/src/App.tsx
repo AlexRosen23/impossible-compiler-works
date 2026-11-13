@@ -20,12 +20,12 @@ export function App() {
   else if (m) page = <Workspace key={`${m[1]}:${params.get('run') ?? ''}`} initialSlug={m[1]} runId={params.get('run') ?? undefined} />;
   else if (path === '/new') page = <NewModel />;
   else page = <Bazaar />;
-  useEffect(() => { document.title = m ? `${m[1]} — The Impossible Witness` : path === '/journey' ? 'Journey — The Impossible Witness' : 'The Impossible Witness'; }, [path]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { document.title = m ? `${m[1]} · Witness wing · THE IMPOSSIBLE COMPILER WORKS` : path === '/journey' ? 'Journey · Witness wing · THE IMPOSSIBLE COMPILER WORKS' : 'Witness wing · THE IMPOSSIBLE COMPILER WORKS'; }, [path]); // eslint-disable-line react-hooks/exhaustive-deps
   return (
     <div className="shell">
       <a href="#main" className="sr-only">Skip to content</a>
       <header className="topbar">
-        <a className="wordmark" href="#/">THE <b>IMPOSSIBLE</b> WITNESS</a>
+        <a className="wordmark" href="#/">WITNESS <b>WING</b></a>
         <nav className="topnav" aria-label="Primary">
           <a href="#/" aria-current={path === '/' || path === '' ? 'page' : undefined}>Model Bazaar</a>
           <a href="#/journey" aria-current={path === '/journey' ? 'page' : undefined}>90-second journey</a>

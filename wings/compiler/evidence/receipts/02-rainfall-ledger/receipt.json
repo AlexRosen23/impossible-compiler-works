@@ -1,0 +1,88 @@
+{
+  "format": "paper-tiger-receipt/0.2",
+  "versions": {
+    "compiler": "0.2.0",
+    "grammar": "folio-grammar/0.2",
+    "ir": "folio-ir/0.1",
+    "bytecode": "folio-bc/0.1",
+    "scene": "folio-scene/0.1"
+  },
+  "project": "02-rainfall-ledger.folio",
+  "files": [
+    {
+      "name": "main.folio",
+      "sha256": "d5ec25ae6d47dd156e791691469570aa9d15ad73151832da9cc9c7b23d22a90a"
+    }
+  ],
+  "source": "// A bar chart from a typed, read-only fixture.\ndata rain: List<Number> from \"rainfall\";\ndata months: List<String> from \"months\";\n\nfn barHeight(mm: Number, peak: Number, room: Number) -> Number {\n  return mm / peak * room;\n}\n\nscene \"Rainfall Ledger\" size 800 x 480 background #101013 {\n  let left = 70;\n  let base = 400;\n  let peak = 110;\n  text(x: left, y: 52, value: \"RAINFALL LEDGER  ·  mm per month (synthetic)\", size: 18, fill: #f0eadd);\n  line(from: point(left - 10, base), to: point(760, base), stroke: #bb9c67, strokeWidth: 1.5);\n  var i = 0;\n  repeat mm in rain {\n    let h = barHeight(mm, peak, 300);\n    let x = left + i * 56;\n    var ink = #98abb9;\n    if mm > 90 {\n      ink = #b2534f;\n    } else if mm > 70 {\n      ink = #bb9c67;\n    }\n    rect(x: x, y: base - h, width: 38, height: h, fill: ink, corner: 2);\n    text(x: x + 4, y: base + 22, value: months[i], size: 12, fill: #f0eadd);\n    text(x: x + 2, y: base - h - 8, value: fmt(mm, 0), size: 11, fill: alpha(#f0eadd, 0.7));\n    i = i + 1;\n  }\n  assert len(rain) == len(months), \"every month has a label\";\n}\n",
+  "sourceHash": "d5ec25ae6d47dd156e791691469570aa9d15ad73151832da9cc9c7b23d22a90a",
+  "fixtures": {
+    "months": [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec"
+    ],
+    "rainfall": [
+      48.2,
+      41.7,
+      63.9,
+      88.1,
+      102.4,
+      96,
+      84.3,
+      91.6,
+      79.2,
+      70.5,
+      66.8,
+      55.1
+    ]
+  },
+  "fixtureHash": "4a82612cbb33ba1695305dd9c8abdacfafe170b7d0370bbe9697bfc94ea8e817",
+  "optimizations": [
+    "constfold",
+    "dce",
+    "cse"
+  ],
+  "seed": null,
+  "limits": {
+    "fuelPerFrame": 20000000,
+    "fuelPerRun": 200000000,
+    "refFuelPerFrame": 20000000,
+    "refFuelPerRun": 200000000,
+    "maxIterationsPerFrame": 100000,
+    "maxCallsPerFrame": 100000,
+    "maxDrawsPerFrame": 10000,
+    "maxSceneUnitsPerFrame": 20000,
+    "maxSceneUnits": 1000000,
+    "maxStack": 1024,
+    "maxCallDepth": 64
+  },
+  "bytecodeHash": "e71fe164b8dcd1fe7496c460c5132682e1ee1f09907de55a29762898feeeb9a8",
+  "traceHash": "cba7b2c4d4809fbfa326bb8b60114a6dfca9ce4e64fa07f7692841281573a702",
+  "sceneHash": "f66812f02eb913219ab995ed207d06d25f744e26651164b964040088855ff120",
+  "fault": null,
+  "oracle": {
+    "engine": "reference-interpreter",
+    "sceneHash": "f66812f02eb913219ab995ed207d06d25f744e26651164b964040088855ff120",
+    "agrees": true,
+    "status": "agree"
+  },
+  "warnings": [],
+  "timingMs": {
+    "compile": 24.466,
+    "vm": 2.154,
+    "reference": 10.914
+  },
+  "commit": "c437b8fe1735a0bf66493a70e274218d0e9b8c77",
+  "createdAt": "2026-11-13T05:17:42.261Z",
+  "digest": "aab4869b5e61e0b65cc50d612db1fedb47d606823f4e78e6c174318b9ee48c02"
+}

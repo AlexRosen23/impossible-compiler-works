@@ -1,5 +1,7 @@
 # Liveness and fairness
 
+> Part of **THE IMPOSSIBLE COMPILER WORKS**: this document covers the Witness wing (formerly The Impossible Witness). Start at the [root README](../README.md).
+
 ## Invariant versus liveness
 
 An **invariant** (safety) says "nothing bad ever happens"; a counterexample is a *finite*

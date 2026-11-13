@@ -1,5 +1,7 @@
 # Search algorithms
 
+> Part of **THE IMPOSSIBLE COMPILER WORKS**: this document covers the Witness wing (formerly The Impossible Witness). Start at the [root README](../README.md).
+
 ## Explicit-state breadth-first search (`src/core/engine/explore.ts`)
 
 1. Enumerate `S0` in declaration order; each new state gets the next id.

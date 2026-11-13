@@ -1,0 +1,6 @@
+// expect: C006 @ 4:3
+scene "Immutable Assignment" {
+  let x = 10;
+  x = x + 1;
+  circle(x: x, y: 20, radius: 3);
+}

@@ -1,0 +1,7 @@
+// expect-fault: R001 @ 5:21
+scene "Divide by Zero" {
+  repeat i in 0..5 {
+    let gap = 3 - i;
+    circle(x: 100 + 60 / gap, y: 100, radius: 4);
+  }
+}

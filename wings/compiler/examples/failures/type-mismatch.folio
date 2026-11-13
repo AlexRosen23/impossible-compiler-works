@@ -1,0 +1,5 @@
+// expect: C002 @ 4:32
+scene "Type Mismatch" {
+  let label = "radius";
+  circle(x: 40, y: 40, radius: label);
+}

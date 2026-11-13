@@ -73,7 +73,8 @@ export function TemporalObservatory({ result, onShowTrace, source, setSource }: 
     return m;
   }, [source]);
   const setFair = (proc: string, v: string) => {
-    const lines = source.split('\n').filter((l) => !new RegExp(`^\\s*fairness\\s+(weak|strong)\\s+${proc}\\s*$`).test(l));
+    // Static pattern, compared by name: no regular expression is ever built from model text.
+    const lines = source.split('\n').filter((l) => /^\s*fairness\s+(weak|strong)\s+([A-Za-z_][A-Za-z0-9_]*)\s*$/.exec(l)?.[2] !== proc);
     while (lines.length && lines[lines.length - 1].trim() === '') lines.pop();
     if (v !== 'none') lines.push(`fairness ${v} ${proc}`);
     setSource(lines.join('\n') + '\n');

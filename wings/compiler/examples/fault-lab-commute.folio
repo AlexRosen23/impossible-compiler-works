@@ -1,0 +1,11 @@
+// FAULT LAB fixture: correct under every safe pass. The deliberately wrong pass BAD_cse_commute_all treats
+// subtraction as commutative, so it "reuses" a - b for b - a and the drawing changes. The independent
+// reference interpreter catches the divergence (see tests/optimizer.test.ts and the Failure Gallery).
+scene "Fault Lab: Commuted Subtraction" size 800 x 480 background #101013 {
+  repeat i in 0..12 {
+    let a = 300 + i * 20;
+    let b = 200 + i * 5;
+    circle(x: 100 + i * 55, y: 240 + (a - b) * 0.5, radius: 10, fill: #8db7a2);
+    circle(x: 100 + i * 55, y: 240 + (b - a) * 0.5, radius: 10, fill: #b2534f);
+  }
+}

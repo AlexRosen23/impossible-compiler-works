@@ -1,5 +1,7 @@
 # Reproducibility
 
+> Part of **THE IMPOSSIBLE COMPILER WORKS**: this document covers the Witness wing (formerly The Impossible Witness). Start at the [root README](../README.md).
+
 ## Determinism
 
 Given the same source and bounds, the explorer produces the same state ids, edges, witnesses

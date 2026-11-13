@@ -114,10 +114,12 @@ test('model titles are sanitised in the public contract (XSS) and no source leak
 });
 
 test('malformed and oversized input is rejected with 4xx, never 500', async () => {
-  assert.equal((await j('/api/compile', { method: 'POST', body: '{not json' })).status, 400);
+  assert.equal((await j('/api/compile', { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{not json' })).status, 400);
+  // undeclared (text/plain) bodies are refused before parsing: a cross-site simple POST cannot drive the API
+  assert.equal((await j('/api/compile', { method: 'POST', body: '{"source":"model m"}' })).status, 415);
   assert.equal((await post('/api/compile', { source: 42 })).status, 400);
   assert.equal((await post('/api/compile', { source: 'x'.repeat(70 * 1024) })).status, 413);
-  const big = await fetch(`${base}/api/compile`, { method: 'POST', body: 'x'.repeat(600 * 1024) }).catch(() => null);
+  const big = await fetch(`${base}/api/compile`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: 'x'.repeat(600 * 1024) }).catch(() => null);
   assert.ok(!big || big.status === 413);
   assert.equal((await post('/api/runs', { modelId: 99999, source: 'model m' })).status, 404);
   assert.equal((await post('/api/runs', { revisionId: 1, bounds: { maxStates: -5 } })).status, 400);

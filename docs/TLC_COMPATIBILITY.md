@@ -1,5 +1,7 @@
 # TLC compatibility
 
+> Part of **THE IMPOSSIBLE COMPILER WORKS**: this document covers the Witness wing (formerly The Impossible Witness). Start at the [root README](../README.md).
+
 ## What is pinned
 
 | item | value |

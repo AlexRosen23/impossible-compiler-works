@@ -1,5 +1,7 @@
 # Transition semantics
 
+> Part of **THE IMPOSSIBLE COMPILER WORKS**: this document covers the Witness wing (formerly The Impossible Witness). Start at the [root README](../README.md).
+
 Every WML model denotes a **finite transition system** `M = (S, S0, A, T)` plus a set of
 properties and fairness assumptions. This document is the contract that the explorer
 (`src/core/engine`), the independent replay evaluator (`src/core/replay`) and the TLA+

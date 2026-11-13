@@ -1,0 +1,31 @@
+// A bar chart from a typed, read-only fixture.
+data rain: List<Number> from "rainfall";
+data months: List<String> from "months";
+
+fn barHeight(mm: Number, peak: Number, room: Number) -> Number {
+  return mm / peak * room;
+}
+
+scene "Rainfall Ledger" size 800 x 480 background #101013 {
+  let left = 70;
+  let base = 400;
+  let peak = 110;
+  text(x: left, y: 52, value: "RAINFALL LEDGER  ·  mm per month (synthetic)", size: 18, fill: #f0eadd);
+  line(from: point(left - 10, base), to: point(760, base), stroke: #bb9c67, strokeWidth: 1.5);
+  var i = 0;
+  repeat mm in rain {
+    let h = barHeight(mm, peak, 300);
+    let x = left + i * 56;
+    var ink = #98abb9;
+    if mm > 90 {
+      ink = #b2534f;
+    } else if mm > 70 {
+      ink = #bb9c67;
+    }
+    rect(x: x, y: base - h, width: 38, height: h, fill: ink, corner: 2);
+    text(x: x + 4, y: base + 22, value: months[i], size: 12, fill: #f0eadd);
+    text(x: x + 2, y: base - h - 8, value: fmt(mm, 0), size: 11, fill: alpha(#f0eadd, 0.7));
+    i = i + 1;
+  }
+  assert len(rain) == len(months), "every month has a label";
+}

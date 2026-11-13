@@ -1,0 +1,12 @@
+// Strings: concatenation, str, fmt, Unicode text and escapes.
+scene "Type Specimen" size 800 x 480 background #f0eadd {
+  let title = "PAPER TIGER — FOLIO 0.1";
+  text(x: 48, y: 90, value: title, size: 40, fill: #101013);
+  text(x: 48, y: 130, value: "Unicode: ünïcödé · 紙の虎 · \u{2766}", size: 20, fill: #b2534f);
+  repeat k in 0..6 {
+    let s = 10 + k * 6;
+    text(x: 48, y: 190 + k * 46, value: str(s) + "pt  \"a typed diagram language\"", size: s, fill: #202126);
+  }
+  rect(x: 600, y: 180, width: 150, height: 240, fill: #b2534f, corner: 6);
+  text(x: 618, y: 400, value: fmt(PI, 4), size: 26, fill: #f0eadd);
+}

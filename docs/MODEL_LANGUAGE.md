@@ -1,5 +1,7 @@
 # WML — the Witness Model Language
 
+> Part of **THE IMPOSSIBLE COMPILER WORKS**: this document covers the Witness wing (formerly The Impossible Witness). Start at the [root README](../README.md).
+
 A small, typed, declarative language for finite concurrent models. It has no I/O, no
 functions, no loops and no strings in expressions: a model can only describe states and
 guarded atomic actions, so model input can never run JavaScript, Python or shell code.

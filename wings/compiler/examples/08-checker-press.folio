@@ -1,0 +1,17 @@
+// Nested loops, if / else, the % operator and booleans.
+scene "Checker Press" size 800 x 480 background #202126 {
+  let cell = 40;
+  repeat row in 0..12 {
+    repeat col in 0..20 {
+      let dark = (row + col) % 2 == 0;
+      let edge = row == 0 or row == 11 or col == 0 or col == 19;
+      if edge {
+        rect(x: col * cell, y: row * cell, width: cell, height: cell, fill: #bb9c67);
+      } else if dark {
+        rect(x: col * cell, y: row * cell, width: cell, height: cell, fill: #101013);
+      } else {
+        circle(x: col * cell + cell / 2, y: row * cell + cell / 2, radius: cell / 2 - 6, fill: alpha(#98abb9, 0.5 + noise(row, col) * 0.5));
+      }
+    }
+  }
+}

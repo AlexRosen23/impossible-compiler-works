@@ -1,0 +1,28 @@
+// Point fixtures, distances and nearest-neighbour links.
+data stations: List<Point> from "stations";
+data inks: List<Color> from "press-inks";
+
+scene "Station Map" size 800 x 480 background #101013 {
+  var i = 0;
+  repeat a in stations {
+    var best = 100000;
+    var j = 0;
+    var bestJ = 0;
+    repeat b in stations {
+      let d = dist(a, b);
+      if j != i and d < best {
+        best = d;
+        bestJ = j;
+      }
+      j = j + 1;
+    }
+    line(from: a, to: stations[bestJ], stroke: alpha(#bb9c67, 0.8), strokeWidth: 2);
+    i = i + 1;
+  }
+  var k = 0;
+  repeat s in stations {
+    circle(x: s.x, y: s.y, radius: 9, fill: inks[k % len(inks)], stroke: #f0eadd, strokeWidth: 1.5);
+    text(x: s.x + 14, y: s.y + 4, value: "S" + str(k + 1), size: 13, fill: #f0eadd);
+    k = k + 1;
+  }
+}

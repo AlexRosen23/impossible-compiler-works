@@ -1,5 +1,7 @@
 # Architecture
 
+> Part of **THE IMPOSSIBLE COMPILER WORKS**: this document covers the Witness wing (formerly The Impossible Witness). Start at the [root README](../README.md).
+
 ```
  browser (React + Vite, 127.0.0.1:5720)
    │  /api/*  /health  /capabilities  /runs   (Vite proxy in dev; src/server/proxy.ts in start.sh)

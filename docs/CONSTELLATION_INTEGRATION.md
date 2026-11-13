@@ -32,7 +32,7 @@ Health: `http://127.0.0.1:5721/health`.
 
 ## The Constellation world
 
-Delivered as a **separate, unmerged PR** in `AlexRosen23/constellation` (branch
+Delivered as a **separate, unmerged PR**, AlexRosen23/constellation#450 (branch
 `feat/impossible-witness-world`), which also updates `docs/FEATURES.md` in the same PR, as the
 Constellation's features list is the source of truth. The world is a self-contained manifest
 (`worlds/proj/impossible-witness/`) with a service launch on 5720/5721 and a standalones

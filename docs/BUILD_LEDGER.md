@@ -46,7 +46,7 @@ not work), `NOT_BUILT`, `OWNER_ACTION` (needs the owner). Last updated 2026-11-1
 | 8 | browser E2E, mobile, screenshots | TESTED | 15/15 Playwright; 17 screenshots |
 | 8 | negative tests (malformed, XSS, huge domains, storage, crash, cancel) | TESTED | server + parser tests |
 | 9 | Constellation contract | TESTED | `/health`, `/capabilities`, `/runs`, `/runs/:id`; public-safety test |
-| 9 | Constellation world PR + FEATURES.md | see the PR | separate unmerged PR in `AlexRosen23/constellation` |
+| 9 | Constellation world PR + FEATURES.md | TESTED | AlexRosen23/constellation#450 (`feat/impossible-witness-world`, unmerged): world order 92, bespoke Logic Cathedral scene, reader fixtures recorded from this app, FEATURES.md + PROJECT_LIFECYCLE + public manifest in the same PR; its own world test 10/10; the Constellation's full `npm test` was not re-run green after the last fix (see that PR) |
 | 9 | website case study (unposted) | TESTED | `docs/PORTFOLIO_CASE_STUDY.md` (draft only; not posted, per owner rule) |
 
 ## Acceptance journeys

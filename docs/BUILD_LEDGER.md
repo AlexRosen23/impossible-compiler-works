@@ -1,5 +1,7 @@
 # Build ledger
 
+> Part of **THE IMPOSSIBLE COMPILER WORKS**: this document covers the Witness wing (formerly The Impossible Witness). Start at the [root README](../README.md).
+
 Labels: `TESTED` (built and covered by passing automated tests or recorded evidence),
 `PARTIAL` (built, with a stated gap), `INCOMPLETE` (started, not usable), `FAILED` (tried, does
 not work), `NOT_BUILT`, `OWNER_ACTION` (needs the owner). Last updated 2026-11-12 on branch
@@ -70,3 +72,18 @@ not work), `NOT_BUILT`, `OWNER_ACTION` (needs the owner). Last updated 2026-11-1
 | preview-pane dev server | PARTIAL | the app's own launch config could not be started through the desktop preview tool (per-folder server limit used by other chats); verified by running `scripts/dev` and opening the pane by URL |
 | symbolic engine, POR, symmetry | NOT_BUILT | out of scope; the docs never claim them |
 | Alloy | NOT_BUILT | optional in the brief; no case where it adds value yet |
+
+## THE IMPOSSIBLE COMPILER WORKS merge + public-release hardening (2026-11-13)
+
+| item | status | evidence |
+|---|---|---|
+| Paper Tiger history merged into `wings/compiler/` (MIT notice kept) | TESTED | `git log -- wings/compiler`; Compiler wing suite 126/126 inside the merged app |
+| one API (5721, Compiler API at `/engine/compiler`) + one Vite (5720, `/` and `/compiler/`) | TESTED | `bridge/tests/combined-server.test.ts`; e2e both projects |
+| shared shell, visible "Formerly …" line, `/health` `name` + `formerly` | TESTED | `e2e/combined.spec.ts`; combined server test |
+| cross-feature: every optimizer pass order model-checked by the Witness engine | TESTED | `docs/CROSS_FEATURE_PASS_ORDERS.md`; `bridge/tests/pass-orders.test.ts`; `evidence/bridge/` |
+| legacy receipts of both apps still verify / reproduce | TESTED | `tests/legacy-receipts.test.ts`; `scripts/reproduce` |
+| TLC cross-check in the merged app (Docker) | TESTED | `evidence/tlc-crosscheck.md` 150/150 |
+| red-team fixes R1–R7 | TESTED | `docs/SECURITY.md` "Public-release red team" |
+| MIT licence for the whole repo, third-party notices, SECURITY.md | TESTED (docs) | `LICENSE`, `THIRD_PARTY_NOTICES.md`, `SECURITY.md` |
+| security contact in SECURITY.md | OWNER_ACTION | placeholder; the owner adds a contact before the visibility flip |
+| make the repository public | OWNER_ACTION | the integration session reviews and flips visibility; never done by a build session |

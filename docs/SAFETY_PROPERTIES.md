@@ -1,5 +1,7 @@
 # Safety properties
 
+> Part of **THE IMPOSSIBLE COMPILER WORKS**: this document covers the Witness wing (formerly The Impossible Witness). Start at the [root README](../README.md).
+
 ## Kinds
 
 - **Invariants** (`invariant Name: expr`) — evaluated on every reachable state as it is discovered.

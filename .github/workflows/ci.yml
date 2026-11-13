@@ -1,4 +1,5 @@
-# CI definition. GitHub Actions are DISABLED on this repository until the owner approves.
+# CI for THE IMPOSSIBLE COMPILER WORKS (both wings). GitHub Actions are DISABLED on this repository until the
+# owner approves; this file is kept ready. Every action is pinned to a full commit SHA. Linux runners only.
 name: ci
 on:
   pull_request:
@@ -17,7 +18,6 @@ jobs:
       - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
         with: { distribution: temurin, java-version: '21' }
       - run: scripts/setup
-      - run: scripts/test --tlc
+      - run: scripts/test --tlc   # typecheck, lint, both wings' unit suites, bridge, receipts, live TLC corpus
       - run: npx playwright install --with-deps chromium
-      - run: npx playwright test -c e2e/playwright.config.ts
-      - run: scripts/reproduce
+      - run: npx playwright test  # both wings' browser journeys on 5726/5727

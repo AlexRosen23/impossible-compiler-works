@@ -1,5 +1,7 @@
 # Optimization and Correctness
 
+> Part of **THE IMPOSSIBLE COMPILER WORKS**: this document covers the Compiler wing (formerly PAPER TIGER COMPILER WORKS). Ports and commands for the combined app are in the [root README](../../../README.md); older mentions of ports 5580/5581/5590 describe the standalone app.
+
 Implementation: `core/optimize.ts` (passes), `core/ir.ts` (op classification), `core/irverify.ts` (verifier),
 `core/interpreter.ts` (oracle), `core/fuzz.ts` (generator and mutator), `core/reduce.ts` (reducer). Evidence:
 `tests/optimizer.test.ts`, `tests/differential.test.ts`, `evidence/fuzz-summary.json`, `evidence/benchmarks.json`.

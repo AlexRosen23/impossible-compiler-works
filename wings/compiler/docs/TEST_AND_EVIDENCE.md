@@ -1,5 +1,7 @@
 # Tests and Evidence
 
+> Part of **THE IMPOSSIBLE COMPILER WORKS**: this document covers the Compiler wing (formerly PAPER TIGER COMPILER WORKS). Ports and commands for the combined app are in the [root README](../../../README.md); older mentions of ports 5580/5581/5590 describe the standalone app.
+
 What is tested, how to run it, the current results, where the evidence files are, and the status of each core
 capability.
 

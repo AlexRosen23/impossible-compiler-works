@@ -13,6 +13,7 @@ test('both wings carry the shared shell with the new name and the visible Former
     await expect(page.getByTestId('icw-formerly')).toHaveText('Formerly Paper Tiger Compiler Works and The Impossible Witness');
     await expect(shell.getByRole('link', { name: wing })).toHaveAttribute('aria-current', 'page');
     await expect(page).toHaveTitle(/THE IMPOSSIBLE COMPILER WORKS/);
+    await page.screenshot({ path: `evidence/screenshots/icw-${wing === 'Witness wing' ? 'witness' : 'compiler'}-wing.png` });
   }
 });
 

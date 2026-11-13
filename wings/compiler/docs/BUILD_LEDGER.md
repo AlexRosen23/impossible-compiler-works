@@ -1,5 +1,7 @@
 # Build ledger
 
+> Part of **THE IMPOSSIBLE COMPILER WORKS**: this document covers the Compiler wing (formerly PAPER TIGER COMPILER WORKS). Ports and commands for the combined app are in the [root README](../../../README.md); older mentions of ports 5580/5581/5590 describe the standalone app.
+
 Every phase, the commands that were run and what they produced. Statuses use `WORKING_AND_TESTED`, `PARTIAL`,
 `FAILED`, `NOT_BUILT`, `OWNER_ACTION`. Machine: Apple M5 Pro, 18 cores, macOS (Darwin 27.0.0), Node v24.14.0.
 Branch `feat/v0.1-compiler-works`.

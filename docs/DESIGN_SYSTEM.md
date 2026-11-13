@@ -1,5 +1,7 @@
 # Design system — "a dark logic cathedral"
 
+> Part of **THE IMPOSSIBLE COMPILER WORKS**: this document covers the Witness wing (formerly The Impossible Witness). Start at the [root README](../README.md).
+
 ## Tokens (`web/src/styles.css`)
 
 | token | hex | use |

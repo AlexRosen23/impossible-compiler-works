@@ -1,5 +1,7 @@
 # FOLIO Language Specification
 
+> Part of **THE IMPOSSIBLE COMPILER WORKS**: this document covers the Compiler wing (formerly PAPER TIGER COMPILER WORKS). Ports and commands for the combined app are in the [root README](../../../README.md); older mentions of ports 5580/5581/5590 describe the standalone app.
+
 Grammar version: `folio-grammar/0.2` (`GRAMMAR_VERSION` in `core/version.ts`). Compiler version `0.2.0`. Grammar 0.2
 rejects source that is not valid Unicode (`L008`); nothing else changed from 0.1.
 

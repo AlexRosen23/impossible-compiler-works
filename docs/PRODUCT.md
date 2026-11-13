@@ -1,4 +1,6 @@
-# Product: THE IMPOSSIBLE WITNESS
+# Product: the Witness wing
+
+> Part of **THE IMPOSSIBLE COMPILER WORKS**: this document covers the Witness wing (formerly The Impossible Witness). Start at the [root README](../README.md).
 
 **One question:** *can this system ever reach a state that should be impossible?*
 

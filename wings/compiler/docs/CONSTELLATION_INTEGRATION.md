@@ -1,5 +1,7 @@
 # Constellation integration
 
+> Part of **THE IMPOSSIBLE COMPILER WORKS**: this document covers the Compiler wing (formerly PAPER TIGER COMPILER WORKS). Ports and commands for the combined app are in the [root README](../../../README.md); older mentions of ports 5580/5581/5590 describe the standalone app.
+
 **Status: contract BUILT and tested in this repo; Constellation world BUILT and LIVE** (`proj:paper-tiger`, "The
 Compiler Works", AlexRosen23/constellation PR #442, integrated by PR #445, owner-approved, 2026-11-12).
 

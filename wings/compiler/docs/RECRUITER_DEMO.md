@@ -1,5 +1,7 @@
 # Recruiter demo (90 seconds)
 
+> Part of **THE IMPOSSIBLE COMPILER WORKS**: this document covers the Compiler wing (formerly PAPER TIGER COMPILER WORKS). Ports and commands for the combined app are in the [root README](../../../README.md); older mentions of ports 5580/5581/5590 describe the standalone app.
+
 Start the app (`npm start`, then open http://127.0.0.1:5580) and press **90-second tour** in the top right. The tour drives
 the same eight steps below. Each step names the real thing it shows.
 

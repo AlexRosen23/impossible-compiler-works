@@ -1,4 +1,12 @@
-# PAPER TIGER COMPILER WORKS
+# Compiler wing (formerly PAPER TIGER COMPILER WORKS)
+
+> **Part of [THE IMPOSSIBLE COMPILER WORKS](../../README.md).** This folder is the former PAPER TIGER COMPILER WORKS,
+> merged with its history on 2026-11-13. Run everything from the repository root: `scripts/setup`, `scripts/dev`
+> (the IDE is at http://127.0.0.1:5720/compiler/, its API at 127.0.0.1:5721/engine/compiler) and `scripts/test`.
+> Commands below that mention `npm run dev`, `npm run e2e` or ports 5580/5581/5590 describe the standalone app
+> before the merge; the root `package.json` keeps `npm run folio`, `fuzz`, `bench`, `compiler:receipt` and
+> `compiler:reproduce`.
+
 
 *A language laboratory where programs become living diagrams.*
 

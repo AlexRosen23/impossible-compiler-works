@@ -1,5 +1,7 @@
 # Limitations (read this before trusting a verdict)
 
+> Part of **THE IMPOSSIBLE COMPILER WORKS**: this document covers the Witness wing (formerly The Impossible Witness). Start at the [root README](../README.md).
+
 1. **Models, not systems.** Every verdict is about the finite model as written: its domains,
    its initial states, its atomic actions and its fairness assumptions. `VERIFIED_BOUNDED`
    means "no violation in every reachable state of this model", never "the service is correct".

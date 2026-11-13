@@ -1,5 +1,7 @@
 # Bytecode, Virtual Machine and Sandbox
 
+> Part of **THE IMPOSSIBLE COMPILER WORKS**: this document covers the Compiler wing (formerly PAPER TIGER COMPILER WORKS). Ports and commands for the combined app are in the [root README](../../../README.md); older mentions of ports 5580/5581/5590 describe the standalone app.
+
 Version: `folio-bc/0.1` (`BYTECODE_VERSION`). Implementation: `core/bytecode.ts` (opcodes, code generator,
 serialization, loader, verifier, disassembler), `core/vm.ts` (the VM), `core/ops.ts` (operator semantics shared
 with constant folding), `core/scene.ts` (the output device).

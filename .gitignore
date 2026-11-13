@@ -33,3 +33,6 @@ var/
 coverage/
 .vite/
 .vitest/
+
+# local CLI output
+out/

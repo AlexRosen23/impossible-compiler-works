@@ -1,5 +1,7 @@
 # Existing Work Audit
 
+> Part of **THE IMPOSSIBLE COMPILER WORKS**: this document covers the Compiler wing (formerly PAPER TIGER COMPILER WORKS). Ports and commands for the combined app are in the [root README](../../../README.md); older mentions of ports 5580/5581/5590 describe the standalone app.
+
 Purpose: before building PAPER TIGER COMPILER WORKS, check whether a compiler, language or similar project
 already existed among the owner's projects, decide what could be reused, and record why this is a separate
 repository. Audit date: 2026-11-12.

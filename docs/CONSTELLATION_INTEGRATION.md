@@ -1,5 +1,7 @@
 # Constellation integration
 
+> Part of **THE IMPOSSIBLE COMPILER WORKS**: this document covers the Witness wing (formerly The Impossible Witness). Start at the [root README](../README.md).
+
 ## Read-only contract (served by the API, 127.0.0.1:5721)
 
 All `GET`, JSON, `schema_version: 1`, `project_id: "impossible-witness"`, loopback only.
@@ -38,3 +40,24 @@ Constellation's features list is the source of truth. The world is a self-contai
 (`worlds/proj/impossible-witness/`) with a service launch on 5720/5721 and a standalones
 reader for `/runs` and `/capabilities`. See that PR for scenery and tests. Merging either PR,
 and making anything live, is the owner's decision.
+
+## THE IMPOSSIBLE COMPILER WORKS (merged 2026-11-13)
+
+The Witness and PAPER TIGER COMPILER WORKS are one app now. For the integration session:
+
+- **Ports.** 5720 is the Vite UI for both wings (`/` Witness wing, `/compiler/` Compiler wing), 5721 the API. The
+  Compiler wing's API is mounted unchanged at `/engine/compiler/{health,capabilities,runs,runs/:id,api/*}` and
+  its `/health` still says `service: "paper-tiger-compiler-works"`. **Retired: 5580/5581** (and 5590 for tests).
+- **Contract.** `/health` keeps `project_id: "impossible-witness"` and adds `name: "THE IMPOSSIBLE COMPILER WORKS"`,
+  `formerly: ["Paper Tiger Compiler Works", "The Impossible Witness"]` and `wings.{witness,compiler}`.
+- **Framing.** Compiler wing pages keep their CSP `frame-ancestors` for the Constellation (4520/4521); Witness wing
+  pages stay `frame-ancestors 'none'`.
+- **Worlds.** Fold the Compiler Works world into the Witness world (one world, two wings). Launch title match:
+  `THE IMPOSSIBLE COMPILER WORKS` (both wings' titles end with it).
+- **After merge (live folder).** `npm ci` (React 19, Vite 8, TypeScript 6), copy `tools/tla2tools.jar` if
+  present, restart `scripts/dev` or `scripts/start.sh`, then stop the old Paper Tiger servers on 5580/5581 by PID.
+  Old Paper Tiger data (`var/paper-tiger.sqlite`) can be copied to `data/witness-compiler.sqlite` to keep its
+  projects and runs.
+- **Site line.** "THE IMPOSSIBLE COMPILER WORKS: write it, compile it, prove nothing impossible can happen.
+  Formerly Paper Tiger Compiler Works and The Impossible Witness." Screenshots: `evidence/screenshots/icw-witness-wing.png`,
+  `icw-compiler-wing.png`, `icw-cross-feature-pass-orders.png`.

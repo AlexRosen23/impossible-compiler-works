@@ -1,5 +1,7 @@
 # Case study (draft — not posted anywhere)
 
+> Part of **THE IMPOSSIBLE COMPILER WORKS**: this document covers the Witness wing (formerly The Impossible Witness). Start at the [root README](../README.md).
+
 ## The Impossible Witness: a model checker you can watch
 
 **Problem.** Concurrency bugs live in schedules nobody ran: two workers check stock before

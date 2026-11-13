@@ -1,5 +1,7 @@
 # The 90-second walkthrough
 
+> Part of **THE IMPOSSIBLE COMPILER WORKS**: this document covers the Witness wing (formerly The Impossible Witness). Start at the [root README](../README.md).
+
 Start: `scripts/dev`, open http://127.0.0.1:5720, click **Start the 90-second journey**.
 The guided panel (bottom right) drives every step with real runs; the clock shows elapsed
 time. The E2E test `the guided 90-second journey runs end to end` completes it in about 22 s

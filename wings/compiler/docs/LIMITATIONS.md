@@ -1,5 +1,7 @@
 # Limitations
 
+> Part of **THE IMPOSSIBLE COMPILER WORKS**: this document covers the Compiler wing (formerly PAPER TIGER COMPILER WORKS). Ports and commands for the combined app are in the [root README](../../../README.md); older mentions of ports 5580/5581/5590 describe the standalone app.
+
 What FOLIO 0.1 and its implementation do not do, and why. Deliberate language limits come first, then
 implementation trade-offs, then known defects.
 

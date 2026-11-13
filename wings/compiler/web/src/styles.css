@@ -209,3 +209,6 @@ pre.block { margin: 0; padding: 10px 14px; font: 12px/1.5 var(--mono); white-spa
 #root { display: flex; flex-direction: column; }
 #root > .app { flex: 1 1 auto; min-height: 0; height: auto; }
 @media (max-width: 860px) { #root { display: block; } }
+.pass-orders { padding: 4px 0 10px; }
+.pass-orders p { margin: 6px 0; }
+.pass-orders a { color: var(--brass); }

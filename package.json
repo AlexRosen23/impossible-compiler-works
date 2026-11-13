@@ -1,0 +1,23 @@
+{
+  "name": "impossible-witness",
+  "version": "0.1.0",
+  "private": true,
+  "description": "THE IMPOSSIBLE WITNESS — a visual formal-methods laboratory: finite transition systems, BFS model checking, counterexample traces, fairness-aware liveness, TLC cross-checks and replayable evidence receipts.",
+  "type": "module",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json && tsc -p web/tsconfig.json",
+    "test": "node --test --test-reporter=spec tests/*.test.ts",
+    "server": "node src/server/main.ts",
+    "web": "vite --config web/vite.config.ts",
+    "build:web": "vite build --config web/vite.config.ts",
+    "witness": "node src/cli/witness.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^24.19.2",
+    "typescript": "^5.9.3"
+  }
+}

@@ -1,0 +1,18 @@
+model counter_atomic "Two threads share one counter (atomic increment — repaired)"
+description "The repair: each thread performs read-modify-write as ONE atomic action (a fetch-and-add), so no other step can fall between the read and the write."
+
+var counter : 0..2 = 0
+
+process A, B {
+  var pc : {start, done} = start
+
+  // one indivisible step: counter := counter + 1
+  action increment when pc = start {
+    counter := counter + 1
+    pc      := done
+  }
+}
+
+terminal A.pc = done and B.pc = done
+
+invariant NoLostUpdate: (A.pc = done and B.pc = done) => counter = 2

@@ -1,0 +1,25 @@
+model counter_race "Two threads share one counter (non-atomic increment)"
+description "Each thread reads the shared counter into a private register, then writes register + 1 back. The read and the write are separate atomic steps, so the scheduler may interleave them."
+
+var counter : 0..2 = 0
+
+process A, B {
+  var pc  : {start, read_done, done} = start
+  var tmp : 0..2 = 0
+
+  // step 1: load the shared value into a private register
+  action read when pc = start {
+    tmp := counter
+    pc  := read_done
+  }
+
+  // step 2: store register + 1 (the check-then-act window is between read and write)
+  action write when pc = read_done {
+    counter := tmp + 1
+    pc      := done
+  }
+}
+
+terminal A.pc = done and B.pc = done
+
+invariant NoLostUpdate: (A.pc = done and B.pc = done) => counter = 2

@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# Headless demo of the vertical slice: broken model -> shortest witness -> repaired model ->
+# bounded verification -> receipt -> independent verification -> tamper rejection.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+OUT="${1:-evidence/demo}"
+mkdir -p "$OUT"
+W="node src/cli/witness.ts"
+echo "== 1. broken two-thread counter"; $W check examples/counter-race.witness --receipt "$OUT/counter-race.receipt.json"
+echo; echo "== 2. repaired (atomic) counter"; $W check examples/counter-atomic.witness --receipt "$OUT/counter-atomic.receipt.json"
+echo; echo "== 3. verify both receipts independently"; $W verify "$OUT/counter-race.receipt.json" | tail -1; $W verify "$OUT/counter-atomic.receipt.json" | tail -1
+echo; echo "== 4. tamper: claim the broken model is safe"
+node -e 'const f=process.argv[1];const r=JSON.parse(require("fs").readFileSync(f));r.result.verdict="NO_VIOLATION_IN_BOUNDED_MODEL";require("fs").writeFileSync(process.argv[2],JSON.stringify(r,null,2))' "$OUT/counter-race.receipt.json" "$OUT/counter-race.TAMPERED.json"
+if $W verify "$OUT/counter-race.TAMPERED.json" | tail -3; then echo "UNEXPECTED: tampered receipt accepted"; exit 1; else echo "(rejected as expected)"; fi
+echo; echo "== 5. INCOMPLETE under a 50-state cap"; $W check examples/state-explosion.witness --max-states 50 --receipt "$OUT/state-explosion-cap50.receipt.json" | head -4

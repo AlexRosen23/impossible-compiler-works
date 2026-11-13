@@ -45,7 +45,7 @@ export interface PropertyResult {
 }
 
 export interface GraphPayload {
-  nodes: { id: number; depth: number; key: string; flags: number; scc: number }[];
+  nodes: { id: number; depth: number; key: string; flags: number; scc: number; viol?: string[] }[];
   edges: { from: number; to: number; action: number }[];
   truncated: boolean;
 }
@@ -54,7 +54,7 @@ export const F_INITIAL = 1, F_VIOLATION = 2, F_DEADLOCK = 4, F_TERMINAL = 8, F_F
 
 export interface CheckResult {
   engine: { name: string; version: string; order: string };
-  model: { name: string; title: string; vars: { name: string; type: string; process: string | null }[]; actions: { label: string; process: string; guard: string; assigns: string[] }[]; processes: string[]; fairness: string[]; declaredStateSpace: number };
+  model: { name: string; title: string; description: string; vars: { name: string; type: string; process: string | null }[]; actions: { label: string; family: string; process: string; guard: string; assigns: string[]; reads: string[]; writes: string[] }[]; liveness: { name: string; kind: string; text: string }[]; invariants: { name: string; text: string }[]; processes: string[]; fairness: string[]; declaredStateSpace: number };
   bounds: Bounds;
   verdict: RunVerdict;
   complete: boolean;
@@ -230,9 +230,19 @@ export function check(model: CompiledModel, opts: CheckOptions = {}): { result: 
   const result: CheckResult = {
     engine: { name: ENGINE_NAME, version: ENGINE_VERSION, order: 'breadth-first; initial states in declaration order; actions in declaration order, then parameter order' },
     model: {
-      name: model.name, title: model.title,
+      name: model.name, title: model.title, description: model.description,
       vars: model.vars.map((v) => ({ name: v.name, type: typeText(model, v.index), process: v.process })),
-      actions: model.actions.map((a) => ({ label: a.label, process: a.process, guard: a.guardText, assigns: a.assigns.map((x) => x.text) })),
+      actions: model.actions.map((a) => {
+        const reads = new Set<number>();
+        if (a.guard) varsOf(a.guard, reads);
+        for (const x of a.assigns) varsOf(x.e, reads);
+        return {
+          label: a.label, family: a.family, process: a.process, guard: a.guardText, assigns: a.assigns.map((x) => x.text),
+          reads: [...reads].sort((p, q) => p - q).map((i) => model.vars[i].name), writes: a.assigns.map((x) => model.vars[x.v].name),
+        };
+      }),
+      liveness: model.liveness.map((l) => ({ name: l.name, kind: l.kind, text: l.text })),
+      invariants: model.invariants.map((i) => ({ name: i.name, text: i.text })),
       processes: model.processes.map((p) => p.name),
       fairness: model.fairness.map((f) => f.label),
       declaredStateSpace: model.declaredStateSpace,
@@ -263,8 +273,14 @@ export function check(model: CompiledModel, opts: CheckOptions = {}): { result: 
     ex.domainViolations.forEach((d) => (flags[d.from] |= F_DOMAIN));
     for (let s = 0; s < ex.states.length; s++) if (!ex.expanded[s]) flags[s] |= F_FRONTIER;
     witnessIds.forEach((s) => (flags[s] |= F_WITNESS));
+    const viol = new Map<number, string[]>();
+    ex.invariantViolations.forEach((v, k) => v.forEach((s) => viol.set(s, [...(viol.get(s) ?? []), model.invariants[k].name])));
     const nodes: GraphPayload['nodes'] = [];
-    for (let s = 0; s < n; s++) nodes.push({ id: s, depth: ex.depth[s], key: stateDigest(model, ex.states[s]).slice(0, 12), flags: flags[s], scc: scc ? scc.comp[s] : -1 });
+    for (let s = 0; s < n; s++) {
+      const node: GraphPayload['nodes'][number] = { id: s, depth: ex.depth[s], key: stateDigest(model, ex.states[s]).slice(0, 12), flags: flags[s], scc: scc ? scc.comp[s] : -1 };
+      if (viol.has(s)) node.viol = viol.get(s);
+      nodes.push(node);
+    }
     const edges: GraphPayload['edges'] = [];
     for (let e = 0; e < ex.edgeFrom.length && edges.length < limit * 8; e++) {
       if (ex.edgeFrom[e] < n && ex.edgeTo[e] < n) edges.push({ from: ex.edgeFrom[e], to: ex.edgeTo[e], action: ex.edgeAction[e] });
@@ -274,6 +290,16 @@ export function check(model: CompiledModel, opts: CheckOptions = {}): { result: 
     for (let s = 0; s < n; s++) result.states.push(renderState(model, ex.states[s]));
   }
   return { result, exploration: ex };
+}
+
+function varsOf(e: import('../model/ir.ts').IrExpr, out: Set<number>): void {
+  switch (e.k) {
+    case 'var': out.add(e.i); return;
+    case 'const': return;
+    case 'un': varsOf(e.a, out); return;
+    case 'bin': varsOf(e.a, out); varsOf(e.b, out); return;
+    case 'ite': varsOf(e.c, out); varsOf(e.t, out); varsOf(e.e, out); return;
+  }
 }
 
 function limitationsFor(ex: Exploration): string[] {

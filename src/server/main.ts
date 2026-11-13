@@ -2,7 +2,7 @@
 import path from 'node:path';
 import { createApp, ROOT, SERVICE, VERSION } from './app.ts';
 
-const port = Number(process.env.WITNESS_PORT ?? 5640);
+const port = Number(process.env.WITNESS_PORT ?? 5721);
 const dbFile = process.env.WITNESS_DB ?? path.join(ROOT, 'data', 'witness.db');
 const staticDir = process.env.WITNESS_STATIC ?? path.join(ROOT, 'web', 'dist');
 const app = createApp({ dbFile, staticDir, concurrency: Number(process.env.WITNESS_CONCURRENCY ?? 1) });

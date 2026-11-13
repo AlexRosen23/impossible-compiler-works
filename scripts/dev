@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# API on 127.0.0.1:5721 + Vite UI on 127.0.0.1:5720 (hot reload). Stops only its own children.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+export WITNESS_PORT="${WITNESS_PORT:-5721}" WITNESS_WEB_PORT="${WITNESS_WEB_PORT:-5720}"
+node src/server/main.ts & API=$!
+trap 'kill $API 2>/dev/null || true' EXIT INT TERM
+npx vite --config web/vite.config.ts

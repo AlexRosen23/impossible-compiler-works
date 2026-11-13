@@ -36,6 +36,8 @@ const waitRun = async (id: string, want = ['done', 'failed', 'cancelled']) => {
 test('health, capabilities and examples are seeded', async () => {
   const h = await j('/health');
   assert.equal(h.body.status, 'ok');
+  assert.equal(h.body.ok, true);
+  assert.deepEqual(h.body.problems, []);
   const c = await j('/capabilities');
   assert.equal(c.body.schema_version, 1);
   assert.equal(c.body.project_id, 'impossible-witness');
@@ -97,7 +99,10 @@ test('model titles are sanitised in the public contract (XSS) and no source leak
   assert.equal(list.schema_version, 1);
   const mine = list.runs.find((r: any) => r.run_id === run.id);
   assert.doesNotMatch(mine.title, /[<>"']/);
-  assert.equal(mine.provenance, 'synthetic');
+  assert.equal(mine.provenance.label, 'synthetic');
+  assert.equal(mine.provenance.synthetic, true);
+  assert.equal(mine.status, 'completed');
+  assert.ok(Array.isArray((await j('/capabilities')).body.implemented));
   const text = JSON.stringify(list);
   assert.doesNotMatch(text, /counter := counter/);
   assert.doesNotMatch(text, /\/Users\//);

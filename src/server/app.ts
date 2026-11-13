@@ -56,8 +56,9 @@ export function createApp(opts: AppOptions) {
   }
 
   // ---- job queue ----------------------------------------------------------------------------
+  let closed = false;
   const pump = () => {
-    while (active.size < concurrency) {
+    while (!closed && active.size < concurrency) {
       const next = store.nextQueued();
       if (!next) return;
       startJob(next);
@@ -81,8 +82,9 @@ export function createApp(opts: AppOptions) {
       store.finish(run.id, 'failed', { error: 'job exceeded its wall-clock budget' });
       void w.terminate();
     }, JOB_WALL_MS);
-    const end = () => { clearTimeout(wall); active.delete(run.id); progress.delete(run.id); setImmediate(pump); };
+    const end = () => { clearTimeout(wall); active.delete(run.id); progress.delete(run.id); if (!closed) setImmediate(pump); };
     w.on('message', (m: { type: string; progress?: unknown; result?: unknown; receipt?: unknown; error?: string }) => {
+      if (closed) return;
       if (m.type === 'progress') { progress.set(run.id, m.progress); store.setProgress(run.id, m.progress as object); return; }
       if (settled) return;
       settled = true;
@@ -91,10 +93,12 @@ export function createApp(opts: AppOptions) {
       void w.terminate();
     });
     w.on('error', (e) => {
+      if (closed) { end(); return; }
       if (!settled) { settled = true; store.finish(run.id, 'failed', { error: `worker error: ${e.message}`.slice(0, 2000) }); }
       end();
     });
     w.on('exit', (code) => {
+      if (closed) { end(); return; }
       const row = store.run(run.id)!;
       if (!settled && row.status === 'running') {
         settled = true;
@@ -165,22 +169,40 @@ export function createApp(opts: AppOptions) {
   };
 
   /** Constellation contract: public-safe run summary (no model source, no paths). */
-  const publicRun = (r: ReturnType<Store['runs']>[number]) => ({
-    run_id: r.id,
-    kind: r.kind === 'check' ? 'model-check' : r.kind === 'tlc' ? 'tlc-cross-check' : 'mutation-test',
-    status: r.status,
-    verdict: r.verdict ?? null,
-    complete: r.complete === null ? null : !!r.complete,
-    states: r.states ?? null,
-    edges: r.edges ?? null,
-    model: SLUG_RE.test(r.slug) ? r.slug : 'user-model',
-    title: publicText(r.title),
-    revision: r.rev,
-    provenance: r.origin === 'example' ? 'fixture' : 'synthetic',
-    created_at: r.created_at,
-    finished_at: r.finished_at,
-    links: { self: `/runs/${r.id}` },
-  });
+  const STATUS_WORD: Record<string, string> = { queued: 'queued', running: 'running', done: 'completed', failed: 'failed', cancelled: 'cancelled' };
+  const publicRun = (r: ReturnType<Store['runs']>[number]) => {
+    const model = SLUG_RE.test(r.slug) ? r.slug : 'user-model';
+    const kind = r.kind === 'check' ? 'model-check' : r.kind === 'tlc' ? 'tlc-cross-check' : 'mutation-test';
+    const verdict = r.verdict ?? null;
+    const headline = r.status === 'done'
+      ? (r.kind === 'mutation' ? `mutation testing of ${model} r${r.rev}` : `${model} r${r.rev}: ${verdict ?? 'no verdict'}${r.states !== null ? `, ${r.states} states${r.complete ? '' : ' (incomplete)'}` : ''}`)
+      : `${model} r${r.rev}: ${r.status}`;
+    return {
+      run_id: r.id,
+      project_id: SERVICE,
+      kind,
+      status: STATUS_WORD[r.status] ?? r.status,
+      mode: 'bounded-model',
+      verdict,
+      complete: r.complete === null ? null : !!r.complete,
+      states: r.states ?? null,
+      edges: r.edges ?? null,
+      model,
+      title: publicText(r.title),
+      revision: r.rev,
+      headline,
+      started_at: r.started_at,
+      ended_at: r.finished_at,
+      created_at: r.created_at,
+      finished_at: r.finished_at,
+      provenance: {
+        synthetic: true,
+        label: r.origin === 'example' ? 'fixture' : 'synthetic',
+        source: r.origin === 'example' ? 'a shipped example model (hand-written, finite)' : 'a user-written finite model',
+      },
+      links: { self: `/runs/${r.id}` },
+    };
+  };
 
   const capabilities = async () => {
     const t = await tlcAvailability();
@@ -198,6 +220,11 @@ export function createApp(opts: AppOptions) {
       examples: catalog.scenarios.length,
       features: ['possibility-chamber', 'specification-desk', 'interleaving-theater', 'invariant-hall', 'temporal-observatory', 'witness-archive', 'model-bazaar', 'proof-observatory'],
       read_only_endpoints: ['/health', '/capabilities', '/runs', '/runs/{id}'],
+      active_mode: 'bounded-model',
+      dataset: { name: `${catalog.scenarios.length} teaching scenarios (hand-written finite models)`, origin: 'hand-written', synthetic: true },
+      implemented: ['bfs-model-checking', 'shortest-counterexamples', 'deadlock-detection', 'fairness-aware-liveness', 'independent-trace-replay', 'mutation-testing', 'tla-export', t.available ? 'tlc-cross-check' : 'tlc-cross-check (INTERNAL_ONLY here)', 'tamper-evident-receipts', 'html-report-export', 'model-revisions-and-diffs', 'state-graph-visualisation'],
+      not_implemented: ['symbolic-model-checking', 'partial-order-reduction', 'symmetry-reduction', 'alloy', 'code-to-model-extraction'],
+      disabled_by_design: ['arbitrary-code-execution-from-models', 'network-access-from-checks', 'connecting-to-live-systems', 'proof-claims-about-production-software'],
       limits: { bounds_default: clampBounds({}), body_bytes: MAX_BODY },
       provenance_labels: { fixture: 'run of a shipped example model', synthetic: 'run of a user-authored model' },
       disclaimer: 'Verdicts cover only the finite model and its stated assumptions; they are not proofs about production systems.',
@@ -246,7 +273,14 @@ export function createApp(opts: AppOptions) {
     let match: RegExpExecArray | null;
 
     // read-only contract
-    if (m === 'GET' && p === '/health') return send(res, 200, { status: 'ok', service: SERVICE, version: VERSION, uptime_s: Math.round((Date.now() - started) / 1000), queue: { active: active.size }, recovered });
+    if (m === 'GET' && p === '/health') {
+      const last = store.runs(1)[0];
+      return send(res, 200, {
+        status: 'ok', ok: true, project_id: SERVICE, service: SERVICE, version: VERSION, mode: 'bounded-model',
+        uptime_s: Math.round((Date.now() - started) / 1000), queue: { active: active.size }, recovered, problems: [],
+        last_run: last ? { run_id: last.id, kind: last.kind, status: STATUS_WORD[last.status] ?? last.status } : null,
+      });
+    }
     if (m === 'GET' && p === '/capabilities') return send(res, 200, await capabilities());
     if (m === 'GET' && p === '/runs') {
       const limit = Math.max(1, Math.min(Number(url.searchParams.get('limit') ?? 50) || 50, 200));
@@ -398,6 +432,7 @@ export function createApp(opts: AppOptions) {
   return {
     server, store, pump, cancel,
     close: async () => {
+      closed = true;
       for (const w of active.values()) await w.terminate();
       await new Promise<void>((r) => server.close(() => r()));
       store.db.close();

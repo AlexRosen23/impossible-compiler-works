@@ -72,7 +72,7 @@ export function App() {
   useEffect(() => { if (project) store.set(`pt:draft:${project.id}:${project.head.id}`, source); }, [source, project]);
 
   const save = useCallback(async (force = false) => {
-    if (!online) { toast('server offline: saving needs the API on 127.0.0.1:5580'); return; }
+    if (!online) { toast('server offline: saving needs the API on 127.0.0.1:5721'); return; }
     const src = editor.current?.getSource() ?? source;
     if (!project) {
       const r = await api<Project>('/api/projects', { method: 'POST', body: { name: label || 'untitled', source: src } });
@@ -127,7 +127,7 @@ export function App() {
           {status}
           {warnings.length > 0 && <span className="chip warn">{warnings.length} warning{warnings.length === 1 ? '' : 's'}</span>}
           <span className="spacer" />
-          <span className={`chip desk-only ${online ? 'ok' : 'warn'}`} title="API server on 127.0.0.1:5580">{online ? 'server ● loopback' : 'server offline · local only'}</span>
+          <span className={`chip desk-only ${online ? 'ok' : 'warn'}`} title="API server on 127.0.0.1:5721 (/engine/compiler)">{online ? 'server ● loopback' : 'server offline · local only'}</span>
           <button className="btn" onClick={() => setTour(true)}>90-second tour</button>
         </header>
         <nav className="modes" role="tablist" aria-label="Workshop modes">

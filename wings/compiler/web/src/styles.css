@@ -204,3 +204,8 @@ pre.block { margin: 0; padding: 10px 14px; font: 12px/1.5 var(--mono); white-spa
   .cols { grid-template-columns: 1fr; }
   .wordmark { font-size: 16px; }
 }
+
+/* THE IMPOSSIBLE COMPILER WORKS: the shared shell strip sits above the IDE, which fills the rest of the window. */
+#root { display: flex; flex-direction: column; }
+#root > .app { flex: 1 1 auto; min-height: 0; height: auto; }
+@media (max-width: 860px) { #root { display: block; } }

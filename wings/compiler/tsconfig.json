@@ -3,7 +3,11 @@
     "target": "ES2023",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "lib": [
+      "ES2023",
+      "DOM",
+      "DOM.Iterable"
+    ],
     "jsx": "react-jsx",
     "strict": true,
     "noEmit": true,
@@ -11,7 +15,17 @@
     "erasableSyntaxOnly": true,
     "verbatimModuleSyntax": true,
     "skipLibCheck": true,
-    "types": ["node"]
+    "types": [
+      "node"
+    ]
   },
-  "include": ["core", "server", "tests", "scripts", "web/src", "web/vite.config.ts", "vitest.config.ts", "e2e", "playwright.config.ts"]
+  "include": [
+    "core",
+    "server",
+    "tests",
+    "scripts",
+    "web/src",
+    "vitest.config.ts",
+    "e2e"
+  ]
 }

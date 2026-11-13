@@ -1,37 +1,59 @@
 {
-  "name": "impossible-witness",
-  "version": "0.1.0",
+  "name": "impossible-compiler-works",
+  "version": "0.2.0",
   "private": true,
-  "description": "THE IMPOSSIBLE WITNESS — a visual formal-methods laboratory: finite transition systems, BFS model checking, counterexample traces, fairness-aware liveness, TLC cross-checks and replayable evidence receipts.",
+  "description": "THE IMPOSSIBLE COMPILER WORKS: write it, compile it, prove nothing impossible can happen. A FOLIO compiler, bytecode VM and reference-interpreter oracle (Compiler wing) next to an explicit-state model checker with shortest counterexamples, fairness-aware liveness and replayable receipts (Witness wing). Formerly Paper Tiger Compiler Works and The Impossible Witness.",
   "type": "module",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "engines": {
     "node": ">=24"
   },
   "scripts": {
-    "typecheck": "tsc -p tsconfig.json && tsc -p web/tsconfig.json",
-    "test": "node --test --test-reporter=spec tests/*.test.ts",
+    "dev": "./scripts/dev",
+    "typecheck": "tsc -p tsconfig.json && tsc -p web/tsconfig.json && tsc -p wings/compiler/tsconfig.json",
+    "test": "npm run test:witness && npm run test:compiler && npm run test:bridge",
+    "test:witness": "node --test --test-reporter=spec tests/*.test.ts",
+    "test:compiler": "cd wings/compiler && NODE_NO_WARNINGS=1 vitest run",
+    "test:bridge": "node --test --test-reporter=spec bridge/tests/*.test.ts",
+    "lint": "cd wings/compiler && eslint .",
     "server": "node src/server/main.ts",
     "web": "vite --config web/vite.config.ts",
     "build:web": "vite build --config web/vite.config.ts",
-    "witness": "node src/cli/witness.ts"
+    "witness": "node src/cli/witness.ts",
+    "folio": "NODE_NO_WARNINGS=1 node wings/compiler/scripts/folio.ts",
+    "fuzz": "NODE_NO_WARNINGS=1 node wings/compiler/scripts/fuzz.ts",
+    "bench": "NODE_NO_WARNINGS=1 node wings/compiler/scripts/bench.ts",
+    "compiler:reproduce": "NODE_NO_WARNINGS=1 node wings/compiler/scripts/reproduce.ts",
+    "compiler:receipt": "NODE_NO_WARNINGS=1 node wings/compiler/scripts/receipt.ts",
+    "pass-check": "node bridge/pass-orders.ts"
+  },
+  "dependencies": {
+    "@codemirror/autocomplete": "6.20.4",
+    "@codemirror/commands": "6.11.1",
+    "@codemirror/language": "6.13.1",
+    "@codemirror/lint": "6.9.7",
+    "@codemirror/state": "6.7.6",
+    "@codemirror/view": "6.43.15",
+    "@lezer/highlight": "1.2.5",
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
   },
   "devDependencies": {
-    "@axe-core/playwright": "^4.14.0",
-    "@codemirror/commands": "^6.11.1",
-    "@codemirror/language": "^6.13.1",
-    "@codemirror/lint": "^6.9.7",
-    "@codemirror/state": "^6.7.6",
-    "@codemirror/view": "^6.43.15",
-    "@lezer/highlight": "^1.2.5",
-    "@playwright/test": "^1.65.0",
-    "@types/node": "^24.19.2",
-    "@types/react": "^18.3.31",
-    "@types/react-dom": "^18.3.7",
-    "@vitejs/plugin-react": "^4.7.0",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "typescript": "^5.9.3",
-    "vite": "^6.4.6"
+    "@eslint/js": "10.0.1",
+    "@playwright/test": "1.65.0",
+    "@types/node": "24.19.0",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "5.2.0",
+    "eslint": "10.14.0",
+    "globals": "17.14.0",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.72.2",
+    "vite": "8.3.8",
+    "vitest": "5.1.0",
+    "@axe-core/playwright": "^4.14.0"
+  },
+  "overrides": {
+    "minimatch": "^11.0.8"
   }
 }

@@ -92,8 +92,10 @@ export const WB = createContext<Workbench | null>(null);
 export function useWB(): Workbench { const w = useContext(WB); if (!w) throw new Error('no workbench'); return w; }
 
 // --- API client (loopback server; the IDE degrades to offline mode without it) --------------------
+// In THE IMPOSSIBLE COMPILER WORKS this wing's API is mounted under /engine/compiler on the shared server.
+export const API_BASE = '/engine/compiler';
 export async function api<T>(path: string, init?: { method?: string; body?: unknown }): Promise<{ status: number; data: T }> {
-  const res = await fetch(path, { method: init?.method ?? 'GET', headers: init?.body !== undefined ? { 'content-type': 'application/json' } : undefined, body: init?.body !== undefined ? JSON.stringify(init.body) : undefined });
+  const res = await fetch(API_BASE + path, { method: init?.method ?? 'GET', headers: init?.body !== undefined ? { 'content-type': 'application/json' } : undefined, body: init?.body !== undefined ? JSON.stringify(init.body) : undefined });
   const data = (await res.json().catch(() => null)) as T;
   return { status: res.status, data };
 }

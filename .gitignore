@@ -24,3 +24,12 @@ node_modules/
 __pycache__/
 *.pyc
 .DS_Store
+
+# --- merged from the Compiler wing (formerly PAPER TIGER) ---
+dist/
+var/
+.claude/
+*.log
+coverage/
+.vite/
+.vitest/

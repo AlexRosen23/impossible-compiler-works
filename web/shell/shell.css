@@ -1,0 +1,15 @@
+.icw-shell {
+  --icw-bg: #0c0c10; --icw-fg: #ecebe6; --icw-dim: #a3a19a; --icw-accent: #d4a24c;
+  position: relative; z-index: 50; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px;
+  min-height: 30px; padding: 6px 16px; box-sizing: border-box;
+  background: var(--icw-bg); color: var(--icw-fg); border-bottom: 1px solid #2a2a33;
+  font: 500 12px/1.4 ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif; letter-spacing: 0.02em;
+}
+.icw-shell__name { font-weight: 700; letter-spacing: 0.08em; }
+.icw-shell__tagline { color: var(--icw-dim); font-style: italic; }
+.icw-shell__wings { display: flex; gap: 10px; }
+.icw-shell__wings a { color: var(--icw-dim); text-decoration: none; padding: 1px 6px; border-radius: 3px; }
+.icw-shell__wings a:hover, .icw-shell__wings a:focus-visible { color: var(--icw-fg); outline: 1px solid var(--icw-accent); }
+.icw-shell__wings a[aria-current='page'] { color: var(--icw-bg); background: var(--icw-accent); }
+.icw-shell__formerly { margin-left: auto; color: var(--icw-dim); }
+@media (max-width: 720px) { .icw-shell__tagline { display: none; } .icw-shell__formerly { margin-left: 0; flex-basis: 100%; } }

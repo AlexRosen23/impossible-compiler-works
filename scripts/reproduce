@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
-# Re-check every receipt under evidence/ from its pinned inputs (embedded source + bounds).
+# Re-check every receipt of both wings from its pinned inputs.
+#   Witness wing:  evidence/**/receipt*.json (embedded model source + bounds; replays the counterexample)
+#   Compiler wing: wings/compiler/evidence/receipts/*/receipt.json (+ bytecode.json): recompile, re-run the VM and
+#                  the independent reference interpreter, compare every pinned hash.
 # Exits non-zero if any receipt is tampered with or no longer reproduces.
 set -uo pipefail
 cd "$(dirname "$0")/.."
@@ -10,5 +13,11 @@ while IFS= read -r f; do
     if [[ "$f" == *TAMPERED* ]]; then echo "REJECTED  $f (expected: deliberately tampered)"; else echo "REJECTED  $f"; fail=1; fi
   fi
 done < <(find evidence -name '*.json' -path '*receipt*' -o -name '*TAMPERED*.json' | sort)
-echo "$n receipt(s) checked"
+echo "$n Witness wing receipt(s) checked"
+m=0
+for r in wings/compiler/evidence/receipts/*/receipt.json; do
+  m=$((m+1)); bc="$(dirname "$r")/bytecode.json"
+  if NODE_NO_WARNINGS=1 node wings/compiler/scripts/reproduce.ts "$r" "$bc" >/dev/null 2>&1; then echo "REPRODUCED $r"; else echo "FAILED     $r"; fail=1; fi
+done
+echo "$m Compiler wing receipt(s) checked"
 exit $fail

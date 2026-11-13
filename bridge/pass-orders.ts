@@ -105,11 +105,12 @@ export function abstractPassOrders(seed: string, source: string, alphabet: PassN
 /** Step 4: the abstraction as a WML model. Deterministic: same abstraction, same bytes. */
 export function toWml(a: Abstraction): string {
   const n = a.states.length;
-  const table = (f: (i: number) => string) => {
-    if (n === 1) return f(0);
-    let e = f(n - 1);
-    for (let i = n - 2; i >= 0; i--) e = `if prog = ${i} then ${f(i)} else (${e})`;
-    return e;
+  // A balanced decision tree over prog (depth ~2·log2 n), so even a capped abstraction stays far inside the WML
+  // parser's expression-nesting limit (64).
+  const table = (f: (i: number) => string, lo = 0, hi = n): string => {
+    if (hi - lo <= 1) return f(lo);
+    const mid = (lo + hi) >> 1;
+    return `if prog < ${mid} then (${table(f, lo, mid)}) else (${table(f, mid, hi)})`;
   };
   const ok = (i: number) => (a.states[i].label === 'agree' ? 'true' : 'false');
   const lines = [

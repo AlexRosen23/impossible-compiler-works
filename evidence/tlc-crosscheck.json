@@ -1291,7 +1291,7 @@
           "property": "AEventuallyEnters",
           "status": "TEMPORAL_VIOLATED",
           "distinctStates": 15,
-          "traceLength": 10
+          "traceLength": 9
         }
       ],
       "comparison": [
@@ -1328,7 +1328,7 @@
           "internal": "VIOLATED",
           "tlc": "TEMPORAL_VIOLATED",
           "agree": true,
-          "note": "both report a violation; lasso lengths 12 (internal) vs 10 (TLC) — TLC does not promise a shortest lasso — TLC trace re-derived by the independent replay evaluator"
+          "note": "both report a violation; lasso lengths 12 (internal) vs 9 (TLC) — TLC does not promise a shortest lasso — TLC trace re-derived by the independent replay evaluator"
         }
       ],
       "note": "TLC AGREES on 5/5 comparisons (TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802))"
@@ -1964,7 +1964,7 @@
           "property": "BEventuallyEnters",
           "status": "TEMPORAL_VIOLATED",
           "distinctStates": 8,
-          "traceLength": 2
+          "traceLength": 4
         }
       ],
       "comparison": [
@@ -2001,7 +2001,7 @@
           "internal": "VIOLATED",
           "tlc": "TEMPORAL_VIOLATED",
           "agree": true,
-          "note": "both report a violation; lasso lengths 2 (internal) vs 2 (TLC) — TLC does not promise a shortest lasso — TLC trace re-derived by the independent replay evaluator"
+          "note": "both report a violation; lasso lengths 2 (internal) vs 4 (TLC) — TLC does not promise a shortest lasso — TLC trace re-derived by the independent replay evaluator"
         }
       ],
       "note": "TLC AGREES on 5/5 comparisons (TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802))"
@@ -2039,7 +2039,7 @@
           "property": "BEventuallyEnters",
           "status": "TEMPORAL_VIOLATED",
           "distinctStates": 8,
-          "traceLength": 6
+          "traceLength": 4
         }
       ],
       "comparison": [
@@ -2076,7 +2076,7 @@
           "internal": "VIOLATED",
           "tlc": "TEMPORAL_VIOLATED",
           "agree": true,
-          "note": "both report a violation; lasso lengths 4 (internal) vs 6 (TLC) — TLC does not promise a shortest lasso — TLC trace re-derived by the independent replay evaluator"
+          "note": "both report a violation; lasso lengths 4 (internal) vs 4 (TLC) — TLC does not promise a shortest lasso — TLC trace re-derived by the independent replay evaluator"
         }
       ],
       "note": "TLC AGREES on 5/5 comparisons (TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802))"

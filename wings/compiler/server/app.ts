@@ -12,6 +12,7 @@ import {
   type SerializedBC, canonicalJson, sha256,
 } from '../core/index.ts';
 import { JobError, JobRunner, type JobRunnerOptions } from './jobs.ts';
+import { jsonDepth, MAX_JSON_DEPTH } from '../../../src/server/json-depth.ts';
 
 export interface AppConfig { db: DatabaseSync; root: string; commit: string | null; startedAt: number; maxBody?: number; jobs?: JobRunnerOptions; caps?: Partial<StorageCaps> }
 /** Storage is bounded too: old runs are pruned, and projects and versions stop at a cap. */
@@ -64,7 +65,9 @@ async function readJson(req: IncomingMessage, max: number): Promise<unknown> {
     chunks.push(c as Buffer);
   }
   if (n > max) throw new HttpError(413, `body over ${max} bytes`);
-  try { return JSON.parse(Buffer.concat(chunks).toString('utf8')); } catch { throw new HttpError(400, 'invalid JSON'); }
+  const text = Buffer.concat(chunks).toString('utf8');
+  if (jsonDepth(text) > MAX_JSON_DEPTH) throw new HttpError(400, `JSON nested deeper than ${MAX_JSON_DEPTH} levels`);
+  try { return JSON.parse(text); } catch { throw new HttpError(400, 'invalid JSON'); }
 }
 
 const str = (v: unknown, name: string, max: number): string => {

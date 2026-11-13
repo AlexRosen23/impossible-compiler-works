@@ -49,3 +49,38 @@ test('bridge endpoint: shipped seeds only, verdict + receipt, and the model land
   const m = await (await fetch(`${base}/api/models/by-slug/${r.slug}`)).json();
   assert.match(m.latest.source, /invariant OptimizedMatchesReference: agree/);
 });
+
+test('red-team: cross-site, foreign-origin, non-JSON and rebinding requests are refused on both wings', async () => {
+  const body = JSON.stringify({ seed: 'fault-lab-commute', alphabet: 'safe' });
+  // another site (or another local port) driving the API from a browser
+  for (const p of ['/api/bridge/pass-orders', '/engine/compiler/api/runs']) {
+    const r = await fetch(base + p, { method: 'POST', headers: { 'content-type': 'application/json', 'sec-fetch-site': 'cross-site' }, body });
+    assert.equal(r.status, 403, p);
+    const o = await fetch(base + p, { method: 'POST', headers: { 'content-type': 'application/json', origin: 'http://evil.example' }, body });
+    assert.equal(o.status, 403, p);
+  }
+  assert.equal((await fetch(base + '/health', { headers: { 'sec-fetch-site': 'same-site' } })).status, 403);
+  // a cross-site "simple" request (text/plain) is never parsed as JSON
+  assert.equal((await fetch(base + '/api/bridge/pass-orders', { method: 'POST', headers: { 'content-type': 'text/plain' }, body })).status, 415);
+  // the UI's own requests still work
+  const ok = await fetch(base + '/api/bridge/pass-orders', { method: 'POST', headers: { 'content-type': 'application/json', origin: base, 'sec-fetch-site': 'same-origin' }, body });
+  assert.equal(ok.status, 200);
+});
+
+test('red-team: malformed paths and hostile receipts do not crash the server', async () => {
+  const http = await import('node:http');
+  const raw = (path: string, host = '127.0.0.1') => new Promise<number>((resolve, reject) => {
+    const req = http.request({ host: '127.0.0.1', port: Number(new URL(base).port), path, headers: { host } }, (res) => { res.resume(); resolve(res.statusCode ?? 0); });
+    req.on('error', reject); req.end();
+  });
+  assert.equal(await raw('/health', 'evil.example'), 421); // DNS rebinding
+  assert.ok([400, 404].includes(await raw('/%E0%A4%A')), 'malformed percent-encoding is a 4xx');
+  assert.ok([400, 404].includes(await raw('/compiler/%E0%A4%A')));
+  assert.equal(await raw('/../../package.json'), 404);
+  const deep = '{"receipt":' + '['.repeat(200_000) + '0' + ']'.repeat(200_000) + '}'; // ~400 KB, under the body cap
+  const v = await fetch(base + '/api/receipts/verify', { method: 'POST', headers: { 'content-type': 'application/json' }, body: deep });
+  assert.equal(v.status, 400, `deeply nested receipt answered ${v.status}`);
+  const pv = await fetch(base + '/engine/compiler/api/reproduce', { method: 'POST', headers: { 'content-type': 'application/json' }, body: deep });
+  assert.ok(pv.status >= 400 && pv.status < 500, `Compiler wing: deeply nested receipt answered ${pv.status}`);
+  assert.equal((await fetch(base + '/health')).status, 200, 'still alive');
+});

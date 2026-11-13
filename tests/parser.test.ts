@@ -94,3 +94,9 @@ test('warnings do not block compilation', () => {
   assert.ok(r.diagnostics.some((d) => d.code === 'W205'));
   assert.ok(r.diagnostics.some((d) => d.code === 'W203'));
 });
+
+test('parenthesised expressions keep their parentheses in source spans', async () => {
+  const { compileSource } = await import('../src/core/model/compile.ts');
+  const r = compileSource('model m\nvar a : bool = false\nvar b : bool = false\ninvariant I: (a and b) => b');
+  assert.equal(r.model!.invariants[0].text, '(a and b) => b');
+});

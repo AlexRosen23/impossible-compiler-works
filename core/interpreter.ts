@@ -8,14 +8,22 @@ import type { CheckResult } from './checker.ts';
 import type { Span } from './diagnostics.ts';
 import { DEFAULT_LIMITS, type Limits } from './limits.ts';
 import { GROUP_SIG, PRIMITIVES, type PrimSig } from './primitives.ts';
-import { type DrawCmd, type Frame, SceneBuilder, type SceneOutput } from './scene.ts';
+import { type DrawCmd, type Frame, SceneBuilder, type SceneBudget, type SceneOutput, newSceneBudget } from './scene.ts';
 import {
   type ColorV, FaultSignal, FolioFault, type PointV, type Value, colorFromHex, finite, isColor, valueEquals,
 } from './values.ts';
 import { SCENE_FORMAT } from './version.ts';
 
 export interface RunFault { code: string; message: string; span: Span | null; frame: number }
-export interface RunResult { scene: SceneOutput; fault: RunFault | null; stats: { iterations: number; draws: number } }
+export interface RunResult { scene: SceneOutput; fault: RunFault | null; stats: { iterations: number; draws: number; calls?: number; steps?: number } }
+
+/** True for the host's own stack overflow (V8 and other engines word it differently). */
+export function isHostStackOverflow(e: unknown): boolean {
+  return e instanceof RangeError && /call stack|too much recursion|stack overflow/i.test(e.message);
+}
+
+/** Work shared by every frame of one run. */
+interface RunBudget { steps: number; scene: SceneBudget }
 
 class Env {
   vars = new Map<string, { v: Value; mutable: boolean }>();
@@ -52,35 +60,49 @@ export function interpret(program: A.Program, check: CheckResult, data: Map<stri
 
   const frames: Frame[] = [];
   let fault: RunFault | null = null;
-  let iterations = 0, draws = 0;
+  let iterations = 0, draws = 0, calls = 0;
+  const run: RunBudget = { steps: 0, scene: newSceneBudget() };
   const indices = onlyFrame === undefined ? Array.from({ length: info.frames }, (_, i) => i) : [onlyFrame];
   for (const f of indices) {
     const time = f / info.frames;
-    const ev = new Evaluator(fns, globals, limits);
+    const ev = new Evaluator(fns, globals, limits, run);
     const env = new Env(globals);
     env.define('WIDTH', info.width); env.define('HEIGHT', info.height); env.define('time', time); env.define('frame', f);
     try {
       ev.block(sceneDecl.body, env);
     } catch (e) {
-      if (!(e instanceof FolioFault)) throw e;
-      fault = { code: e.code, message: e.message, span: e.span, frame: f };
+      if (e instanceof FolioFault) fault = { code: e.code, message: e.message, span: e.span, frame: f };
+      // The checker's S005 bound keeps checked programs inside the host stack; this is the backstop, reported as
+      // this executor's resource limit (never a crash, never a divergence).
+      else if (isHostStackOverflow(e)) fault = { code: 'R014', message: 'the reference interpreter ran out of host stack', span: null, frame: f };
+      else throw e;
     }
     frames.push({ index: f, time, cmds: ev.scene.cmds as DrawCmd[] });
-    iterations += ev.iterations; draws += ev.scene.cmds.length;
+    iterations += ev.iterations; draws += ev.scene.cmds.length; calls += ev.calls;
     if (fault) break;
   }
-  return { scene: { format: SCENE_FORMAT, title: info.title, width: info.width, height: info.height, background: info.background, frames }, fault, stats: { iterations, draws } };
+  return { scene: { format: SCENE_FORMAT, title: info.title, width: info.width, height: info.height, background: info.background, frames }, fault, stats: { iterations, draws, calls, steps: run.steps } };
 }
 
 class Evaluator {
   scene: SceneBuilder;
   iterations = 0;
+  calls = 0;
+  /** Evaluation steps (statements and expressions) in this frame. */
+  steps = 0;
   private fns: Map<string, A.FnDecl>;
   private globals: Env;
   private limits: Limits;
-  constructor(fns: Map<string, A.FnDecl>, globals: Env, limits: Limits) {
-    this.fns = fns; this.globals = globals; this.limits = limits;
-    this.scene = new SceneBuilder(limits);
+  private run: RunBudget;
+  constructor(fns: Map<string, A.FnDecl>, globals: Env, limits: Limits, run: RunBudget) {
+    this.fns = fns; this.globals = globals; this.limits = limits; this.run = run;
+    this.scene = new SceneBuilder(limits, run.scene);
+  }
+
+  /** One evaluation step against this executor's own fuel (per frame and per run). */
+  step(span: Span) {
+    if (++this.steps > this.limits.refFuelPerFrame) throw new FolioFault('R014', `used more than ${this.limits.refFuelPerFrame} evaluation steps in one frame`, span);
+    if (++this.run.steps > this.limits.refFuelPerRun) throw new FolioFault('R014', `used more than ${this.limits.refFuelPerRun} evaluation steps in the whole run`, span);
   }
 
   at<T>(span: Span, f: () => T): T {
@@ -95,6 +117,7 @@ class Evaluator {
   }
 
   stmt(s: A.Stmt, env: Env): void {
+    this.step(s.span);
     switch (s.kind) {
       case 'Let': env.define(s.name, this.expr(s.init, env), s.mutable); return;
       case 'Assign': env.set(s.name, this.expr(s.value, env)); return;
@@ -132,6 +155,7 @@ class Evaluator {
         return;
       }
       case 'Draw': {
+        if (!Object.hasOwn(PRIMITIVES, s.prim)) throw new Error(`reference interpreter: unknown primitive ${s.prim}`);
         const args = this.named(PRIMITIVES[s.prim], s.args, env);
         this.at(s.span, () => this.scene.draw(s.prim as DrawCmd['k'], args));
         return;
@@ -160,6 +184,7 @@ class Evaluator {
   num(e: A.Expr, env: Env): number { return this.expr(e, env) as number; }
 
   expr(e: A.Expr, env: Env): Value {
+    this.step(e.span);
     switch (e.kind) {
       case 'Num': return e.value;
       case 'Str': return e.value;
@@ -196,8 +221,9 @@ class Evaluator {
       }
       case 'Call': {
         const args = e.args.map((a) => this.expr(a, env));
-        if (e.callee in BUILTINS) return this.at(e.span, () => callBuiltin(e.callee, args, this.limits.maxStringLength));
+        if (Object.hasOwn(BUILTINS, e.callee)) return this.at(e.span, () => callBuiltin(e.callee, args, this.limits.maxStringLength));
         const f = this.fns.get(e.callee)!;
+        if (++this.calls > this.limits.maxCallsPerFrame) throw new FolioFault('R013', `more than ${this.limits.maxCallsPerFrame} function calls in one frame`, e.span);
         const fenv = new Env(this.globals);
         f.params.forEach((p, i) => fenv.define(p.name, args[i]));
         try {

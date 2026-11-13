@@ -30,19 +30,22 @@ export const MODES: { id: Mode; label: string; key: string }[] = [
 ];
 
 export interface Route { mode: Mode; example?: string; project?: string }
+export const PROJECT_ID = /^[0-9a-f-]{1,36}$/;
 export function parseRoute(hash: string): Route {
   const parts = hash.replace(/^#\/?/, '').split('/').filter(Boolean);
   const mode = (MODES.find((m) => m.id === parts[0])?.id ?? 'editorial') as Mode;
   const r: Route = { mode };
-  if (parts[1] === 'example' && parts[2]) r.example = decodeURIComponent(parts[2]);
-  if (parts[1] === 'project' && parts[2]) r.project = decodeURIComponent(parts[2]);
+  if (parts[1] === 'example' && parts[2]) { try { r.example = decodeURIComponent(parts[2]); } catch { /* malformed escape: ignore */ } }
+  // A project id is a server-issued id and nothing else: the value is used in an API path, so anything that
+  // is not one (for example ..%2F..%2Fapi%2Fcorpus) is ignored rather than fetched.
+  if (parts[1] === 'project' && parts[2] && PROJECT_ID.test(parts[2])) r.project = parts[2];
   return r;
 }
 export function routeHash(r: Route): string {
   return `#/${r.mode}${r.project ? `/project/${encodeURIComponent(r.project)}` : r.example ? `/example/${encodeURIComponent(r.example)}` : ''}`;
 }
 
-export interface FrameRun { cmds: DrawCmd[]; fault: { code: string; message: string; span: Span | null } | null; steps: number; vmHash: string; refHash: string; refFault: string | null; agree: boolean; resourceLimit: boolean; ms: number }
+export interface FrameRun { cmds: DrawCmd[]; fault: { code: string; message: string; span: Span | null } | null; steps: number; vmHash: string; refHash: string; refFault: string | null; agree: boolean; resourceLimit: boolean; resourceWho: 'VM' | 'reference interpreter' | null; ms: number }
 const frameCache = new Map<string, FrameRun>();
 /** Run one frame on the VM and on the reference interpreter; cache by bytecode hash + fixtures + frame. */
 export function runFrame(c: CompileResult, frame: number): FrameRun | null {
@@ -60,7 +63,8 @@ export function runFrame(c: CompileResult, frame: number): FrameRun | null {
   const r: FrameRun = {
     cmds: vf?.cmds ?? [], fault, steps: vm.steps[0] ?? 0, vmHash: vf ? frameHash(vf) : '', refHash: rf ? frameHash(rf) : '', refFault,
     agree: !!vf && !!rf && frameHash(vf) === frameHash(rf) && refFault === (vm.fault ? `${vm.fault.code}@${vm.fault.span?.start}` : null), ms,
-    resourceLimit: vm.fault?.code === 'R006' || vm.fault?.code === 'R007',
+    resourceLimit: vm.fault?.code === 'R006' || vm.fault?.code === 'R007' || ref.fault?.code === 'R014',
+    resourceWho: vm.fault?.code === 'R006' || vm.fault?.code === 'R007' ? 'VM' : ref.fault?.code === 'R014' ? 'reference interpreter' : null,
   };
   if (frameCache.size > 600) frameCache.clear();
   frameCache.set(key, r);

@@ -48,16 +48,36 @@ function encodeArg(type: string, v: Value): number | string | boolean | null | n
   return v as string | boolean;
 }
 
+/** Scene size shared by every frame of one run (both executors create one per run). */
+export interface SceneBudget { units: number }
+export const newSceneBudget = (): SceneBudget => ({ units: 0 });
+
+/** What one command costs against the scene-size limits: 1, plus a path's points, plus a text's length / 16. */
+export function cmdUnits(kind: string, points: unknown, value: unknown): number {
+  let u = 1;
+  if (kind === 'path' && Array.isArray(points)) u += points.length;
+  if (kind === 'text' && typeof value === 'string') u += Math.ceil(value.length / 16);
+  return u;
+}
+const argIndex = (kind: string, name: string) => PRIMITIVES[kind].params.findIndex((p) => p.name === name);
+
 export class SceneBuilder {
   cmds: DrawCmd[] = [];
+  /** Scene-size units drawn in this frame. */
+  units = 0;
   private stack: { m: Matrix; o: number }[] = [{ m: IDENTITY, o: 1 }];
   private limits: Limits;
-  constructor(limits: Limits) { this.limits = limits; }
+  private run: SceneBudget;
+  constructor(limits: Limits, run: SceneBudget = newSceneBudget()) { this.limits = limits; this.run = run; }
 
   /** args are in the primitive's declared parameter order, defaults already applied. */
   draw(kind: DrawCmd['k'], args: Value[]): void {
     const sig = PRIMITIVES[kind];
     if (this.cmds.length >= this.limits.maxDrawsPerFrame) throw new FaultSignal('R005', `more than ${this.limits.maxDrawsPerFrame} shapes in one frame`);
+    // Size is checked before anything is copied, so a fault never leaves a half-built command behind.
+    const u = cmdUnits(kind, args[argIndex(kind, 'points')], args[argIndex(kind, 'value')]);
+    if (this.units + u > this.limits.maxSceneUnitsPerFrame) throw new FaultSignal('R005', `scene size over ${this.limits.maxSceneUnitsPerFrame} units in one frame`);
+    if (this.run.units + u > this.limits.maxSceneUnits) throw new FaultSignal('R005', `scene size over ${this.limits.maxSceneUnits} units in the whole run`);
     const a: DrawCmd['a'] = {};
     sig.params.forEach((p, i) => {
       const v = args[i];
@@ -65,6 +85,7 @@ export class SceneBuilder {
       if (kind === 'path' && p.name === 'points' && (v as Value[]).length > this.limits.maxFixtureLength) throw new FaultSignal('R005', 'path has too many points');
       a[p.name] = encodeArg(p.type, v);
     });
+    this.units += u; this.run.units += u;
     const top = this.stack[this.stack.length - 1];
     this.cmds.push({ k: kind, a, m: top.m.map(q) as Matrix, o: q(top.o) });
   }
@@ -88,23 +109,34 @@ export function frameHash(f: Frame): string { return sha256(canonicalJson(f)); }
 export function validateScene(s: unknown, limits: Limits): string[] {
   const errs: string[] = [];
   const o = s as SceneOutput;
-  if (!o || o.format !== SCENE_FORMAT) return ['unknown scene format'];
+  if (!o || typeof o !== 'object' || o.format !== SCENE_FORMAT) return ['unknown scene format'];
+  if (typeof o.title !== 'string' || o.title.length > limits.maxStringLength) errs.push('bad title');
   if (!(o.width > 0 && o.width <= limits.maxCanvas && o.height > 0 && o.height <= limits.maxCanvas)) errs.push('canvas size out of range');
   if (typeof o.background !== 'string' || !/^#[0-9a-f]{6}([0-9a-f]{2})?$/i.test(o.background)) errs.push('bad background colour');
   if (!Array.isArray(o.frames) || o.frames.length > limits.maxFrames) return [...errs, 'bad frame list'];
+  let total = 0;
   for (const f of o.frames) {
-    if (!Array.isArray(f.cmds) || f.cmds.length > limits.maxDrawsPerFrame) { errs.push('bad command list'); continue; }
+    if (!f || typeof f !== 'object' || !Array.isArray(f.cmds) || f.cmds.length > limits.maxDrawsPerFrame) { errs.push('bad command list'); continue; }
+    let frameUnits = 0;
     for (const c of f.cmds) {
-      if (!(c.k in PRIMITIVES)) errs.push(`unknown primitive ${String(c.k)}`);
+      if (!c || typeof c !== 'object' || typeof c.k !== 'string' || !Object.hasOwn(PRIMITIVES, c.k)) { errs.push(`unknown primitive ${String(c?.k).slice(0, 40)}`); continue; }
       if (!Array.isArray(c.m) || c.m.length !== 6 || !c.m.every(Number.isFinite)) errs.push('bad transform');
       if (typeof c.o !== 'number' || !(c.o >= 0 && c.o <= 1)) errs.push('bad opacity');
-      for (const [k, v] of Object.entries(c.a ?? {})) {
+      if (!c.a || typeof c.a !== 'object') { errs.push('bad arguments'); continue; }
+      const params = new Set(PRIMITIVES[c.k].params.map((p) => p.name));
+      frameUnits += cmdUnits(c.k, c.a.points, c.a.value);
+      for (const [k, v] of Object.entries(c.a)) {
+        if (!params.has(k)) errs.push(`unknown argument ${k.slice(0, 40)}`);
         if (typeof v === 'number' && !Number.isFinite(v)) errs.push(`non-finite ${k}`);
         if (typeof v === 'string' && k !== 'value' && !/^#[0-9a-f]{8}$/.test(v)) errs.push(`bad colour ${k}`);
         if (typeof v === 'string' && v.length > limits.maxStringLength) errs.push('string too long');
         if (Array.isArray(v) && !v.every((pt) => Array.isArray(pt) && pt.length === 2 && pt.every((x) => typeof x === 'number' && Number.isFinite(x)))) errs.push(`bad point in ${k}`);
+        if (v !== null && typeof v === 'object' && !Array.isArray(v)) errs.push(`bad value in ${k}`);
       }
     }
+    if (frameUnits > limits.maxSceneUnitsPerFrame) errs.push('frame over the scene-size limit');
+    total += frameUnits;
+    if (total > limits.maxSceneUnits) { errs.push('scene over the scene-size limit'); break; }
     if (errs.length > 20) break;
   }
   return errs;

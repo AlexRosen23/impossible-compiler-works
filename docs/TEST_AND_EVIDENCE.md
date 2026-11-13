@@ -79,6 +79,28 @@ Added after the documentation review of 2026-11-12.
 | review findings (7) | `-0` survives constant folding, the constant pool and CSE keys; a deep non-recursive call chain is rejected statically with `S004`; fuel exhaustion is reported as `vm-resource-limit`, not a divergence; a receipt cannot raise host limits; deeply nested blocks give `S002`, not an `ICE`; `validateScene` rejects a bad background, opacity and point coordinate; a `let` shadowing a function name does not take the call's resolution |
 | shared output device and built-ins, unit tests (3) | colour clamping and rounding, `hsl`, `mix` and `alpha` on known values; `noise` determinism and range, `fmt` digit clamping, non-finite results fault; scene-builder transform composition (translate, rotate, scale), opacity multiplication and limits |
 
+### `tests/security.test.ts` (24 tests)
+
+One reproduction per finding of the pre-release red team (`SECURITY.md` section 5), each of which crashed, hung or
+misreported before its fix: an exponential call tree stops on `R013` in both executors within seconds and agrees;
+work the VM folds away stops the reference interpreter on `R014` and is reported as `reference-resource-limit`;
+whole-run fuel in both executors; scene size per frame and per run (`R005`) for the out-of-memory path program and
+the long-text program, with both executors stopping at the same frame; a 3,000-term chain gives `S002`, not an
+exception; nesting summed across calls gives `S005`; `toString`, `valueOf`, `constructor`, `hasOwnProperty` and
+`__proto__` work as function names and agree; 2,600 checker errors stop at `maxErrors` with `S006` in well under
+3 s, and 20,000 lexer errors stop too; an unpaired surrogate gives `L008`; nine crafted bytecode modules are
+rejected with messages, never exceptions, and a 2,000-function chain is checked without host recursion; ten
+malformed receipts fail a check without throwing; `-0` and `0` fixtures give one scene hash; `validateScene`
+rejects prototype names, unknown arguments and oversized scenes; `npm run fuzz -- --help` leaves the evidence
+untouched.
+
+The server suite (`tests/server.test.ts`, now 15 tests) adds the network side: cross-site and cross-origin
+requests are refused with 403 before any work; a hostile program records in seconds while `/health` keeps
+answering; a 20,000-pass receipt is rejected at once; the fixture name `constructor` is a 404; old runs are
+pruned to the cap; the job runner stops a job past its time limit, survives a job that exhausts its heap, and
+answers busy when its queue is full. The E2E suite adds one test: a crafted project deep link never makes the
+IDE request another API path.
+
 ### `tests/docs.test.ts` (2 tests)
 
 `TYPE_SYSTEM.md` has a table row for every code in `DIAGNOSTIC_CODES`; `FOLIO_LANGUAGE_SPEC.md` names every
@@ -90,24 +112,26 @@ Not a test file. Loads examples, failure cases (parsing the `// expect: CODE @ l
 `// expect-fault: ...` header) and fixtures, and defines the observable `outcome` (scene hash plus fault code,
 offset and frame) and `differential(source, passes)`.
 
-### `e2e/ide.spec.ts` (9 tests)
+### `e2e/ide.spec.ts` (10 tests)
 
-A Playwright suite for the browser IDE, run with `npm run e2e`. It is outside the scope of these documents; it
-was reported passing by the project coordinator on 2026-11-12 and was not re-run for this document.
+A Playwright suite for the browser IDE, run with `npm run e2e` against the production build in static mode: the
+six required demonstrations, save and reopen with conflict handling, the phone layout, accessibility basics and
+injection safety, and the deep-link check above.
 
 ## 3. Current results
 
-Run on 2026-11-12 around 16:45 UTC, Node v24.14.0, darwin 27.0.0, at commit `9f5ffd9` plus the uncommitted
-working-tree changes present at the time (the review fixes in `core/` and `server/index.ts`, the fuzz generator
-changes, `tests/regressions.test.ts`, `tests/docs.test.ts` and this `docs/` folder).
+Run on 2026-11-13 (UTC) on Node v24.14.0, darwin 27.0.0, at commit `c437b8f` plus the documentation updates in
+the same branch (`chore/public-release-hardening`).
 
 | Check | Result |
 |---|---|
-| `npx vitest run` | 8 files, 93 tests: frontend 24, differential 21, optimizer 12, backend 14, server 7, static 3, regressions 10, docs 2 |
-| ESLint on `core server scripts tests` | exit 0, no findings |
+| `npx vitest run` | 9 files, 126 tests: frontend 24, differential 21, optimizer 12, backend 14, server 15, static 4, regressions 10, security 24, docs 2 |
+| ESLint | exit 0, no findings |
 | `npm run typecheck` (`tsc --noEmit`) | exit 0, no errors |
 | `npm run reproduce` on all three committed receipts (with their bytecode artifacts) | 14 of 14 checks passed for each |
-| `npm run e2e` | 9 tests, reported passing (not re-run here) |
+| `npm run e2e` | 10 tests passing |
+| `npm run fuzz -- 2000` | 4,000 of 4,000 runs agree, 1,694 complete without a fault, 0 rejected, 0 compiler crashes on mutations |
+| `npm audit` (production and development) | 0 vulnerabilities |
 
 ## 4. Evidence files
 
@@ -158,7 +182,9 @@ sections 3.4 and 4.
 | `cse` (with copy propagation) | `WORKING_AND_TESTED` | optimizer and differential tests, fuzz campaign |
 | Fault lab (`BAD_cse_commute_all` caught by the oracle) | `WORKING_AND_TESTED` | optimizer fault-lab tests |
 | Bytecode codegen, constant encoding, serialization, hash, verifier | `WORKING_AND_TESTED` | backend bytecode tests (verifier is structural, by design) |
-| VM with fuel, stack and call-depth limits | `WORKING_AND_TESTED` | VM tests; fuel remains a VM-only limit by design, reported as `vm-resource-limit` |
+| VM with per-frame and per-run fuel, call, stack and call-depth limits | `WORKING_AND_TESTED` | VM tests and `tests/security.test.ts`; fuel is each executor's own limit by design, reported as `vm-resource-limit` or `reference-resource-limit` |
+| Bounded total work and memory of any run (call limit, scene size, both fuels, `S005`) | `WORKING_AND_TESTED` | `tests/security.test.ts` |
+| Server jobs on a worker with time and heap limits; cross-site and cross-origin refusal; storage caps | `WORKING_AND_TESTED` | `tests/server.test.ts` |
 | Reference interpreter (oracle) | `WORKING_AND_TESTED` | differential tests; shares built-ins, primitives, values and scene builder with the VM |
 | Built-ins and scene builder (shared by both executors) | `WORKING_AND_TESTED` | direct unit tests in `tests/regressions.test.ts`, plus examples and fuzzing |
 | Primitive table | `PARTIAL` | exercised by every example and the fuzzer; no dedicated unit test |

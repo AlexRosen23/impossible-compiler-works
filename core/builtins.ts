@@ -1,7 +1,7 @@
 // Vetted pure built-in functions: the only host functionality a FOLIO program can reach. Each is total over
 // its declared types except for the faults listed (non-finite results are turned into R001 by the callers'
 // common check). No I/O, no clocks, no randomness: `noise` is a fixed hash.
-import { type ColorV, FaultSignal, type PointV, type Value, color, finite, point } from './values.ts';
+import { type ColorV, FaultSignal, type PointV, type Value, color, finite, point, table } from './values.ts';
 
 export interface BuiltinSig { params: string[]; ret: string; impl: (args: Value[], maxStr: number) => Value }
 
@@ -19,7 +19,7 @@ function hsl(h: number, s: number, l: number): ColorV {
   return color((r + m) * 255, (g + m) * 255, (b + m) * 255, 1);
 }
 
-export const BUILTINS: Record<string, BuiltinSig> = {
+export const BUILTINS: Record<string, BuiltinSig> = table({
   sin: num1(Math.sin), cos: num1(Math.cos), tan: num1(Math.tan), sqrt: num1(Math.sqrt), abs: num1(Math.abs),
   floor: num1(Math.floor), ceil: num1(Math.ceil), round: num1(Math.round), sign: num1(Math.sign),
   exp: num1(Math.exp), log: num1(Math.log),
@@ -47,13 +47,13 @@ export const BUILTINS: Record<string, BuiltinSig> = {
       return (a[0] as number).toFixed(d);
     },
   },
-};
+});
 
 /** Named constants visible everywhere. */
-export const CONSTANTS: Record<string, { type: string; value: number }> = {
+export const CONSTANTS: Record<string, { type: string; value: number }> = table({
   PI: { type: N, value: Math.PI },
   TAU: { type: N, value: Math.PI * 2 },
-};
+});
 
 /** Call a builtin with the shared result check: any non-finite numeric result is fault R001. */
 export function callBuiltin(name: string, args: Value[], maxStr: number): Value {

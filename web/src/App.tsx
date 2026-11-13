@@ -42,26 +42,32 @@ export function App() {
 
   useEffect(() => { api<{ ok: boolean }>('/health').then((r) => setOnline(r.status === 200)).catch(() => setOnline(false)); }, []);
   useEffect(() => { history.replaceState(null, '', routeHash(route)); }, []);
+  // Open a saved project by id (deep link or hash change). parseRoute only passes server-shaped ids.
+  const projectId = useRef<string | null>(null);
+  const openProject = useCallback((id: string) => {
+    if (projectId.current === id) return;
+    projectId.current = id;
+    api<Project>(`/api/projects/${encodeURIComponent(id)}`).then((r) => {
+      if (r.status !== 200) { projectId.current = null; toast('that project was not found'); return; }
+      setProject(r.data);
+      const draft = store.get(`pt:draft:${r.data.id}:${r.data.head.id}`);
+      load(draft ?? r.data.head.source, r.data.name);
+      if (draft && draft !== r.data.head.source) toast('restored an unsaved local draft');
+    }).catch(() => { projectId.current = null; toast('server offline: cannot open the project'); });
+  }, [load]);
   useEffect(() => {
     const onHash = () => {
       const r = parseRoute(location.hash);
       setRoute((cur) => ({ ...cur, ...r }));
       if (r.example) { const ex = EXAMPLES.find((e) => e.id === r.example); if (ex) load(ex.source, ex.title); }
+      if (r.project) openProject(r.project);
     };
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
-  }, [load]);
+  }, [load, openProject]);
   // Deep link to a saved project.
-  useEffect(() => {
-    if (!initialRoute.project) return;
-    api<Project>(`/api/projects/${initialRoute.project}`).then((r) => {
-      if (r.status !== 200) { toast(`project ${initialRoute.project} not found`); return; }
-      setProject(r.data);
-      const draft = store.get(`pt:draft:${r.data.id}:${r.data.head.id}`);
-      load(draft ?? r.data.head.source, r.data.name);
-      if (draft && draft !== r.data.head.source) toast('restored an unsaved local draft');
-    }).catch(() => toast('server offline: cannot open the project'));
-  }, []);
+  useEffect(() => { if (initialRoute.project) openProject(initialRoute.project); }, []);
+  useEffect(() => { if (project) projectId.current = project.id; }, [project]);
   // Local draft autosave (per project head): a convenience; the server copy is the record.
   useEffect(() => { if (project) store.set(`pt:draft:${project.id}:${project.head.id}`, source); }, [source, project]);
 

@@ -33,7 +33,8 @@ sandboxed VM. Then I wanted to make every stage inspectable, and every claim abo
   barely matters.
 
 ## Evidence
-93 unit, differential and regression tests; 9 browser E2E tests; 4,000/4,000 agreeing fuzz runs; a deliberately wrong pass
+126 unit, differential, regression and security tests; 10 browser E2E tests; a pre-release red team whose
+every finding became a test; 4,000/4,000 agreeing fuzz runs; a deliberately wrong pass
 that the oracle catches and the reducer shrinks to 7 lines; receipts that reproduce in a fresh process and
 fail on any edit. All commands and outputs are in [BUILD_LEDGER](BUILD_LEDGER.md).
 

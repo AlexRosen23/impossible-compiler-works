@@ -56,12 +56,13 @@ hides many but not all last-bit differences.
 | IR | slots instead of phi nodes: no SSA construction needed, but constant propagation and CSE cannot see through slots across blocks |
 | Optimizer | three simple passes (CSE is per block; only its copy propagation crosses blocks); no global value numbering, loop-invariant code motion, inlining or store-to-load forwarding; conservative about which built-ins can fault and never removes user-function calls |
 | Code generator | every IR result goes through a register (`STORER`/`LOADR`); no stack scheduling or peephole pass |
-| VM | a `switch` interpreter that checks fuel, updates a trace fingerprint and catches faults on every instruction; optimization gains in wall time are therefore small (median ×1.05 to ×1.27, `OPTIMIZATION_CORRECTNESS.md`) |
+| VM | a `switch` interpreter that checks fuel, updates a trace fingerprint and catches faults on every instruction; optimization gains in wall time are therefore small (median ×0.74 to ×1.27 in the recorded run, mostly within noise, `OPTIMIZATION_CORRECTNESS.md`) |
 | Oracle independence | the reference interpreter shares the front end, built-ins, primitive table, value helpers and scene builder with the VM; bugs there are invisible to differential testing, which is why the shared built-ins and scene builder have direct unit tests in `tests/regressions.test.ts` |
-| Fuel | a VM-only machine limit (20,000,000 instructions per frame); a long legal program can exhaust it where the reference interpreter finishes, reported as `oracle.status: "vm-resource-limit"` |
+| Fuel | each executor has its own (VM: 20,000,000 instructions per frame, 200,000,000 per run; reference interpreter: the same in evaluation steps); a legal program can exhaust one where the other finishes, reported as `oracle.status: "vm-resource-limit"` or `"reference-resource-limit"` |
 | Fuzzer coverage | about 58% of campaign runs end in a fault (mostly `R001` and `R002`; 1,694 of 4,000 complete without one); happy-path drawing is exercised less than fault paths; `path`, datasets, list-typed variables and non-`Number` function signatures are not generated |
-| Bytecode verifier | structural, not typed; safe only because external bytecode is never executed |
-| Server | synchronous compile and run on the event loop; no authentication; no deletion |
+| Bytecode verifier | structural, not typed (whole-number operands, table sizes and headers are checked; value types are not); safe only because external bytecode is never executed |
+| Server | one compile worker (jobs run one at a time, 15 s and 512 MB each); no authentication; no deletion API (old runs are pruned past 2,000) |
+| IDE | compiles and runs on the page's main thread; a hostile project can make the tab slow for a few seconds before a limit stops it |
 | Benchmarks | one machine, not idle-controlled; medians only meaningful where they exceed the spread |
 
 ## 5. Known defects
@@ -74,5 +75,6 @@ the unused `maxTraceSteps` limit). All were fixed in code; the behavioural ones 
 `tests/regressions.test.ts`. The static-mode URL fix lives in `server/static.ts` (answers 400) and is covered by
 `tests/static.test.ts`, together with path-traversal checks.
 
-What remains by design rather than as a defect: fuel exhaustion (`R006`) can stop the VM on a legal program that
-the reference interpreter finishes; receipts report this as `vm-resource-limit` (section 4).
+What remains by design rather than as a defect: fuel exhaustion can stop one executor on a legal program the other
+finishes (`R006` in the VM, `R014` in the reference interpreter); receipts report this as `vm-resource-limit` or
+`reference-resource-limit` (section 4).

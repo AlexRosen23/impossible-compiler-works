@@ -68,14 +68,18 @@ export function compile(source: string, opts: CompileOptions = {}): CompileResul
   const stage = (name: StageName, input: string, f: () => { out: unknown; diags: Diagnostic[]; summary: string; ok?: boolean }): boolean => {
     const t0 = now();
     let res: { out: unknown; diags: Diagnostic[]; summary: string; ok?: boolean };
+    let outputHash: string | null;
     try {
       res = f();
+      // Hashing walks the stage's whole output, so it belongs inside the guard too.
+      outputHash = res.out === null ? null : h(res.out);
     } catch (e) {
       // An exception inside the compiler is a compiler bug; record it as a failed stage instead of crashing the host.
-      res = { out: null, diags: [{ code: 'ICE', severity: 'error', message: `internal compiler error in ${name}: ${(e as Error).message}`, span: { start: 0, end: 0, line: 1, col: 1 }, stage: 'check' }], summary: 'internal error', ok: false };
+      res = { out: null, diags: [{ code: 'ICE', severity: 'error', message: `internal compiler error in ${name}: ${String((e as Error)?.message ?? e).slice(0, 200)}`, span: { start: 0, end: 0, line: 1, col: 1 }, stage: 'check' }], summary: 'internal error', ok: false };
+      outputHash = null;
     }
     const ok = res.ok ?? !hasErrors(res.diags);
-    r.stages.push({ stage: name, compilerVersion: COMPILER_VERSION, inputHash: input, outputHash: res.out === null ? null : h(res.out), ok, diagnostics: res.diags, ms: Math.round((now() - t0) * 1000) / 1000, summary: res.summary });
+    r.stages.push({ stage: name, compilerVersion: COMPILER_VERSION, inputHash: input, outputHash, ok, diagnostics: res.diags, ms: Math.round((now() - t0) * 1000) / 1000, summary: res.summary });
     r.diagnostics.push(...res.diags);
     return ok;
   };
@@ -83,7 +87,8 @@ export function compile(source: string, opts: CompileOptions = {}): CompileResul
   if (!stage('lex+parse', sourceHash, () => {
     const p = parse(source, limits);
     r.tokens = p.tokens; r.program = p.program;
-    return { out: astForHash(p.program), diags: p.diagnostics, summary: `${p.tokens.length} tokens, ${p.program ? p.program.items.length : 0} top-level items` };
+    // A rejected program is not hashed: its tree may be exactly the over-deep shape the limits exist to stop.
+    return { out: hasErrors(p.diagnostics) ? null : astForHash(p.program), diags: p.diagnostics, summary: `${p.tokens.length} tokens, ${p.program ? p.program.items.length : 0} top-level items` };
   })) return r;
   const astHash = r.stages[0].outputHash!;
 

@@ -7,8 +7,17 @@ import { join } from 'node:path';
 import { type PassName, SAFE_PASSES, compile, generateProgram, interpret, mutateSource, reduce, runVM, sceneHash } from '../core/index.ts';
 import { ROOT } from './lib.ts';
 
-const count = Number(process.argv[2] ?? 2000);
-const start = Number(process.argv[3] ?? 1);
+const usage = 'usage: npm run fuzz -- [count=2000] [startSeed=1]   (writes evidence/fuzz-summary.json)';
+const arg = (i: number, dflt: number) => {
+  const raw = process.argv[i];
+  if (raw === undefined) return dflt;
+  const n = Number(raw);
+  // Anything that is not a positive whole number (for example --help) prints usage and writes nothing.
+  if (!Number.isInteger(n) || n < 1 || n > 1_000_000) { console.log(usage); process.exit(raw === '--help' || raw === '-h' ? 0 : 2); }
+  return n;
+};
+const count = arg(2, 2000);
+const start = arg(3, 1);
 const configs: PassName[][] = [[], SAFE_PASSES];
 const outcome = (src: string, passes: PassName[]) => {
   const c = compile(src, { passes });

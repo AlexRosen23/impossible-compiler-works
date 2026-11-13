@@ -8,18 +8,23 @@ import { join } from 'node:path';
 import type { DatabaseSync } from 'node:sqlite';
 import {
   BYTECODE_VERSION, COMPILER_VERSION, DEFAULT_LIMITS, DIAGNOSTIC_CODES, FAULT_CODES, FIXTURE_NAME, GRAMMAR_VERSION, IR_VERSION,
-  type FixtureTable, type PassName, RECEIPT_FORMAT, type Receipt, SAFE_PASSES, SCENE_FORMAT, canonicalJson, compile, interpret,
-  makeReceipt, printModule, reproduce, sha256,
+  type Diagnostic, type FixtureTable, type PassName, RECEIPT_FORMAT, type Receipt, type ReproduceCheck, SAFE_PASSES, SCENE_FORMAT,
+  type SerializedBC, canonicalJson, sha256,
 } from '../core/index.ts';
+import { JobError, JobRunner, type JobRunnerOptions } from './jobs.ts';
 
-export interface AppConfig { db: DatabaseSync; root: string; commit: string | null; startedAt: number; maxBody?: number }
+export interface AppConfig { db: DatabaseSync; root: string; commit: string | null; startedAt: number; maxBody?: number; jobs?: JobRunnerOptions; caps?: Partial<StorageCaps> }
+/** Storage is bounded too: old runs are pruned, and projects and versions stop at a cap. */
+export interface StorageCaps { runs: number; projects: number; versionsPerProject: number }
+const DEFAULT_CAPS: StorageCaps = { runs: 2_000, projects: 1_000, versionsPerProject: 1_000 };
+export type Handler = ((req: IncomingMessage, res: ServerResponse) => Promise<void>) & { close: () => Promise<void> };
 const PASSES = new Set<PassName>([...SAFE_PASSES, 'BAD_cse_commute_all']);
 
 export class HttpError extends Error { status: number; constructor(status: number, msg: string) { super(msg); this.status = status; } }
 
 export function loadFixtureLibrary(root: string): FixtureTable {
   const dir = join(root, 'examples', 'fixtures');
-  const out: FixtureTable = {};
+  const out = Object.create(null) as FixtureTable;
   for (const f of readdirSync(dir)) if (f.endsWith('.json') && FIXTURE_NAME.test(f.slice(0, -5))) out[f.slice(0, -5)] = JSON.parse(readFileSync(join(dir, f), 'utf8'));
   return out;
 }
@@ -79,7 +84,7 @@ function fixturesOf(v: unknown, library: FixtureTable): FixtureTable {
     const out: FixtureTable = {};
     for (const n of v) {
       if (typeof n !== 'string' || !FIXTURE_NAME.test(n)) throw new HttpError(400, `"${String(n).slice(0, 40)}" is not a fixture name`);
-      if (!(n in library)) throw new HttpError(404, `no fixture "${n}" in the library`);
+      if (!Object.hasOwn(library, n)) throw new HttpError(404, `no fixture "${n}" in the library`);
       out[n] = library[n];
     }
     return out;
@@ -99,8 +104,17 @@ function runSummary(r: Row) {
   return { id: r.id, project: r.project_id, version: r.version_id, createdAt: r.created_at, sourceHash: r.source_hash, bytecodeHash: r.bytecode_hash, sceneHash: r.scene_hash, traceHash: r.trace_hash, oracleAgrees: r.agrees === 1, oracleStatus: (JSON.parse(String(r.receipt)) as Receipt).oracle.status, fault: r.fault ? JSON.parse(String(r.fault)) : null, passes: JSON.parse(String(r.passes)), timingMs: JSON.parse(String(r.timing)) };
 }
 
-export function createHandler(cfg: AppConfig) {
+export function createHandler(cfg: AppConfig): Handler {
   const { db } = cfg;
+  const caps = { ...DEFAULT_CAPS, ...cfg.caps };
+  const jobs = new JobRunner(cfg.jobs);
+  /** Run a job on the worker; a timeout, crash or full queue becomes an HTTP answer, never a stuck request. */
+  const job = async <T>(j: Parameters<JobRunner['run']>[0], timeoutStatus = 422): Promise<T> => {
+    try { return await jobs.run<T>(j); } catch (e) {
+      if (e instanceof JobError) throw new HttpError(e.reason === 'busy' ? 503 : e.reason === 'failed' ? 500 : timeoutStatus, e.message);
+      throw e;
+    }
+  };
   const maxBody = cfg.maxBody ?? 512 * 1024;
   const library = loadFixtureLibrary(cfg.root);
   const corpus = loadExamples(cfg.root);
@@ -113,6 +127,7 @@ export function createHandler(cfg: AppConfig) {
   };
   const addVersion = (projectId: string, parent: string | null, source: string, fixtures: FixtureTable, message: string) => {
     const head = headVersion(projectId);
+    if (head && Number(head.seq) >= caps.versionsPerProject) throw new HttpError(413, `a project keeps at most ${caps.versionsPerProject} versions; fork it to continue`);
     const seq = head ? Number(head.seq) + 1 : 1;
     const id = `${projectId}:v${seq}`;
     db.prepare('INSERT INTO versions (id, project_id, parent_id, seq, source, source_hash, fixtures, message, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)')
@@ -126,23 +141,25 @@ export function createHandler(cfg: AppConfig) {
     return { id: p.id, name: p.name, createdAt: p.created_at, forkedFrom: p.forked_from, head: { id: head.id, seq: head.seq, source: head.source, fixtures: JSON.parse(String(head.fixtures)) }, versions };
   };
   const createProject = (name: string, source: string, fixtures: FixtureTable, forkedFrom: string | null) => {
+    if (Number((db.prepare('SELECT COUNT(*) n FROM projects').get() as Row).n) >= caps.projects) throw new HttpError(413, `at most ${caps.projects} projects are kept`);
     const id = randomUUID().slice(0, 8);
     db.prepare('INSERT INTO projects (id, name, created_at, forked_from) VALUES (?, ?, ?, ?)').run(id, name, new Date().toISOString(), forkedFrom);
     addVersion(id, forkedFrom, source, fixtures, forkedFrom ? `forked from ${forkedFrom}` : 'created');
     return projectView(id);
   };
 
-  const record = (projectName: string, projectId: string | null, versionId: string | null, source: string, fixtures: FixtureTable, passes: PassName[]) => {
-    const { receipt, compiled } = makeReceipt({ project: projectName, source, fixtures, passes, commit: cfg.commit });
-    if (!receipt) return { ok: false, diagnostics: compiled.diagnostics };
+  const record = async (projectName: string, projectId: string | null, versionId: string | null, source: string, fixtures: FixtureTable, passes: PassName[]) => {
+    const { receipt, diagnostics, bytecode } = await job<{ receipt: Receipt | null; diagnostics: Diagnostic[]; bytecode: SerializedBC | null }>({ kind: 'record', project: projectName, source, fixtures, passes, commit: cfg.commit });
+    if (!receipt) return { ok: false, diagnostics };
     // Content-addressed: identical inputs and results give the same id (timing is not part of the digest).
     const id = receipt.digest.slice(0, 16);
     const existing = db.prepare('SELECT id FROM runs WHERE id = ?').get(id);
     if (!existing) {
       db.prepare('INSERT INTO runs (id, project_id, version_id, created_at, source_hash, bytecode_hash, scene_hash, trace_hash, agrees, fault, passes, timing, receipt, bytecode) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
-        .run(id, projectId, versionId, receipt.createdAt, receipt.sourceHash, receipt.bytecodeHash, receipt.sceneHash, receipt.traceHash, receipt.oracle.agrees ? 1 : 0, receipt.fault ? JSON.stringify(receipt.fault) : null, JSON.stringify(passes), JSON.stringify(receipt.timingMs), JSON.stringify(receipt), JSON.stringify(compiled.bytecode));
+        .run(id, projectId, versionId, receipt.createdAt, receipt.sourceHash, receipt.bytecodeHash, receipt.sceneHash, receipt.traceHash, receipt.oracle.agrees ? 1 : 0, receipt.fault ? JSON.stringify(receipt.fault) : null, JSON.stringify(passes), JSON.stringify(receipt.timingMs), JSON.stringify(receipt), JSON.stringify(bytecode));
+      db.prepare('DELETE FROM runs WHERE id NOT IN (SELECT id FROM runs ORDER BY created_at DESC LIMIT ?)').run(caps.runs);
     }
-    return { ok: true, id, deduplicated: !!existing, receipt, diagnostics: compiled.diagnostics };
+    return { ok: true, id, deduplicated: !!existing, receipt, diagnostics };
   };
 
   const getRun = (id: string) => {
@@ -152,7 +169,7 @@ export function createHandler(cfg: AppConfig) {
     return r;
   };
 
-  return async function handle(req: IncomingMessage, res: ServerResponse): Promise<void> {
+  const handle = async function handle(req: IncomingMessage, res: ServerResponse): Promise<void> {
     try {
       // DNS-rebinding defence: only loopback Host headers are served.
       const host = String(req.headers.host ?? '');
@@ -160,6 +177,13 @@ export function createHandler(cfg: AppConfig) {
       const url = new URL(req.url ?? '/', 'http://localhost');
       const path = url.pathname;
       const m = req.method ?? 'GET';
+      // Browsers label every request with where it came from. Only this origin's own pages (and typed-in URLs)
+      // are served; another site, or another local port, gets nothing, not even a GET that would make the server
+      // work. Non-browser clients (the Constellation's reader, curl, tests) send no such header.
+      const site = req.headers['sec-fetch-site'];
+      if (site !== undefined && site !== 'same-origin' && site !== 'none') throw new HttpError(403, 'requests from other sites are refused');
+      const origin = req.headers.origin;
+      if (m !== 'GET' && m !== 'HEAD' && origin !== undefined && origin !== `http://${host}`) throw new HttpError(403, 'requests from other origins are refused');
       const seg = path.split('/').filter(Boolean);
 
       // --- Constellation contract (read-only) ---------------------------------------------------
@@ -184,11 +208,10 @@ export function createHandler(cfg: AppConfig) {
       if (m === 'GET' && seg[1] === 'runs' && seg.length === 4 && seg[3] === 'bundle') {
         const r = getRun(seg[2]);
         const receipt = JSON.parse(String(r.receipt)) as Receipt;
-        const c = compile(receipt.source, { passes: receipt.optimizations, fixtures: receipt.fixtures });
-        const ref = c.ok ? interpret(c.program!, c.check!, c.data, c.limits) : null;
+        const built = await job<{ ir: string | null; scene: unknown }>({ kind: 'bundle', receipt }, 503);
         const bundle = {
           manifest: { format: 'paper-tiger-bundle/0.1', run: r.id, files: ['receipt', 'source', 'fixtures', 'ir', 'bytecode', 'scene'], exportedAt: new Date().toISOString() },
-          receipt, source: receipt.source, fixtures: receipt.fixtures, ir: c.ok ? printModule(c.irOptimized!) : null, bytecode: JSON.parse(String(r.bytecode)), scene: ref?.scene ?? null,
+          receipt, source: receipt.source, fixtures: receipt.fixtures, ir: built.ir, bytecode: JSON.parse(String(r.bytecode)), scene: built.scene,
         };
         res.setHeader('content-disposition', `attachment; filename="paper-tiger-run-${r.id}.json"`);
         return send(res, 200, bundle);
@@ -199,12 +222,12 @@ export function createHandler(cfg: AppConfig) {
         const name = b.project === undefined ? 'scratch' : str(b.project, 'project', 80);
         let projectId: string | null = null, versionId: string | null = null;
         if (typeof b.projectId === 'string') { project(b.projectId); projectId = b.projectId; versionId = (headVersion(projectId)?.id as string) ?? null; }
-        const out = record(name, projectId, versionId, source, fixturesOf(b.fixtures, library), passesOf(b.passes));
+        const out = await record(name, projectId, versionId, source, fixturesOf(b.fixtures, library), passesOf(b.passes));
         return send(res, out.ok ? 201 : 422, out);
       }
       if (m === 'POST' && path === '/api/reproduce') {
         const b = (await readJson(req, maxBody * 4)) as Row;
-        const checks = reproduce(b.receipt as Receipt, b.bytecode);
+        const checks = await job<ReproduceCheck[]>({ kind: 'reproduce', receipt: b.receipt as Receipt, bytecode: b.bytecode });
         return send(res, 200, { reproduced: checks.every((c) => c.ok), checks });
       }
       if (m === 'GET' && path === '/api/projects') return send(res, 200, { projects: db.prepare('SELECT p.id, p.name, p.created_at, p.forked_from, (SELECT MAX(seq) FROM versions v WHERE v.project_id = p.id) AS head FROM projects p ORDER BY p.created_at DESC').all() });
@@ -252,7 +275,7 @@ export function createHandler(cfg: AppConfig) {
         const b = (await readJson(req, maxBody * 4)) as Row;
         const receipt = (b.receipt ?? null) as Receipt | null;
         if (!receipt || typeof receipt !== 'object') throw new HttpError(400, 'bundle has no receipt');
-        const checks = reproduce(receipt, b.bytecode);
+        const checks = await job<ReproduceCheck[]>({ kind: 'reproduce', receipt, bytecode: b.bytecode });
         if (!checks.every((c) => c.ok)) return send(res, 422, { imported: false, checks });
         const p = createProject(`${String(receipt.project).slice(0, 60)} (imported)`, str(receipt.source, 'source', DEFAULT_LIMITS.maxSourceChars), fixturesOf(receipt.fixtures, library), null);
         return send(res, 201, { imported: true, project: p, checks });
@@ -264,4 +287,5 @@ export function createHandler(cfg: AppConfig) {
       return send(res, 500, { error: 'internal error' });
     }
   };
+  return Object.assign(handle, { close: () => jobs.close() });
 }

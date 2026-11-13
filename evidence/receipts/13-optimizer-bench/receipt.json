@@ -1,8 +1,8 @@
 {
-  "format": "paper-tiger-receipt/0.1",
+  "format": "paper-tiger-receipt/0.2",
   "versions": {
-    "compiler": "0.1.0",
-    "grammar": "folio-grammar/0.1",
+    "compiler": "0.2.0",
+    "grammar": "folio-grammar/0.2",
     "ir": "folio-ir/0.1",
     "bytecode": "folio-bc/0.1",
     "scene": "folio-scene/0.1"
@@ -26,8 +26,14 @@
   "seed": null,
   "limits": {
     "fuelPerFrame": 20000000,
+    "fuelPerRun": 200000000,
+    "refFuelPerFrame": 20000000,
+    "refFuelPerRun": 200000000,
     "maxIterationsPerFrame": 100000,
+    "maxCallsPerFrame": 100000,
     "maxDrawsPerFrame": 10000,
+    "maxSceneUnitsPerFrame": 20000,
+    "maxSceneUnits": 1000000,
     "maxStack": 1024,
     "maxCallDepth": 64
   },
@@ -43,11 +49,11 @@
   },
   "warnings": [],
   "timingMs": {
-    "compile": 7.445,
-    "vm": 51.474,
-    "reference": 25.567
+    "compile": 17.944,
+    "vm": 109.535,
+    "reference": 74.994
   },
-  "commit": "21123848848e6b5d7b098a15dcad66afdc587177",
-  "createdAt": "2026-11-12T16:49:28.442Z",
-  "digest": "b8ad68e96e7209124301ed0f529376e9498b0ec335dcdd1bdeeb9e8f749b69b0"
+  "commit": "c437b8fe1735a0bf66493a70e274218d0e9b8c77",
+  "createdAt": "2026-11-13T05:17:43.549Z",
+  "digest": "7c9810946d61efb6214b3cd58dccb749e97ff8ea4a962c09dbd72d40aa1e897b"
 }

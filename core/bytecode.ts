@@ -158,10 +158,44 @@ export function loadBytecode(json: unknown, limits: Limits): { module: BCModule 
   return { module: errors.length ? null : s, errors };
 }
 
-/** Structural verification: opcodes, operand ranges, jump targets, consistent stack depth, terminators. */
+/**
+ * Structural verification: header and scene fields, table sizes, whole-number operands in range, jump targets,
+ * consistent stack depth, terminators and an acyclic call graph. Any module, however malformed, gets a list of
+ * problems back, never an exception.
+ */
 export function verifyBytecode(m: BCModule, limits: Limits): string[] {
+  try {
+    return verifyUnchecked(m, limits);
+  } catch (e) {
+    return [`malformed module (${String((e as Error)?.message ?? e).slice(0, 120)})`];
+  }
+}
+
+const isInt = (v: unknown, lo: number, hi: number): v is number => Number.isInteger(v) && (v as number) >= lo && (v as number) <= hi;
+
+function verifyUnchecked(m: BCModule, limits: Limits): string[] {
   const errs: string[] = [];
-  if (!Array.isArray(m.functions) || !Array.isArray(m.consts)) return ['missing functions or consts'];
+  if (!m || typeof m !== 'object') return ['not an object'];
+  if (!Array.isArray(m.functions) || !Array.isArray(m.consts) || !Array.isArray(m.data)) return ['missing functions, consts or data'];
+  if (m.functions.length < 1 || m.functions.length > limits.maxSymbols) return [`${m.functions.length} functions; expected 1 to ${limits.maxSymbols}`];
+  if (m.consts.length > limits.maxBytecodeInstrs || m.data.length > limits.maxSymbols) return ['constant or data table too large'];
+  const sc = m.scene;
+  if (!sc || typeof sc !== 'object' || typeof sc.title !== 'string' || sc.title.length > limits.maxStringLength) errs.push('bad scene header');
+  else {
+    if (!isInt(sc.width, 1, limits.maxCanvas) || !isInt(sc.height, 1, limits.maxCanvas)) errs.push('scene size out of range');
+    if (!isInt(sc.frames, 1, limits.maxFrames)) errs.push('scene frame count out of range');
+    if (typeof sc.background !== 'string' || !/^#[0-9a-f]{6}([0-9a-f]{2})?$/i.test(sc.background)) errs.push('bad scene background');
+  }
+  if (!m.data.every((d) => d && typeof d === 'object' && typeof d.name === 'string' && d.name.length <= 64)) errs.push('bad data table');
+  for (const f of m.functions) {
+    if (!f || typeof f !== 'object' || typeof f.name !== 'string' || f.name.length > 200) return ['bad function record'];
+    if (!Array.isArray(f.code) || !Array.isArray(f.spans) || !Array.isArray(f.ir) || !Array.isArray(f.slotNames)) return [`${f.name}: missing code or debug tables`];
+    // Slots come from declarations and registers from IR values; the VM also charges every frame it allocates.
+    if (!isInt(f.nparams, 0, 64) || !isInt(f.nslots, f.nparams, limits.maxSymbols + 2) || !isInt(f.nregs, 0, limits.maxBytecodeInstrs)) errs.push(`${f.name}: parameter, slot or register count out of range`);
+    if (f.slotNames.length !== f.nslots || !f.slotNames.every((n) => typeof n === 'string')) errs.push(`${f.name}: slot names do not match the slot count`);
+    if (!f.spans.every((sp) => Array.isArray(sp) && sp.length === 4 && sp.every((x) => Number.isInteger(x)))) errs.push(`${f.name}: bad span table`);
+  }
+  if (errs.length) return errs;
   if (!(Number.isInteger(m.main) && m.main >= 0 && m.main < m.functions.length)) errs.push('main index out of range');
   for (const c of m.consts) { try { decodeValue(c); } catch { errs.push('undecodable constant'); } }
   let total = 0;
@@ -181,8 +215,9 @@ export function verifyBytecode(m: BCModule, limits: Limits): string[] {
       if (depthAt[pc] !== -1) { if (depthAt[pc] !== d) errs.push(`${where(pc)}: inconsistent stack depth (${depthAt[pc]} vs ${d})`); continue; }
       depthAt[pc] = d;
       const opn = f.code[pc * 3], a = f.code[pc * 3 + 1], b = f.code[pc * 3 + 2];
+      if (!isInt(opn, 0, OPCODES.length - 1)) { errs.push(`${where(pc)}: unknown opcode ${String(opn).slice(0, 20)}`); continue; }
       const op = OPCODES[opn];
-      if (op === undefined) { errs.push(`${where(pc)}: unknown opcode ${opn}`); continue; }
+      if (!isInt(a, -1, 2 ** 31) || !isInt(b, 0, 2 ** 31)) { errs.push(`${where(pc)} ${op}: operands must be whole numbers`); continue; }
       const bad = (msg: string) => errs.push(`${where(pc)} ${op}: ${msg}`);
       switch (op) {
         case 'CONST': if (!(a >= 0 && a < m.consts.length)) bad('constant index out of range'); break;
@@ -211,10 +246,23 @@ export function verifyBytecode(m: BCModule, limits: Limits): string[] {
   });
   if (total > limits.maxBytecodeInstrs) errs.push(`${total} instructions; the limit is ${limits.maxBytecodeInstrs}`);
   // No recursion at the bytecode level either (the VM's call-depth limit is a second line of defence).
-  const calls = m.functions.map((f) => { const s = new Set<number>(); for (let p = 0; p < f.code.length; p += 3) if (f.code[p] === OPC.CALLF) s.add(f.code[p + 1]); return s; });
-  const state: number[] = [];
-  const cyclic = (i: number): boolean => { state[i] = 1; for (const j of calls[i] ?? []) { if (state[j] === 1) return true; if (!state[j] && cyclic(j)) return true; } state[i] = 2; return false; };
-  if (m.functions.some((_, i) => !state[i] && cyclic(i))) errs.push('call graph has a cycle (recursion)');
+  const calls = m.functions.map((f) => { const s = new Set<number>(); for (let p = 0; p < f.code.length; p += 3) if (f.code[p] === OPC.CALLF) s.add(f.code[p + 1]); return [...s]; });
+  // Iterative depth-first search (a crafted module can chain thousands of functions).
+  const state = new Array<number>(m.functions.length).fill(0);
+  for (let root = 0; root < m.functions.length && !errs.length; root++) {
+    if (state[root]) continue;
+    const stack: [number, number][] = [[root, 0]];
+    state[root] = 1;
+    while (stack.length) {
+      const top = stack[stack.length - 1];
+      const [i, k] = top;
+      if (k >= calls[i].length) { state[i] = 2; stack.pop(); continue; }
+      top[1]++;
+      const j = calls[i][k];
+      if (state[j] === 1) { errs.push('call graph has a cycle (recursion)'); break; }
+      if (!state[j]) { state[j] = 1; stack.push([j, 0]); }
+    }
+  }
   return errs;
 }
 

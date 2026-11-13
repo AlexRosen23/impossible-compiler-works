@@ -257,6 +257,11 @@ Consequences: unary operators bind tighter than every binary operator, so `not a
 - After `maxErrors` (50) syntax errors the parser stops with `P005`.
 - Expression nesting deeper than `maxExprDepth` (200), counting both parenthesised and unary nesting, is `S002`
   and stops the parse.
+- After parsing, the height of every expression tree is measured without recursion. Operator chains count:
+  `1 + 1 + ... + 1` with 300 terms is a tree 300 levels tall even though no parentheses appear. A tree taller than
+  `maxExprDepth` is `S002` (`expression nested N levels deep (operator chains count)`).
+- Source text that is not valid Unicode (an unpaired UTF-16 surrogate) is rejected first with `L008`: it cannot be
+  encoded as UTF-8, so two different texts would share one source hash.
 - A program with more than `maxAstNodes` (20,000) nodes is `S002`.
 - Block nesting deeper than `maxExprDepth` (200), counting every block including the function or scene body,
   is `S002` ("blocks nested more than 200 levels") and stops the parse.
@@ -475,7 +480,9 @@ the whole value.
 - `frames N` sets the number of frames (default 1, allowed 1 to 240, otherwise `C019`).
 - For each frame index `f` in `0 .. N-1`, the scene body is evaluated from scratch with `frame = f` and
   `time = f / N`, so `time` is in [0, 1). No state carries over between frames.
-- The iteration limit (`R004`), draw limit (`R005`) and VM fuel (`R006`) are per frame.
+- The iteration limit (`R004`), call limit (`R013`) and draw limit (`R005`) are per frame. Scene size (`R005`)
+  and each executor's fuel (`R006` for the VM, `R014` for the reference interpreter) have a per-frame budget and
+  a whole-run budget, so the total work of a 240-frame run is bounded, not just each frame's.
 - Execution stops at the first frame that faults. The output keeps every earlier frame plus the commands the
   faulting frame drew before the fault, and records the fault code, message, source span and frame index.
 - `size W x H` sets the canvas (default 800 x 480; each a whole number 1 to 4096, otherwise `C019`).
@@ -511,16 +518,18 @@ raise it under the same conditions, with the same code and source span.
 | `R002` | bad list index | an index is not a whole number or is outside `0 .. len-1` | both |
 | `R003` | assertion failed | `assert` evaluates to false | both |
 | `R004` | iteration limit | the 100,001st loop iteration in one frame (all loops in the scene and in called functions count) | both |
-| `R005` | drawing limit | the 10,001st draw in one frame, or a `path` with more than 10,000 points (unreachable in practice: lists come from literals of at most 1,000 items or fixtures of at most 10,000) | both (shared scene builder) |
-| `R006` | fuel exhausted | the VM would execute more than 20,000,000 instructions in one frame | VM only |
+| `R005` | drawing limit | the 10,001st draw in one frame; a draw that would take the frame past 20,000 scene units or the whole run past 1,000,000 (a shape costs 1, a `path` 1 + its points, a `text` 1 + one per 16 characters; checked before anything is copied); or a `path` with more than 10,000 points | both (shared scene builder) |
+| `R006` | fuel exhausted | the VM would execute more than 20,000,000 instructions in one frame or 200,000,000 in the run, or allocate more than 20,000,000 register and slot cells for calls in one frame | VM only |
 | `R007` | call depth / stack | a call is made while 64 VM frames are already active, or the operand stack exceeds 1,024 values | VM only; not reachable from a checked, verified program (call depth is enforced statically by `S004`, stack depth statically by the bytecode verifier) |
 | `R008` | bad range | a range bound is not a whole number | both |
 | `R009` | string too long | concatenation or a built-in produces a string over 1,000 code units | both |
 | `R010` | negative size | a non-negative primitive argument (radius, width, height, strokeWidth, corner, text size) is negative | both (shared scene builder) |
 | `R011` | groups too deep | a 33rd nested `group` is entered | both (shared scene builder) |
-| `R012` | invalid bytecode at run time | `HALT` inside a function, `RET` with no caller, or an unknown opcode | VM only; not reachable from verified compiler output |
+| `R012` | invalid bytecode at run time | `HALT` inside a function, `RET` with no caller, an unknown opcode, or `LEN` of a value that is not a list | VM only; not reachable from verified compiler output |
+| `R013` | call limit | the 100,001st call of a user function in one frame (built-ins do not count); both executors count the same calls in the same order, so they stop at the same call | both |
+| `R014` | evaluation budget exhausted | the reference interpreter would take more than 20,000,000 evaluation steps (statements and expressions) in one frame or 200,000,000 in the run, or (backstop) the host stack overflows | reference interpreter only |
 
-`R006` and `R007` are not part of the language semantics; the reference interpreter has neither limit.
+`R006`, `R007` and `R014` are not part of the language semantics: each is one executor's own machine limit.
 
 - Call depth is part of static checking: the longest chain of calls starting in the scene, counting the scene's
   own frame, must be at most `maxCallDepth` (64), otherwise `S004` (so at most 63 nested function calls). The
@@ -528,10 +537,16 @@ raise it under the same conditions, with the same code and source span.
   accept exactly the same programs.
 - The operand stack is bounded statically by the bytecode verifier (`maxStack`), so its run-time check does not
   fire for verified compiler output.
-- Fuel remains a VM-only machine limit. A legal program can exhaust it where the reference interpreter finishes:
-  for example a loop of up to 100,000 iterations whose body executes more than about 200 VM instructions. A run
-  receipt then records `oracle.status: "vm-resource-limit"` rather than `"diverge"` (`COMPILER_PIPELINE.md`
-  section 5).
+- Fuel is a machine limit each executor keeps separately. A legal program can exhaust the VM's where the
+  reference interpreter finishes (a loop of 100,000 iterations whose body executes more than about 200 VM
+  instructions), and the interpreter's where the VM finishes (the same loop over a long constant expression the
+  optimizer folds to one instruction). A run receipt then records `oracle.status: "vm-resource-limit"` or
+  `"reference-resource-limit"`, never `"diverge"` (`COMPILER_PIPELINE.md` section 5).
+- The reference interpreter walks the tree on the host stack, so its stack need is the deepest syntax path through
+  the scene where a call continues into the callee's own deepest path. The checker bounds that weight statically
+  (`maxNestingWeight`, `S005`), so a checked program never overflows the host stack. Node's default stack ran
+  weight 4,038 in testing; the limit is 1,200. `R014` on a host stack overflow is a backstop that has not fired on
+  a checked program.
 
 ---
 
@@ -542,8 +557,9 @@ raise it under the same conditions, with the same code and source span.
 | `maxSourceChars` | 64,000 | lexer | `S001` | compile-time |
 | `maxTokens` | 20,000 | lexer | `S001` | compile-time |
 | `maxAstNodes` | 20,000 | parser | `S002` | compile-time |
-| `maxExprDepth` | 200 | parser (expression nesting and block nesting) | `S002` | compile-time |
-| `maxErrors` | 50 | parser | `P005` | compile-time |
+| `maxExprDepth` | 200 | parser (expression nesting, block nesting and measured expression-tree height) | `S002` | compile-time |
+| `maxErrors` | 50 | lexer, parser, checker | `S006`; `P005`; `S006` | compile-time |
+| `maxNestingWeight` | 1,200 | checker (deepest syntax path through calls) | `S005` | compile-time rule protecting the reference interpreter |
 | `maxSymbols` | 2,000 | checker | `S003` | compile-time |
 | `maxListLiteral` | 1,000 | checker; bytecode verifier (`LIST` operand) | `C016` | compile-time |
 | `maxFrames` | 240 | checker; scene validator | `C019` | compile-time |
@@ -551,14 +567,23 @@ raise it under the same conditions, with the same code and source span.
 | `maxFixtureLength` | 10,000 | fixture loader; scene builder (`path`) | `F004`; `R005` | compile-time and semantic |
 | `maxStringLength` | 1,000 | lexer; fixture loader; both executors | `L006`; `F002`; `R009` | compile-time and semantic |
 | `maxIterationsPerFrame` | 100,000 | both executors | `R004` | semantic |
+| `maxCallsPerFrame` | 100,000 | both executors | `R013` | semantic |
 | `maxDrawsPerFrame` | 10,000 | shared scene builder | `R005` | semantic |
+| `maxSceneUnitsPerFrame` | 20,000 | shared scene builder; scene validator | `R005` | semantic |
+| `maxSceneUnits` | 1,000,000 | shared scene builder (whole run); scene validator | `R005` | semantic |
 | `maxGroupDepth` | 32 | shared scene builder | `R011` | semantic |
 | `maxCallDepth` | 64 | checker (longest call chain from the scene, scene frame included); VM (dynamic) | `S004`; `R007` | compile-time rule mirroring a VM limit |
-| `fuelPerFrame` | 20,000,000 | VM | `R006` | VM-only machine limit |
+| `fuelPerFrame` | 20,000,000 | VM (instructions; also call-frame cells) | `R006` | VM-only machine limit |
+| `fuelPerRun` | 200,000,000 | VM | `R006` | VM-only machine limit |
+| `refFuelPerFrame` | 20,000,000 | reference interpreter (evaluation steps) | `R014` | reference-only machine limit |
+| `refFuelPerRun` | 200,000,000 | reference interpreter | `R014` | reference-only machine limit |
 | `maxStack` | 1,024 | bytecode verifier (static), VM (dynamic) | verify error; `R007` | VM-only machine limit |
 | `maxBytecodeInstrs` | 200,000 | bytecode verifier | verify error | VM-only machine limit |
 
 "Semantic" limits are enforced identically by both executors, so a program that hits one fails the same way in
 both (this is tested for `R004` and `R005` in `tests/differential.test.ts`). The call-depth limit is enforced
-statically, so it never separates the executors. Fuel is the one VM-only limit a checked program can reach; see
-the end of section 12.
+statically, so it never separates the executors. Fuel is the one kind of limit a checked program can reach in one
+executor and not the other; see the end of section 12.
+
+Server runs add a third, coarser bound outside the language: every compile-and-run job executes on a worker
+thread with a 15-second wall-clock limit and a 512 MB heap cap (`server/jobs.ts`).

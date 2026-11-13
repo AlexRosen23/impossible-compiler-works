@@ -6,22 +6,32 @@ export interface PointV { readonly t: 'point'; readonly x: number; readonly y: n
 /** `null` is internal only: the "no colour" default of optional fill/stroke arguments. FOLIO has no null literal. */
 export type Value = number | boolean | string | ColorV | PointV | readonly Value[] | null;
 
+/**
+ * A lookup table with no prototype: names from programs (`toString`, `constructor`, `__proto__`) can never find
+ * an inherited property through `in` or `[]`.
+ */
+export function table<T>(entries: Record<string, T>): Record<string, T> {
+  return Object.freeze(Object.assign(Object.create(null) as Record<string, T>, entries));
+}
+
 export type FaultCode =
-  | 'R001' | 'R002' | 'R003' | 'R004' | 'R005' | 'R006' | 'R007' | 'R008' | 'R009' | 'R010' | 'R011' | 'R012';
+  | 'R001' | 'R002' | 'R003' | 'R004' | 'R005' | 'R006' | 'R007' | 'R008' | 'R009' | 'R010' | 'R011' | 'R012' | 'R013' | 'R014';
 
 export const FAULT_CODES: Record<FaultCode, string> = {
   R001: 'arithmetic produced a non-finite number (division by zero, overflow or NaN)',
   R002: 'list index out of range or not a whole number',
   R003: 'assertion failed',
   R004: 'loop iteration limit exceeded',
-  R005: 'drawing limit exceeded',
-  R006: 'execution fuel exhausted (VM)',
+  R005: 'drawing limit exceeded (shapes per frame, or scene size per frame or per run)',
+  R006: 'execution fuel exhausted (VM, per frame or per run)',
   R007: 'call depth or operand stack limit exceeded (VM)',
   R008: 'range bounds must be whole numbers',
   R009: 'string too long',
   R010: 'negative size argument',
   R011: 'groups nested too deeply',
   R012: 'invalid bytecode reached at run time',
+  R013: 'user-function call limit exceeded',
+  R014: 'evaluation budget exhausted (reference interpreter, per frame or per run)',
 };
 
 /** A runtime fault. `span` is the source location of the failing operation. */

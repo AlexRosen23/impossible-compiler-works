@@ -42,6 +42,7 @@ export const DIAGNOSTIC_CODES: Record<string, string> = {
   L005: 'unterminated block comment',
   L006: 'string literal too long',
   L007: 'invalid number literal',
+  L008: 'source is not valid Unicode text (unpaired surrogate)',
   P001: 'unexpected token',
   P002: 'missing scene declaration',
   P003: 'more than one scene declaration',
@@ -77,4 +78,6 @@ export const DIAGNOSTIC_CODES: Record<string, string> = {
   S002: 'program too large (AST nodes)',
   S003: 'too many symbols',
   S004: 'call chain deeper than the call-depth limit',
+  S005: 'nesting through calls deeper than the reference interpreter allows',
+  S006: 'too many diagnostics; the rest are not shown',
 };

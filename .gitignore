@@ -20,3 +20,9 @@ test-results/
 playwright-report/
 evidence/tmp/
 .claude/
+
+# logs, coverage and tool caches
+*.log
+coverage/
+.vite/
+.DS_Store

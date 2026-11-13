@@ -146,6 +146,7 @@ section 12.
 | L005 | error | lex | unterminated block comment | `/*` without `*/` |
 | L006 | error | lex | string literal too long | decoded literal over 1,000 UTF-16 code units |
 | L007 | error | lex | invalid number literal | digits followed by identifier characters (`1e3`, `800x480`), or a non-finite value |
+| L008 | error | lex | source is not valid Unicode text (unpaired surrogate) | the source contains an unpaired UTF-16 surrogate; nothing else is lexed |
 | P001 | error | parse | unexpected token | any "expected X, found Y"; also chained comparisons and reserved words used as names |
 | P002 | error | parse | missing scene declaration | no `scene` item and no other syntax errors |
 | P003 | error | parse | more than one scene declaration | a second `scene` item |
@@ -181,6 +182,8 @@ section 12.
 | S002 | error | limits / parse | program too large (AST nodes) | more than 20,000 AST nodes (stage `limits`); also expression nesting or block nesting over 200 levels (stage `parse`) |
 | S003 | error | check | too many symbols | more than 2,000 declared symbols |
 | S004 | error | check | call chain deeper than the call-depth limit | the longest chain of user-function calls starting in the scene, counting the scene's own frame, exceeds `maxCallDepth` (64); reported on the scene declaration |
+| S005 | error | check | nesting through calls deeper than the reference interpreter allows | the deepest syntax path through the scene, where a call continues into the callee's deepest path, exceeds `maxNestingWeight` (1,200); reported on the scene declaration |
+| S006 | error or warning | lex, check | too many diagnostics; the rest are not shown | `maxErrors` (50) diagnostics were reported; the lexer stops, the checker keeps checking but reports one marker per severity, so a dropped error still fails the compile |
 
 Not in the table: `ICE` (internal compiler error). The pipeline turns any exception thrown inside a compiler
 stage, and any IR or bytecode verifier failure, into a diagnostic with code `ICE` instead of crashing the host.

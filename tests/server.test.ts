@@ -1,20 +1,23 @@
 import { createServer, request, type Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { createHandler } from '../server/app.ts';
+import { type Handler, createHandler } from '../server/app.ts';
+import { JobError, JobRunner } from '../server/jobs.ts';
 import { openDb } from '../server/db.ts';
 import { ROOT, examples } from './helpers.ts';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Json = any;
 let server: Server;
+let handler: Handler;
 let port = 0;
 beforeAll(async () => {
-  server = createServer(createHandler({ db: openDb(':memory:'), root: ROOT, commit: 'test', startedAt: Date.now() }));
+  handler = createHandler({ db: openDb(':memory:'), root: ROOT, commit: 'test', startedAt: Date.now(), caps: { runs: 5 } });
+  server = createServer(handler);
   await new Promise<void>((r) => server.listen(0, '127.0.0.1', () => r()));
   port = (server.address() as AddressInfo).port;
 });
-afterAll(() => server.close());
+afterAll(async () => { server.close(); await handler.close(); });
 
 function call(method: string, path: string, body?: unknown, headers: Record<string, string> = {}): Promise<{ status: number; json: Json }> {
   return new Promise((resolve, reject) => {
@@ -109,5 +112,72 @@ describe('export, import and tamper rejection', () => {
     const bad2 = structuredClone(bundle);
     bad2.receipt.source += '\n// edited';
     expect((await call('POST', '/api/import', bad2)).status).toBe(422);
+  });
+});
+
+describe('red-team: the server stays up and answers', () => {
+  it('refuses requests another site or another local port makes, before doing any work', async () => {
+    expect((await call('GET', '/api/projects', undefined, { 'sec-fetch-site': 'cross-site' })).status).toBe(403);
+    expect((await call('GET', '/api/runs/0123456789abcdef/bundle', undefined, { 'sec-fetch-site': 'same-site' })).status).toBe(403);
+    expect((await call('POST', '/api/projects', { name: 'x', source: 'scene "s" {}' }, { origin: 'https://evil.example' })).status).toBe(403);
+    expect((await call('POST', '/api/projects', { name: 'x', source: 'scene "s" {}' }, { origin: 'http://127.0.0.1:5594' })).status).toBe(403);
+    expect((await call('GET', '/health', undefined, { 'sec-fetch-site': 'same-origin' })).status).toBe(200);
+    expect((await call('GET', '/health', undefined, { 'sec-fetch-site': 'none' })).status).toBe(200);
+    expect((await call('POST', '/api/projects', { name: 'mine', source: 'scene "s" {}' }, { origin: `http://127.0.0.1:${port}`, 'sec-fetch-site': 'same-origin' })).status).toBe(201);
+  });
+
+  it('a hostile program records quickly and the server answers /health meanwhile (was: 17 s stall)', async () => {
+    const fns = Array.from({ length: 30 }, (_, i) => `fn f${i}(x: Number) -> Number { return ${i < 29 ? `f${i + 1}(x) + f${i + 1}(x + 1)` : 'x'}; }`).join('\n');
+    const t0 = Date.now();
+    const [run, health] = await Promise.all([call('POST', '/api/runs', { source: `${fns}\nscene "s" { circle(x: f0(1) % 100, y: 1, radius: 1); }` }), call('GET', '/health')]);
+    expect(health.status).toBe(200);
+    expect(run.status).toBe(201);
+    expect(run.json.receipt.fault.code).toBe('R013');
+    expect(Date.now() - t0).toBeLessThan(10_000);
+  });
+
+  it('reproduce rejects a receipt with 20,000 passes at once (was: 25 s stall)', async () => {
+    const r = await call('POST', '/api/runs', { source: 'scene "p" { circle(x: 1, y: 1, radius: 1); }' });
+    const t0 = Date.now();
+    const rep = await call('POST', '/api/reproduce', { receipt: { ...r.json.receipt, optimizations: Array(20_000).fill('cse') } });
+    expect(rep.json.reproduced).toBe(false);
+    expect(Date.now() - t0).toBeLessThan(3_000);
+  });
+
+  it('fixture names cannot reach Object.prototype (was: "constructor" recorded a run its own import rejected)', async () => {
+    expect((await call('POST', '/api/runs', { source: 'scene "s" {}', fixtures: ['constructor'] })).status).toBe(404);
+  });
+
+  it('keeps at most the configured number of runs', async () => {
+    for (let i = 0; i < 8; i++) await call('POST', '/api/runs', { source: `scene "cap${i}" { circle(x: ${i}, y: 1, radius: 1); }` });
+    expect((await call('GET', '/runs?limit=200')).json.runs.length).toBeLessThanOrEqual(5);
+  });
+
+  it('the job runner stops a run past its time limit and keeps working', async () => {
+    const jobs = new JobRunner({ timeoutMs: 300 });
+    try {
+      await expect(jobs.run({ kind: 'sleep', ms: 5_000 })).rejects.toMatchObject({ reason: 'timeout' });
+      expect(await jobs.run({ kind: 'sleep', ms: 1 })).toBe('slept');
+    } finally { await jobs.close(); }
+  });
+
+  it('a run that exhausts its heap kills only its worker', async () => {
+    const jobs = new JobRunner({ timeoutMs: 20_000, heapMb: 32 });
+    try {
+      const err = await jobs.run({ kind: 'grow' }).catch((e: unknown) => e);
+      expect(err).toBeInstanceOf(JobError);
+      expect((err as JobError).reason).toBe('crashed');
+      expect(await jobs.run({ kind: 'sleep', ms: 1 })).toBe('slept');
+    } finally { await jobs.close(); }
+  }, 30_000);
+
+  it('a full queue answers busy instead of growing', async () => {
+    const jobs = new JobRunner({ timeoutMs: 2_000, maxQueue: 1 });
+    try {
+      const a = jobs.run({ kind: 'sleep', ms: 200 });
+      const b = jobs.run({ kind: 'sleep', ms: 1 });
+      await expect(jobs.run({ kind: 'sleep', ms: 1 })).rejects.toMatchObject({ reason: 'busy' });
+      await a; await b;
+    } finally { await jobs.close(); }
   });
 });

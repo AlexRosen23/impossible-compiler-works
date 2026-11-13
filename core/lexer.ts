@@ -45,7 +45,20 @@ export function lex(src: string, limits: Limits = DEFAULT_LIMITS): LexResult {
     err('S001', `source is ${src.length} characters; the limit is ${limits.maxSourceChars}`, { start: 0, end: 0, line: 1, col: 1 });
     return { tokens: [{ kind: 'eof', text: '', span: { start: 0, end: 0, line: 1, col: 1 } }], diagnostics };
   }
+  // A lone surrogate cannot be encoded as UTF-8 (it would become U+FFFD), so two different sources could share a
+  // source hash. Such text is rejected before anything else reads it.
+  const lone = /[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/.exec(src);
+  if (lone) {
+    const before = src.slice(0, lone.index);
+    const ln = before.split('\n').length, cl = lone.index - before.lastIndexOf('\n');
+    err('L008', 'source contains an unpaired UTF-16 surrogate (not valid Unicode text)', { start: lone.index, end: lone.index + 1, line: ln, col: cl });
+    return { tokens: [{ kind: 'eof', text: '', span: { start: 0, end: 0, line: 1, col: 1 } }], diagnostics };
+  }
   while (i < src.length) {
+    if (diagnostics.length >= limits.maxErrors) {
+      err('S006', `stopped after ${limits.maxErrors} lexical errors`, { start: i, end: i, line, col });
+      break;
+    }
     if (tokens.length > limits.maxTokens) {
       err('S001', `more than ${limits.maxTokens} tokens`, { start: i, end: i, line, col });
       break;

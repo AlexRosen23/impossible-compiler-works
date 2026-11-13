@@ -63,7 +63,7 @@ export function ScenePane({ title = 'Rendered scene' }: { title?: string }) {
       <div className="verdict" aria-live="polite">
         {run ? <>
           <span>{run.cmds.length} shapes · {run.steps.toLocaleString()} VM steps · {run.ms.toFixed(2)} ms</span>
-          {run.resourceLimit ? <span>VM stopped at a machine limit ({run.fault?.code}); the reference interpreter has no such limit, so no verdict</span>
+          {run.resourceLimit ? <span>The {run.resourceWho} stopped at its own work limit ({run.resourceWho === 'VM' ? run.fault?.code : 'R014'}); the other executor does not share it, so no verdict</span>
             : <span className={run.agree ? 'agree' : 'disagree'}>{run.agree ? '✓ VM ≡ reference interpreter (this frame)' : '✗ VM and reference DIVERGE'}</span>}
           <span title={`VM ${run.vmHash}\nreference ${run.refHash}`}>frame hash {run.vmHash.slice(0, 12)}</span>
           {run.fault && <button className="btn" onClick={() => run.fault?.span && select(run.fault.span)}>{run.fault.code} at {run.fault.span?.line}:{run.fault.span?.col} — {run.fault.message}</button>}

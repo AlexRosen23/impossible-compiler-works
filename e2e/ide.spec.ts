@@ -151,3 +151,15 @@ test('accessibility basics and injection safety', async ({ page }) => {
   await page.keyboard.press('Enter');
   await expect(page).toHaveURL(/#\/observatory/);
 });
+
+test('a crafted project deep link never steers the IDE to another API path', async ({ page }) => {
+  const seen: string[] = [];
+  page.on('request', (r) => seen.push(new URL(r.url()).pathname));
+  await page.goto('/#/editorial/project/..%2F..%2Fapi%2Fcorpus%3F');
+  await expect(page.getByRole('tablist', { name: 'Workshop modes' })).toBeVisible();
+  await page.evaluate(() => { location.hash = '#/editorial/project/..%2Fruns'; });
+  await page.waitForTimeout(300);
+  expect(seen.filter((p) => p.startsWith('/api/projects/'))).toEqual([]);
+  expect(seen).not.toContain('/api/corpus');
+  expect(seen).not.toContain('/api/runs');
+});

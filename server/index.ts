@@ -28,4 +28,9 @@ const server = createServer((req, res) => {
   if (isApi || process.env.PT_STATIC !== '1') { void api(req, res); return; }
   serveStatic(path, res, DIST);
 });
+// Slow clients cannot hold the server: headers within 15 s, a whole request within 30 s, at most 64 sockets.
+server.headersTimeout = 15_000;
+server.requestTimeout = 30_000;
+server.maxConnections = 64;
 server.listen(PORT, '127.0.0.1', () => console.log(`PAPER TIGER API on http://127.0.0.1:${PORT} (db ${dbPath})`));
+for (const sig of ['SIGINT', 'SIGTERM'] as const) process.once(sig, () => { server.close(); void api.close().then(() => process.exit(0)); });

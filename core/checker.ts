@@ -3,7 +3,7 @@
 // type-derivation trace the Type Observatory renders. Parsing and checking are separate stages: a program can
 // parse and still fail here.
 import type * as A from './ast.ts';
-import { typeNodeText } from './ast.ts';
+import { children, typeNodeText } from './ast.ts';
 import { BUILTINS, CONSTANTS } from './builtins.ts';
 import type { Diagnostic, Span } from './diagnostics.ts';
 import { NO_SPAN } from './diagnostics.ts';
@@ -63,7 +63,7 @@ class Checker {
   scopes: ScopeInfo[] = [];
   fns = new Map<string, FnSig>();
   data: CheckResult['data'] = [];
-  callGraph: Record<string, string[]> = {};
+  callGraph: Record<string, string[]> = Object.create(null) as Record<string, string[]>;
   sceneCalls: string[] = [];
   trace: TraceEntry[] = [];
   scene: SceneInfo | null = null;
@@ -75,8 +75,17 @@ class Checker {
   private limits: Limits;
   constructor(limits: Limits) { this.limits = limits; }
 
-  err(code: string, message: string, span: Span, hint?: string) { this.diagnostics.push({ code, severity: 'error', message, span, hint, stage: 'check' }); }
-  warn(code: string, message: string, span: Span, hint?: string) { this.diagnostics.push({ code, severity: 'warning', message, span, hint, stage: 'check' }); }
+  /** Diagnostics stop at maxErrors (one more says how many were dropped), so output stays proportional to the limit. */
+  private dropped = new Set<string>();
+  private push(d: Diagnostic) {
+    if (this.diagnostics.length < this.limits.maxErrors) { this.diagnostics.push(d); return; }
+    // A dropped error must still fail the compile, so each severity gets its own marker.
+    if (this.dropped.has(d.severity)) return;
+    this.dropped.add(d.severity);
+    this.diagnostics.push({ code: 'S006', severity: d.severity, message: `more than ${this.limits.maxErrors} diagnostics; the rest are not shown`, span: d.span, stage: 'check' });
+  }
+  err(code: string, message: string, span: Span, hint?: string) { this.push({ code, severity: 'error', message, span, hint, stage: 'check' }); }
+  warn(code: string, message: string, span: Span, hint?: string) { this.push({ code, severity: 'warning', message, span, hint, stage: 'check' }); }
 
   pushScope(kind: ScopeInfo['kind'], span: Span, label: string): number {
     const id = this.scopes.length;
@@ -122,7 +131,10 @@ class Checker {
     }
     return null;
   }
+  private suggestions = 0;
   suggest(name: string): string | undefined {
+    // Edit distance against every name in scope is the costliest diagnostic; a pathological program gets a few.
+    if (++this.suggestions > 20 || name.length > 64) return undefined;
     const candidates = new Set<string>();
     for (const c of this.chain) for (const n of c.names.keys()) candidates.add(n);
     for (const n of Object.keys(BUILTINS)) candidates.add(n);
@@ -156,7 +168,7 @@ class Checker {
       if (item.kind === 'FnDecl' && this.fns.get(item.name)?.node === item.id) this.fnBody(item);
       else if (item.kind === 'SceneDecl' && !this.scene) this.sceneBody(item);
     }
-    if (this.checkRecursion(p)) this.checkCallDepth(p);
+    if (this.checkRecursion(p)) { this.checkCallDepth(p); this.checkNestingWeight(p); }
     this.popScope();
     return {
       diagnostics: this.diagnostics, types: this.types, resolutions: this.resolutions, symbols: this.symbols, scopes: this.scopes,
@@ -478,6 +490,54 @@ class Checker {
     if (longest > this.limits.maxCallDepth) {
       const scene = p.items.find((i) => i.kind === 'SceneDecl');
       this.err('S004', `the longest call chain is ${longest - 1} functions deep; the limit is ${this.limits.maxCallDepth - 1}`, scene?.span ?? p.span, 'flatten the chain of helper functions');
+    }
+  }
+
+  /**
+   * The reference interpreter is a tree walker: a call evaluates the callee's body on the host stack below the
+   * call site. Its deepest host recursion is therefore the deepest syntax path through the scene, where a call to a
+   * user function continues into that function's own deepest path. That weight must fit a fixed budget so the
+   * oracle never overflows the host stack on a checked program. Only runs when the call graph is acyclic.
+   */
+  checkNestingWeight(p: A.Program) {
+    const decls = new Map<string, A.FnDecl>();
+    for (const i of p.items) if (i.kind === 'FnDecl' && !decls.has(i.name)) decls.set(i.name, i);
+    // Callees are weighed before their callers (post-order over the acyclic call graph, without host recursion),
+    // so each walk below stays inside one declaration and never nests into another.
+    const memo = new Map<string, number>();
+    const weightOf = (root: A.AnyNode): number => {
+      let best = 0;
+      const walk = (n: A.AnyNode, d: number) => {
+        let here = d;
+        if (n.kind === 'Call' && decls.has(n.callee) && !Object.hasOwn(BUILTINS, n.callee)) here = d + (memo.get(n.callee) ?? 0);
+        if (here > best) best = here;
+        for (const k of children(n)) walk(k, d + 1);
+      };
+      walk(root, 1);
+      return best;
+    };
+    const done = new Set<string>();
+    for (const start of decls.keys()) {
+      if (done.has(start)) continue;
+      const stack: [string, number][] = [[start, 0]];
+      done.add(start);
+      while (stack.length) {
+        const top = stack[stack.length - 1];
+        const callees = (this.callGraph[top[0]] ?? []).filter((c) => decls.has(c));
+        if (top[1] < callees.length) {
+          const next = callees[top[1]++];
+          if (!done.has(next)) { done.add(next); stack.push([next, 0]); }
+          continue;
+        }
+        stack.pop();
+        memo.set(top[0], weightOf(decls.get(top[0])!));
+      }
+    }
+    const scene = p.items.find((i) => i.kind === 'SceneDecl');
+    if (!scene) return;
+    const w = weightOf(scene);
+    if (w > this.limits.maxNestingWeight) {
+      this.err('S005', `the deepest nesting through calls is ${w} syntax levels; the limit is ${this.limits.maxNestingWeight}`, scene.span, 'split long expressions into let statements, or flatten the chain of helper functions');
     }
   }
 

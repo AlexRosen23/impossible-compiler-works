@@ -3,7 +3,7 @@
 // diagnostics built from the actual alternatives at the failure point, and panic-mode recovery to the next
 // `;` or `}` so one mistake does not hide the rest.
 import type * as A from './ast.ts';
-import { countNodes } from './ast.ts';
+import { measure } from './ast.ts';
 import { type Diagnostic, type Span, spanFrom } from './diagnostics.ts';
 import { lex, type Token } from './lexer.ts';
 import { DEFAULT_LIMITS, type Limits } from './limits.ts';
@@ -16,7 +16,7 @@ export function parse(src: string, limits: Limits = DEFAULT_LIMITS): ParseResult
   const lexed = lex(src, limits);
   const p = new Parser(lexed.tokens.filter((t) => t.kind !== 'comment'), limits);
   const diagnostics = [...lexed.diagnostics];
-  if (lexed.diagnostics.some((d) => d.code === 'S001')) return { program: null, tokens: lexed.tokens, diagnostics };
+  if (lexed.diagnostics.some((d) => d.code === 'S001' || d.code === 'L008' || d.code === 'S006')) return { program: null, tokens: lexed.tokens, diagnostics };
   let program: A.Program | null = null;
   try {
     program = p.program();
@@ -25,9 +25,12 @@ export function parse(src: string, limits: Limits = DEFAULT_LIMITS): ParseResult
   }
   diagnostics.push(...p.diagnostics);
   if (program) {
-    const n = countNodes(program);
+    const { nodes: n, exprHeight, tallest } = measure(program);
     if (n > limits.maxAstNodes) {
       diagnostics.push({ code: 'S002', severity: 'error', message: `program has ${n} syntax nodes; the limit is ${limits.maxAstNodes}`, span: program.span, stage: 'limits' });
+    }
+    if (exprHeight > limits.maxExprDepth && tallest && 'span' in tallest) {
+      diagnostics.push({ code: 'S002', severity: 'error', message: `expression nested ${exprHeight} levels deep (operator chains count); the limit is ${limits.maxExprDepth}`, span: (tallest as { span: Span }).span, stage: 'limits' });
     }
   }
   return { program, tokens: lexed.tokens, diagnostics };

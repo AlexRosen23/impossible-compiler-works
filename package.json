@@ -1,10 +1,13 @@
 {
   "name": "paper-tiger-compiler-works",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
+  "license": "MIT",
   "description": "PAPER TIGER COMPILER WORKS: FOLIO, a small typed diagram language with a real compiler, optimizer, bytecode VM, independent reference interpreter, debugger and browser IDE.",
   "type": "module",
-  "engines": { "node": ">=24" },
+  "engines": {
+    "node": ">=24"
+  },
   "scripts": {
     "dev": "NODE_NO_WARNINGS=1 node server/index.ts & vite --config web/vite.config.ts",
     "server": "NODE_NO_WARNINGS=1 node server/index.ts",
@@ -46,5 +49,8 @@
     "typescript-eslint": "8.72.2",
     "vite": "8.3.8",
     "vitest": "5.1.0"
+  },
+  "overrides": {
+    "minimatch": "^11.0.8"
   }
 }

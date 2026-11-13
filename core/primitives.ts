@@ -1,13 +1,13 @@
 // Drawing primitives and `group`: named-argument signatures with defaults. This table is part of the language
 // specification; the checker, the lowering and the reference interpreter all read it.
-import { type Value, colorFromHex, point } from './values.ts';
+import { type Value, colorFromHex, point, table } from './values.ts';
 
 export interface PrimParam { name: string; type: string; default?: Value; nonNegative?: boolean }
 export interface PrimSig { params: PrimParam[]; doc: string }
 
 const CREAM = colorFromHex('#f0eadd');
 
-export const PRIMITIVES: Record<string, PrimSig> = {
+export const PRIMITIVES: Record<string, PrimSig> = table({
   circle: {
     doc: 'circle(x, y, radius: Number, fill?: Color = #f0eadd, stroke?: Color, strokeWidth?: Number = 1)',
     params: [
@@ -47,7 +47,7 @@ export const PRIMITIVES: Record<string, PrimSig> = {
       { name: 'size', type: 'Number', default: 14, nonNegative: true }, { name: 'fill', type: 'Color', default: CREAM },
     ],
   },
-};
+});
 
 export const GROUP_SIG: PrimSig = {
   doc: 'group(translate?: Point = point(0, 0), rotate?: Number = 0 (degrees), scale?: Number = 1, opacity?: Number = 1) { … }',

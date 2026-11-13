@@ -74,9 +74,40 @@ export function children(n: AnyNode): AnyNode[] {
 }
 
 export function countNodes(n: AnyNode): number {
-  let c = 1;
-  for (const k of children(n)) c += countNodes(k);
-  return c;
+  return measure(n).nodes;
+}
+
+const EXPR_KINDS = new Set(['Num', 'Str', 'Bool', 'Color', 'Name', 'List', 'Unary', 'Binary', 'Call', 'Index', 'Field']);
+
+/**
+ * Node count and the tallest expression, without host recursion: the parser builds operator chains and postfix
+ * chains in loops, so a long `1 + 1 + ...` is a deep tree that its recursive-descent depth counter never saw.
+ * Every later stage (checker, lowering, interpreter, hashing) recurses over expressions, so this height is the
+ * bound that keeps them inside the host stack.
+ */
+export function measure(root: AnyNode): { nodes: number; exprHeight: number; tallest: AnyNode | null } {
+  let nodes = 0, best = 0;
+  let tallest: AnyNode | null = null;
+  const height = new Map<AnyNode, number>();
+  const stack: { n: AnyNode; done: boolean }[] = [{ n: root, done: false }];
+  while (stack.length) {
+    const top = stack.pop()!;
+    const kids = children(top.n);
+    if (!top.done) {
+      nodes++;
+      stack.push({ n: top.n, done: true });
+      for (const k of kids) stack.push({ n: k, done: false });
+      continue;
+    }
+    let h = 0;
+    for (const k of kids) { h = Math.max(h, height.get(k) ?? 0); height.delete(k); }
+    if (EXPR_KINDS.has(top.n.kind)) {
+      h += 1;
+      if (h > best) { best = h; tallest = top.n; }
+    } else h = 0;
+    height.set(top.n, h);
+  }
+  return { nodes, exprHeight: best, tallest };
 }
 
 export function typeNodeText(t: TypeNode): string {

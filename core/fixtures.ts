@@ -29,11 +29,13 @@ export function loadFixtures(check: CheckResult, table: FixtureTable, limits: Li
     let bad: string | null = null;
     raw.forEach((x, i) => {
       if (bad) return;
-      if (elem === 'Number' && typeof x === 'number' && Number.isFinite(x)) out.push(x);
+      // -0 is stored as 0: canonical JSON (and so every fixture and receipt hash) cannot tell them apart, and a
+      // program can (atan2), so keeping -0 would let a receipt verify one scene and a re-run draw another.
+      if (elem === 'Number' && typeof x === 'number' && Number.isFinite(x)) out.push(x + 0);
       else if (elem === 'String' && typeof x === 'string' && x.length <= limits.maxStringLength) out.push(x);
       else if (elem === 'Boolean' && typeof x === 'boolean') out.push(x);
       else if (elem === 'Color' && typeof x === 'string' && /^#([0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.test(x)) out.push(colorFromHex(x));
-      else if (elem === 'Point' && Array.isArray(x) && x.length === 2 && x.every((v) => typeof v === 'number' && Number.isFinite(v))) out.push(point(x[0], x[1]));
+      else if (elem === 'Point' && Array.isArray(x) && x.length === 2 && x.every((v) => typeof v === 'number' && Number.isFinite(v))) out.push(point(x[0] + 0, x[1] + 0));
       else bad = `item ${i} (${JSON.stringify(x)?.slice(0, 40)}) is not a ${elem}`;
     });
     if (bad) { err('F002', `fixture "${d.fixture}" does not match ${d.type}: ${bad}`, d.node); continue; }

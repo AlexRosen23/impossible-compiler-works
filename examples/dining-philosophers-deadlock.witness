@@ -1,0 +1,30 @@
+model dining_philosophers_deadlock "Three dining philosophers, everyone left-fork-first (deadlock)"
+description "Three philosophers share three forks. Everyone picks up the left fork first; if all three do so at once, nobody can take a right fork: a circular wait."
+
+type Owner = {free, Ph0, Ph1, Ph2}
+var f0 : Owner = free
+var f1 : Owner = free
+var f2 : Owner = free
+
+process Ph0 {
+  var pc : {thinking, one_fork, eating} = thinking
+  action take_first  when pc = thinking and f0 = free  { f0 := Ph0; pc := one_fork }
+  action take_second when pc = one_fork and f1 = free { f1 := Ph0; pc := eating }
+  action put_down    when pc = eating { f0 := free; f1 := free; pc := thinking }
+}
+
+process Ph1 {
+  var pc : {thinking, one_fork, eating} = thinking
+  action take_first  when pc = thinking and f1 = free  { f1 := Ph1; pc := one_fork }
+  action take_second when pc = one_fork and f2 = free { f2 := Ph1; pc := eating }
+  action put_down    when pc = eating { f1 := free; f2 := free; pc := thinking }
+}
+
+process Ph2 {
+  var pc : {thinking, one_fork, eating} = thinking
+  action take_first  when pc = thinking and f2 = free  { f2 := Ph2; pc := one_fork }
+  action take_second when pc = one_fork and f0 = free { f0 := Ph2; pc := eating }
+  action put_down    when pc = eating { f2 := free; f0 := free; pc := thinking }
+}
+
+invariant ForkExclusive: not (Ph0.pc = eating and Ph1.pc = eating) and not (Ph1.pc = eating and Ph2.pc = eating) and not (Ph2.pc = eating and Ph0.pc = eating)

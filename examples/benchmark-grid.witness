@@ -1,0 +1,16 @@
+model benchmark_grid "Benchmark: four counters 0..19 (160,000 states)"
+description "A performance fixture, not a teaching example: 20^4 = 160,000 reachable states and 608,000 transitions."
+
+var a : 0..19 = 0
+var b : 0..19 = 0
+var c : 0..19 = 0
+var d : 0..19 = 0
+
+process P { action inc when a < 19 { a := a + 1 } }
+process Q { action inc when b < 19 { b := b + 1 } }
+process R { action inc when c < 19 { c := c + 1 } }
+process S { action inc when d < 19 { d := d + 1 } }
+
+terminal a = 19 and b = 19 and c = 19 and d = 19
+
+invariant Bounded: a + b + c + d <= 76

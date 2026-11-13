@@ -1,0 +1,24 @@
+model cache_stale_read "Cache-aside: a slow reader refills the cache with stale data (broken)"
+description "A reader misses the cache, reads the database, and later fills the cache. Meanwhile a writer updates the database and invalidates the cache. The late fill puts the old value back, and the cache stays stale."
+
+var db          : 0..1 = 0
+var cache       : 0..1 = 0
+var cache_valid : bool = false
+
+process Writer {
+  var pc : {start, updated, done} = start
+  action update     when pc = start   { db := 1; pc := updated }
+  action invalidate when pc = updated { cache_valid := false; pc := done }
+}
+
+process Reader {
+  var pc  : {start, read_db, done} = start
+  var tmp : 0..1 = 0
+  action miss when pc = start and not cache_valid { tmp := db; pc := read_db }
+  action hit  when pc = start and cache_valid     { pc := done }
+  action fill when pc = read_db { cache := tmp; cache_valid := true; pc := done }
+}
+
+terminal Writer.pc = done and Reader.pc = done
+
+invariant NoStaleCacheAtRest: (Writer.pc = done and Reader.pc = done and cache_valid) => cache = db

@@ -1,0 +1,24 @@
+model producer_consumer_bounded "Bounded buffer with a full-check, plus progress (repaired)"
+description "The producer waits while the buffer is full. Under weak fairness for both processes every item is eventually consumed."
+
+const CAP = 2
+const N = 3
+var count    : 0..3 = 0
+var produced : 0..3 = 0
+var consumed : 0..3 = 0
+
+process Producer {
+  action put when produced < N and count < CAP { count := count + 1; produced := produced + 1 }
+}
+process Consumer {
+  action take when count > 0 { count := count - 1; consumed := consumed + 1 }
+}
+
+terminal consumed = N
+
+invariant WithinCapacity: count <= CAP
+invariant Conservation: produced = consumed + count
+liveness AllConsumed: eventually consumed = N
+
+fairness weak Producer
+fairness weak Consumer

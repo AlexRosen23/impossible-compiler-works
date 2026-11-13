@@ -1,0 +1,33 @@
+model reorder_sequenced "Reordered messages with sequence numbers (repaired)"
+description "Each message carries its sequence number and the receiver ignores anything older than what it has applied."
+
+var sent1    : bool = false
+var sent2    : bool = false
+var in_net1  : bool = false
+var in_net2  : bool = false
+var value    : 0..2 = 0
+var applied  : 0..2 = 0   // highest sequence number applied
+var got1     : bool = false
+var got2     : bool = false
+
+process Sender {
+  action send1 when not sent1           { sent1 := true; in_net1 := true }
+  action send2 when sent1 and not sent2 { sent2 := true; in_net2 := true }
+}
+
+process Network {
+  action deliver1 when in_net1 {
+    in_net1 := false; got1 := true
+    value := if applied < 1 then 1 else value
+    applied := if applied < 1 then 1 else applied
+  }
+  action deliver2 when in_net2 {
+    in_net2 := false; got2 := true
+    value := if applied < 2 then 2 else value
+    applied := if applied < 2 then 2 else applied
+  }
+}
+
+terminal sent2 and not in_net1 and not in_net2
+
+invariant LastWriteWins: (got1 and got2) => value = 2

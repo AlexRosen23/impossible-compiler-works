@@ -1,0 +1,29 @@
+model bank_transfer_race "Bank transfer: concurrent read-modify-write (broken)"
+description "Two transfers run at once: T1 moves 1 from x to y, T2 moves 1 from y to x. Each balance update is a separate read and write, so one transfer can overwrite the other's write (a lost update) and money is created or destroyed."
+
+const TOTAL = 4
+var x : 0..4 = 2
+var y : 0..4 = 2
+
+process T1 {
+  var pc  : {start, read_x, wrote_x, read_y, done} = start
+  var tmp : 0..4 = 0
+  action read_src  when pc = start   { tmp := x; pc := read_x }
+  action write_src when pc = read_x  { x := tmp - 1; pc := wrote_x }
+  action read_dst  when pc = wrote_x { tmp := y; pc := read_y }
+  action write_dst when pc = read_y  { y := tmp + 1; pc := done }
+}
+
+process T2 {
+  var pc  : {start, read_y, wrote_y, read_x, done} = start
+  var tmp : 0..4 = 0
+  action read_src  when pc = start   { tmp := y; pc := read_y }
+  action write_src when pc = read_y  { y := tmp - 1; pc := wrote_y }
+  action read_dst  when pc = wrote_y { tmp := x; pc := read_x }
+  action write_dst when pc = read_x  { x := tmp + 1; pc := done }
+}
+
+terminal T1.pc = done and T2.pc = done
+
+// money is conserved once both transfers have finished
+invariant Conservation: (T1.pc = done and T2.pc = done) => x + y = TOTAL

@@ -220,11 +220,12 @@ export function parseTlcOutput(out: string, exp: TlaExport, model?: CompiledMode
         break;
       }
       case 2122: { // N: Back to state M: <Action ...>
-        const b = /Back to state (\d+)(?:: <([^\s>]+))?/.exec(msg.body);
+        // TLC 2.19 prints "M: Back to state: <Action ...>" (M = 1-based target state)
+        const b = /^(\d+): Back to state(?: (\d+))?:?\s*(?:<([^\s>]+))?/.exec(msg.body);
         if (b) {
-          const target = Number(b[1]) - 1;
+          const target = Number(b[2] ?? b[1]) - 1;
           if (steps[target]) {
-            steps.push({ action: b[2] ? (exp.opToLabel[b[2]] ?? b[2]) : null, state: { ...steps[target].state } });
+            steps.push({ action: b[3] ? (exp.opToLabel[b[3]] ?? b[3]) : null, state: { ...steps[target].state } });
             res.loopStart = target;
           }
         }
@@ -272,6 +273,7 @@ export async function runTlcCrossCheck(source: string, model: CompiledModel, int
     let property = c.purpose;
     let tlcStatus: string = run.status;
     let replayNote = '';
+    let replayOk = true;
     if (run.trace && run.status !== 'NO_ERROR') {
       const steps = toWml(model, exp, run.trace);
       const kind = run.status === 'INVARIANT_VIOLATED' ? (run.violated === 'TypeOK' ? 'domain' : 'invariant') : run.status === 'DEADLOCK' ? 'deadlock' : 'liveness';
@@ -281,10 +283,12 @@ export async function runTlcCrossCheck(source: string, model: CompiledModel, int
         const bad = model.vars.find((v) => v.type.kind === 'int' && typeof last[v.name] === 'number' && ((last[v.name] as number) < (v.type as { min: number }).min || (last[v.name] as number) > (v.type as { max: number }).max));
         const r = replayTrace(source, steps, { kind: 'domain', property: 'TypeOK', badWrite: bad ? { variable: bad.name, value: last[bad.name] as number } : undefined });
         replayNote += r.ok ? ' — independent replay OK' : ` — independent replay FAILED: ${r.reason}`;
+        replayOk = r.ok;
       } else {
         const propName = kind === 'deadlock' ? 'DeadlockFreedom' : c.purpose;
         const r = replayTrace(source, steps, { kind: kind as 'invariant' | 'deadlock' | 'liveness', property: propName, loopStart: run.loopStart, stutterForever: run.stutterForever });
         replayNote = r.ok ? ' — TLC trace re-derived by the independent replay evaluator' : ` — independent replay of TLC trace FAILED: ${r.reason}`;
+        replayOk = r.ok;
       }
     }
     if (c.name === 'full') {
@@ -322,7 +326,7 @@ export async function runTlcCrossCheck(source: string, model: CompiledModel, int
         if (il !== tl && internalProp?.kind !== 'eventually' && internalProp?.kind !== 'leadsto') agree = false;
       } else note = agree ? (tlcViolated ? 'both report a violation' : 'both report no violation') : 'VERDICTS DIFFER';
     }
-    comparison.push({ property, internal: internalStatus, tlc: tlcVerdict, agree, note: note + replayNote });
+    comparison.push({ property, internal: internalStatus, tlc: tlcVerdict, agree: agree && replayOk, note: note + replayNote });
   }
   const allAgree = comparison.every((c) => c.agree);
   return {

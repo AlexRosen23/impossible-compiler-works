@@ -1,0 +1,23 @@
+model inventory_atomic "Inventory reservation: atomic compare-and-reserve (repaired)"
+description "The repair makes the availability check and the reservation one atomic step (a conditional update such as UPDATE ... WHERE stock > 0). A worker that finds no stock records sold_out instead."
+
+var stock     : -1..1 = 1
+var allocated : 0..2  = 0
+
+process A, B {
+  var pc : {idle, reserved, sold_out} = idle
+
+  action reserve when pc = idle and stock > 0 {
+    stock     := stock - 1
+    allocated := allocated + 1
+    pc        := reserved
+  }
+  action give_up when pc = idle and stock <= 0 {
+    pc := sold_out
+  }
+}
+
+terminal (A.pc = reserved or A.pc = sold_out) and (B.pc = reserved or B.pc = sold_out)
+
+invariant NoDoubleAllocation: allocated <= 1
+invariant NoNegativeInventory: stock >= 0

@@ -1,0 +1,13 @@
+model bounded_counter_unfair "The same counter with no fairness assumption"
+description "Identical to bounded_counter but with no fairness. In TLA+ semantics a behaviour may stutter forever, so 'eventually count = 3' is violated by a run that simply stops at 0. Reachability alone does not prove liveness."
+
+var count : 0..3 = 0
+
+process Counter {
+  action tick when count < 3 { count := count + 1 }
+}
+
+terminal count = 3
+
+invariant InRange: count >= 0 and count <= 3
+liveness ReachesThree: eventually count = 3

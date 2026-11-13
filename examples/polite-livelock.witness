@@ -1,0 +1,29 @@
+model polite_livelock "Polite threads: both back off forever (livelock)"
+description "Each thread raises its flag, and if it sees the other's flag it politely lowers its own and retries. With the right (fair!) schedule both keep backing off in lock-step: every step makes 'progress' but nobody ever enters. Mutual exclusion holds; starvation-freedom fails even under weak fairness."
+
+var flagA : bool = false
+var flagB : bool = false
+
+process A {
+  var pc : {idle, raised, backing, critical} = idle
+  action raise    when pc = idle                { flagA := true; pc := raised }
+  action enter    when pc = raised and not flagB { pc := critical }
+  action back_off when pc = raised and flagB     { pc := backing }
+  action lower    when pc = backing             { flagA := false; pc := idle }
+  action leave    when pc = critical            { flagA := false; pc := idle }
+}
+
+process B {
+  var pc : {idle, raised, backing, critical} = idle
+  action raise    when pc = idle                { flagB := true; pc := raised }
+  action enter    when pc = raised and not flagA { pc := critical }
+  action back_off when pc = raised and flagA     { pc := backing }
+  action lower    when pc = backing             { flagB := false; pc := idle }
+  action leave    when pc = critical            { flagB := false; pc := idle }
+}
+
+invariant MutualExclusion: not (A.pc = critical and B.pc = critical)
+liveness AEventuallyEnters: A.pc = raised leadsto A.pc = critical
+
+fairness weak A
+fairness weak B

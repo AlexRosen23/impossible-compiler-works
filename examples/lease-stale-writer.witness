@@ -1,0 +1,31 @@
+model lease_stale_writer "Leader lease without fencing: a paused leader writes after its lease expired (broken)"
+description "Nodes take a lease from a lock service, which hands out increasing tokens. A lease can expire while its holder is paused (GC, clock skew); the holder still believes it is leader and writes. Storage accepts any write, so an older token overwrites newer data."
+
+type Node = {nobody, N1, N2}
+var holder      : Node = nobody   // who the lock service thinks holds the lease
+var next_token  : 0..2 = 0
+var last_token  : 0..2 = 0        // token attached to the data currently in storage
+var highest     : 0..2 = 0        // highest token storage has ever seen
+
+process N1, N2 {
+  var token  : 0..2 = 0
+  var leader : bool = false        // the node's own belief
+  var wrote  : bool = false
+  action acquire when not leader and not wrote and holder = nobody and next_token < 2 {
+    holder := self; next_token := next_token + 1; token := next_token + 1; leader := true
+  }
+  action write when leader and not wrote {
+    last_token := token
+    highest := if token > highest then token else highest
+    wrote := true
+  }
+}
+
+process LockService {
+  // the lease times out; the holder is NOT told (it may be paused)
+  action expire when holder != nobody { holder := nobody }
+}
+
+terminal holder = nobody and (N1.wrote or not N1.leader) and (N2.wrote or not N2.leader)
+
+invariant NoStaleOverwrite: last_token >= highest

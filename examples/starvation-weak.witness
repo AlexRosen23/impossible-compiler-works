@@ -1,0 +1,17 @@
+model starvation_weak "Starvation: weak fairness is not enough"
+description "A and B repeatedly compete for one lock. B's acquire is enabled only while the lock is free, so it is not continuously enabled: weak fairness cannot force it, strong fairness (enabled infinitely often implies taken infinitely often) can. Variant: weak."
+
+var locked : bool = false
+
+process A, B {
+  var pc : {idle, waiting, critical} = idle
+  action request when pc = idle                    { pc := waiting }
+  action acquire when pc = waiting and not locked  { locked := true; pc := critical }
+  action release when pc = critical                { locked := false; pc := idle }
+}
+
+invariant MutualExclusion: not (A.pc = critical and B.pc = critical)
+liveness BEventuallyEnters: B.pc = waiting leadsto B.pc = critical
+
+fairness weak A
+fairness weak B

@@ -1,0 +1,24 @@
+model inventory_race "Inventory reservation: check-then-act (broken)"
+description "Two checkout workers share the last unit in stock. Each one first checks that stock is available, then reserves it in a separate step. Between the check and the reservation the other worker can run."
+
+var stock     : -1..1 = 1   // units on the shelf (the domain admits -1 so the bug is visible as a property, not a type error)
+var allocated : 0..2  = 0   // units promised to customers
+
+process A, B {
+  var pc : {idle, saw_stock, reserved, sold_out} = idle
+
+  action check when pc = idle {
+    pc := if stock > 0 then saw_stock else sold_out
+  }
+  // the check-then-act window: nothing re-validates stock here
+  action reserve when pc = saw_stock {
+    stock     := stock - 1
+    allocated := allocated + 1
+    pc        := reserved
+  }
+}
+
+terminal (A.pc = reserved or A.pc = sold_out) and (B.pc = reserved or B.pc = sold_out)
+
+invariant NoDoubleAllocation: allocated <= 1
+invariant NoNegativeInventory: stock >= 0

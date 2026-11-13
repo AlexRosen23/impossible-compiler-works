@@ -1,0 +1,126 @@
+{
+  "schemaVersion": 1,
+  "walkthroughVersion": "2026-11-12.1",
+  "note": "Teaching metadata only. Verdicts are never stored here: the UI always shows the checker's live result. Regression expectations live in tests/fixtures/expected.json.",
+  "scenarios": [
+    {
+      "id": "counter", "order": 1, "level": "novice", "concepts": ["atomicity"],
+      "title": "Two threads share one counter",
+      "broken": "counter-race", "fixed": "counter-atomic",
+      "lesson": "A read and a write that are separate steps can be interleaved. The checker finds the schedule where both threads read 0 and the second write erases the first: a lost update.",
+      "try": "Open the broken model, run it, step the witness: A.read, B.read, A.write, B.write. Then open the repaired model, where increment is one atomic action."
+    },
+    {
+      "id": "inventory", "order": 2, "level": "novice", "concepts": ["atomicity", "resource bounds"],
+      "title": "Two checkouts, one unit in stock",
+      "broken": "inventory-race", "fixed": "inventory-atomic",
+      "lesson": "Check-then-act: both workers see stock > 0 before either reserves. The fix is an atomic conditional update.",
+      "try": "Compare the two runs in the Witness Archive: the repaired graph has fewer reachable states and no scarlet node, because the transition relation changed."
+    },
+    {
+      "id": "bank", "order": 3, "level": "intermediate", "concepts": ["conservation", "atomicity"],
+      "title": "Concurrent transfers and conservation of money",
+      "broken": "bank-transfer-race", "fixed": "bank-transfer-atomic",
+      "lesson": "Two opposite transfers with split read/write steps can create or destroy money. With atomic debits and credits, money in flight is accounted for and conservation holds in every reachable state.",
+      "try": "Notice the repaired invariant is stronger: it must hold in every state, not only at the end."
+    },
+    {
+      "id": "mutex", "order": 4, "level": "novice", "concepts": ["locking", "atomicity"],
+      "title": "A lock built from a plain flag",
+      "broken": "mutex-check-then-set", "fixed": "mutex-test-and-set",
+      "lesson": "Checking a flag and setting it are two steps unless the hardware gives you test-and-set.",
+      "try": "Use the Interleaving Theater to advance one process at a time and build the violating schedule yourself."
+    },
+    {
+      "id": "lock-order", "order": 5, "level": "intermediate", "concepts": ["locking", "deadlock"],
+      "title": "Two locks in opposite order",
+      "broken": "lock-order-deadlock", "fixed": "lock-order-fixed",
+      "lesson": "A deadlock is a reachable state with no enabled action that is not an intended end state. A global lock order removes the circular wait.",
+      "try": "The deadlock witness is only two steps long. The repaired model has a terminal state, which is declared, so it is not a deadlock."
+    },
+    {
+      "id": "queue", "order": 6, "level": "intermediate", "concepts": ["queue delivery", "idempotency", "timeout"],
+      "title": "At-least-once delivery and duplicate side effects",
+      "broken": "queue-redelivery", "fixed": "queue-idempotent",
+      "lesson": "A visibility timeout cannot tell a slow consumer from a dead one, so the message is redelivered and the side effect happens twice. Recording the message id atomically with the effect makes processing idempotent.",
+      "try": "Acceptance journey 3: run, read the duplicate-output witness, switch to the idempotent model, re-run."
+    },
+    {
+      "id": "buffer", "order": 7, "level": "novice", "concepts": ["resource bounds", "fairness"],
+      "title": "Bounded buffer: capacity and progress",
+      "broken": "producer-consumer-overflow", "fixed": "producer-consumer-bounded",
+      "lesson": "A missing full-check lets the buffer exceed its capacity. The repaired model also proves (in this finite model) that every item is eventually consumed under weak fairness.",
+      "try": "Look at the liveness row: it names the fairness assumptions it used."
+    },
+    {
+      "id": "counter-liveness", "order": 8, "level": "novice", "concepts": ["fairness"],
+      "title": "Why liveness needs fairness",
+      "broken": "bounded-counter-unfair", "fixed": "bounded-counter",
+      "lesson": "Reachability shows the count CAN reach 3. Liveness asks whether it MUST. Without fairness a behaviour may stop forever (stutter) at 0.",
+      "try": "The unfair witness is one initial state followed by 'stutter forever'."
+    },
+    {
+      "id": "starvation", "order": 9, "level": "advanced", "concepts": ["fairness", "locking"],
+      "title": "Starvation: weak versus strong fairness",
+      "broken": "starvation-weak", "fixed": "starvation-strong", "extra": ["starvation-unfair"],
+      "lesson": "B's acquire is enabled only while the lock is free, so it is not continuously enabled. Weak fairness cannot force it; strong fairness can. Fairness changes the verdict only when it is encoded on the right action.",
+      "try": "Open all three variants. The no-fairness and weak-fairness witnesses differ: one stutters, one cycles."
+    },
+    {
+      "id": "livelock", "order": 10, "level": "advanced", "concepts": ["fairness", "locking"],
+      "title": "Livelock versus Peterson's algorithm",
+      "broken": "polite-livelock", "fixed": "peterson",
+      "lesson": "In a livelock every step makes 'progress' and the scheduler is fair, yet nobody enters. Peterson's turn variable breaks the symmetry.",
+      "try": "The livelock witness is a cycle (shown in the condensed SCC view); every fairness constraint is satisfied on the loop."
+    },
+    {
+      "id": "lease", "order": 11, "level": "advanced", "concepts": ["consensus assumptions", "timeout"],
+      "title": "Leader leases and fencing tokens",
+      "broken": "lease-stale-writer", "fixed": "lease-fencing",
+      "lesson": "A lease that expires while its holder is paused produces two writers who both believe they lead. Storage-side fencing with monotonically increasing tokens rejects the stale one.",
+      "try": "Find the expire step in the witness: nothing tells N1 its lease ended."
+    },
+    {
+      "id": "reorder", "order": 12, "level": "intermediate", "concepts": ["queue delivery"],
+      "title": "Reordered messages",
+      "broken": "reorder-apply", "fixed": "reorder-sequenced",
+      "lesson": "Reordering is modelled as a nondeterministic choice of which in-flight message the network delivers next, never as a UI animation.",
+      "try": "Compare the two witnesses' Network lane."
+    },
+    {
+      "id": "cache", "order": 13, "level": "intermediate", "concepts": ["stale read"],
+      "title": "Cache-aside and the stale refill",
+      "broken": "cache-stale-read", "fixed": "cache-versioned",
+      "lesson": "A reader that fills the cache after a writer invalidated it puts stale data back. A version check on fill drops the stale value.",
+      "try": "Step the witness; the stale read is the miss before the update."
+    },
+    {
+      "id": "retry", "order": 14, "level": "intermediate", "concepts": ["retries", "idempotency", "timeout"],
+      "title": "Retries and duplicate authorization",
+      "broken": "retry-double-charge", "fixed": "retry-idempotency-key",
+      "lesson": "A lost reply plus a client retry produces a second charge. An idempotency key stored with the result makes retries safe.",
+      "try": "The Network lane drops a reply; nothing else is fake."
+    },
+    {
+      "id": "two-phase", "order": 15, "level": "advanced", "concepts": ["consensus assumptions", "timeout"],
+      "title": "Two-phase commit: presume commit or presume abort",
+      "broken": "two-phase-presumed-commit", "fixed": "two-phase-presumed-abort",
+      "lesson": "Treating a missing vote as yes breaks atomic commitment. Presuming abort is safe in this model, at the price of aborting more often.",
+      "try": "Two invariants fail in the broken model; their witnesses have different lengths."
+    },
+    {
+      "id": "philosophers", "order": 16, "level": "intermediate", "concepts": ["deadlock", "resource bounds"],
+      "title": "Three dining philosophers",
+      "broken": "dining-philosophers-deadlock", "fixed": "dining-philosophers-ordered",
+      "lesson": "A symmetric protocol can deadlock; reversing one philosopher's fork order removes the cycle in the wait-for graph.",
+      "try": "The deadlock witness takes three steps: every philosopher holds one fork."
+    },
+    {
+      "id": "explosion", "order": 17, "level": "intermediate", "concepts": ["resource bounds"],
+      "title": "State explosion and honest INCOMPLETE",
+      "broken": "state-explosion", "fixed": "state-explosion",
+      "lesson": "Three independent counters already give 1,000 states. With a 50-state cap the verdict is INCOMPLETE, never 'safe'.",
+      "try": "Acceptance journey 6: set Max states to 50, run, export the receipt, tamper with it, verify."
+    }
+  ]
+}

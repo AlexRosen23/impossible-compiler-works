@@ -12,9 +12,8 @@ Only the latest commit on `main` is supported.
 
 ## Reporting a vulnerability
 
-**Contact: _to be added by the maintainer before the repository is made public_.**
-Until then, please use GitHub's private vulnerability reporting if it is enabled (the repository's **Security**
-tab, **Report a vulnerability**). Do not open a public issue for a security problem.
+Please report it privately through GitHub's private vulnerability reporting: the repository's **Security** tab,
+**Report a vulnerability**. Do not open a public issue for a security problem.
 
 A useful report includes the program, model, receipt or request that triggers the problem, what you expected, and
 what happened (a crash, a hang, a wrong verdict, or access to something that should be unreachable).

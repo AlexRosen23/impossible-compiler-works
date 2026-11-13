@@ -80,9 +80,15 @@ types are then checked by the core's fixture loader). A request naming `../../et
 - The static path does not apply the API's Host-header check; it serves only files from `dist/`.
 - Static responses carry a Content Security Policy:
   `default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self';
-  img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'`,
+  img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'none';
+  frame-ancestors http://127.0.0.1:4520 http://127.0.0.1:4521 http://localhost:4520 http://localhost:4521`,
   plus `x-content-type-options: nosniff` and `referrer-policy: no-referrer`. No third-party origin is allowed;
   `style-src` permits inline styles.
+- Framing: only the Constellation's own loopback origins (its API on 4520, its Vite dev server on 4521) may frame
+  the IDE, so its world can open the IDE inside itself. Until 2026-11-12 this was `frame-ancestors 'none'` and the
+  world opened the IDE in its own tab. Any other page, including any site on the open web, still cannot frame it
+  (`tests/static.test.ts` pins the exact list). The trade-off: a page served from one of those four loopback
+  origins could frame the IDE and try to trick a click; those origins are the Constellation's, on this machine.
 
 ### 2.6 Scene output
 

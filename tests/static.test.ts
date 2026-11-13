@@ -36,6 +36,11 @@ describe('static IDE serving', () => {
     expect(idx.body).toBe('<!doctype html>INDEX');
     expect(idx.csp).toMatch(/script-src 'self'/);
   });
+  it('may be framed only by the Constellation (127.0.0.1/localhost on 4520 and 4521), never by any other page', async () => {
+    const csp = (await get('/')).csp ?? '';
+    const ancestors = /frame-ancestors ([^;]+)/.exec(csp)?.[1].trim().split(/\s+/);
+    expect(ancestors).toEqual(['http://127.0.0.1:4520', 'http://127.0.0.1:4521', 'http://localhost:4520', 'http://localhost:4521']);
+  });
   it('answers malformed percent-encoding with 400 instead of crashing', async () => {
     expect((await get('/%E0%A4%A')).status).toBe(400);
     expect((await get('/assets/app.js')).status).toBe(200);

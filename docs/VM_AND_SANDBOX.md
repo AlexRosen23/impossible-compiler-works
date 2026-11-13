@@ -126,17 +126,26 @@ re-signs a broken module and confirms the verifier still rejects it.
 
 ## 3. Bytecode verifier (`verifyBytecode`)
 
-Module checks: `functions` and `consts` are arrays; `main` is a valid index; every constant decodes.
+The verifier returns a list of problems for any input, however malformed, and never throws: its body runs inside a
+guard that turns an unexpected exception into a "malformed module" problem.
+
+Module checks: `functions`, `consts` and `data` are arrays; there are 1 to `maxSymbols` functions and bounded
+constant and data tables; the scene header has a title of at most 1,000 characters, a size of 1 to 4,096 in each
+direction, 1 to 240 frames and a `#RRGGBB[AA]` background; `main` is a valid index; every constant decodes.
 
 Per function:
 
-- `code` length is a multiple of 3; `spans` and `ir` have one entry per instruction;
-- `nparams <= nslots`; the scene function has at least 2 slots (`time`, `frame`);
+- the record is an object with a short name, and `code`, `spans`, `ir` and `slotNames` are arrays;
+- `code` length is a multiple of 3; `spans` and `ir` have one entry per instruction; each span is four whole
+  numbers; `slotNames` has one entry per slot;
+- `nparams` is 0 to 64, `nslots` from `nparams` to `maxSymbols + 2`, `nregs` 0 to `maxBytecodeInstrs`; the scene
+  function has at least 2 slots (`time`, `frame`);
 - an abstract interpretation over the control-flow graph, starting at pc 0 with stack depth 0, visits every
   reachable instruction and checks:
   - control never runs past the end of the code;
   - every instruction is reached with one consistent stack depth;
-  - the opcode exists;
+  - the opcode exists, and both operands are whole numbers (a fractional or string operand is rejected before it can
+    index a table);
   - operands are in range: constant index, register, slot, dataset index, built-in index with the exact
     argument count, function index (not the scene) with the exact argument count, `LIST` size at most
     `maxListLiteral`, field index, primitive index, `ASSERT` message is -1 or a string constant, jump targets are
@@ -146,13 +155,17 @@ Per function:
   - `HALT` with an empty stack.
 
 Whole-module checks: total instruction count at most `maxBytecodeInstrs` (200,000), and the `CALLF` call graph
-is acyclic.
+is acyclic (checked by an iterative depth-first search, so a chain of thousands of functions cannot overflow the
+host stack).
 
 The verifier is structural, not a type checker. It does not check that a register is written before it is read
-(registers start as `0`), or that operand values have the types an opcode expects. Those properties hold for
+(registers start as `0`), or that operand values have the types an opcode expects (the VM itself checks `LEN`'s
+operand, `R012`). Those properties hold for
 compiler output because the checker and lowering guarantee them. Bytecode from outside is never executed by the
 code in `core/` and `server/`: `reproduce` and `/api/import` only load and verify a supplied bytecode artifact and
-compare its hash; they execute bytecode recompiled from the receipt's source.
+compare its hash; they execute bytecode recompiled from the receipt's source. The pre-release red team's crafted
+modules (fractional operands, a null function, huge slot and register counts, a billion frames, a CSS background,
+a 2,000-function chain) are rejected without an exception in `tests/security.test.ts`.
 
 Negative tests in `tests/backend.test.ts`: unknown opcode, out-of-range jump, out-of-range constant, an `ADD`
 replacing a `CONST` (stack discipline), a truncated function (control runs past the end), an injected recursive
@@ -161,22 +174,25 @@ module.
 
 ## 4. VM design (`core/vm.ts`)
 
-- **One `VMRun` per frame.** `runVM` creates a fresh machine for each frame index, so no state carries between
-  frames. The scene frame's registers and slots start at `0`, then slot 0 is set to `time = frame / frames` and
+- **One `VMRun` per frame.** `runVM` creates a fresh machine for each frame index, so no program state carries
+  between frames. Only two counters are shared across the frames of one run: instructions (`fuelPerRun`) and scene
+  size (`maxSceneUnits`), so the whole run is bounded, not just each frame. The scene frame's registers and slots start at `0`, then slot 0 is set to `time = frame / frames` and
   slot 1 to `frame`.
 - **Explicit frame stack.** `CALLF` pushes a `CallFrame { fn, pc, regs, slots, stack }`; `RET` pops it and pushes
   the result onto the caller's stack. The VM never recurses on the host stack.
 - **Dispatch loop.** `run(max, stop?)` executes up to `max` instructions. Before each instruction it checks the
   optional `stop` predicate (used by the debugger), increments the step count and faults `R006` if it exceeds
-  `fuelPerFrame`, updates a rolling FNV-1a fingerprint over `(fn, pc)`, then executes the opcode.
+  `fuelPerFrame` or the run total exceeds `fuelPerRun`, updates a rolling FNV-1a fingerprint over `(fn, pc)`, then executes the opcode.
 - **Fault handling.** Built-ins, operators and the scene builder signal faults by throwing `FaultSignal`; the VM
   catches it, sets the pc back to the faulting instruction, and records a `FolioFault` with the instruction's
   source span. Any other exception is not caught (it would be a VM bug).
-- **Limits.** `TICK` counts iterations (`R004`), `CALLF` checks call depth (`R007` when 64 frames are already
-  active), the operand stack is checked after every instruction (`R007` above 1,024), and fuel is checked before
+- **Limits.** `TICK` counts iterations (`R004`); `CALLF` counts user-function calls (`R013` past 100,000 per frame,
+  exactly as the reference interpreter counts them), charges the callee's register and slot cells against fuel
+  (`R006`, so a huge register file cannot be allocated cheaply), and checks call depth (`R007` when 64 frames are
+  already active); the operand stack is checked after every instruction (`R007` above 1,024), and fuel is checked before
   every instruction (`R006`). For checked, verified programs the two `R007` checks are second lines of defence:
   the checker's `S004` rule bounds call depth and the bytecode verifier bounds stack depth. Fuel is the only VM
-  limit a checked program can reach.
+  limit a checked program can reach that the reference interpreter does not share.
 - **Result.** `runVM` returns the scene, the first fault (code, message, span, frame), per-frame step counts and
   a `traceHash`: SHA-256 over the per-frame step counts, per-frame fingerprints and the fault code and frame. Two
   runs with the same trace hash executed the same instruction sequence.
@@ -216,7 +232,10 @@ oracle depends on how much it shares with the compiled path. Exactly:
 | Built-in function implementations and their result checks | `core/builtins.ts` | `core/builtins.ts` | shared |
 | Primitive signatures and defaults | `core/primitives.ts` | `core/primitives.ts` | shared |
 | Output device: draw limit, negative sizes, group depth, quantization | `core/scene.ts` | `core/scene.ts` | shared |
-| Fuel (`R006`) | VM only | none | not modelled in the oracle; receipts report it as `vm-resource-limit` |
+| Fuel (`R006`) | VM only (instructions and call-frame cells, per frame and per run) | its own evaluation budget (`R014`) | each executor's machine limit; receipts report `vm-resource-limit` or `reference-resource-limit` |
+| Call limit (`R013`) | VM counts `CALLF` | interpreter counts user calls | semantic, identical in both: they stop at the same call |
+| Scene size (`R005`) | shared scene builder, per frame and per run | shared | semantic, identical in both |
+| Host stack | not used (explicit frame stack) | checker rule `S005` bounds its depth | a checked program never overflows the interpreter |
 | Call depth | checker rule `S004` plus the VM's `R007` check | accepts only programs that passed `S004` | the static rule makes both accept the same programs |
 
 Consequences, stated plainly:
@@ -230,8 +249,9 @@ Consequences, stated plainly:
   separate unit test of the primitive table beyond its use by every example.
 - Constant folding uses the VM's own operator semantics (`ops.ts`), which makes folded results identical to run
   time results by construction; the interpreter is what checks that both are right.
-- Where fuel runs out (`R006`), the VM stops and the reference interpreter may finish; this is by design, and a
-  receipt records it as `oracle.status: "vm-resource-limit"`, not as a divergence. See
+- Where the VM's fuel runs out (`R006`), the VM stops and the reference interpreter may finish; where the
+  interpreter's runs out (`R014`), the reverse. This is by design, and a receipt records it as
+  `oracle.status: "vm-resource-limit"` or `"reference-resource-limit"`, not as a divergence. See
   `FOLIO_LANGUAGE_SPEC.md` section 12 and `COMPILER_PIPELINE.md` section 5.
 
 ## 7. Constant encoding and `-0`

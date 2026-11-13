@@ -118,7 +118,30 @@ Evidence was regenerated after the fixes: fuzz 4,000/4,000 agreeing (1,694 clean
 above, receipts with the new `oracle.status`, CLI reproduce 14/14 checks with exit 0, and a receipt with an
 edited scene hash exits 1 (digest and scene-hash checks fail).
 
+## Pre-release red team and hardening (0.2.0, 2026-11-12/13): `WORKING_AND_TESTED`
+
+Before the repository went public, three independent reviewers attacked a live copy, each with its own scope (the
+HTTP server; the compiler and VM sandbox; the browser IDE and supply chain). They found 15 issues and one
+supply-chain item; the full table is `SECURITY.md` section 5. The two serious ones: an 11 KB program ran the
+process out of memory (scene size was bounded only per frame and per command), and a 3.5 KB program with a
+doubling call tree hung the reference interpreter, and with it the synchronous server, without bound. The
+security document had claimed the interpreter's work was bounded; that claim was wrong and is corrected.
+
+Every reproduction was written as a failing test first (`tests/security.test.ts`, 24 tests; 8 server tests; 1
+E2E test) and then fixed: the reference interpreter got its own fuel (`R014`) and both executors a call limit
+(`R013`); scene size got per-frame and per-run budgets; fuel got a whole-run budget; the checker got a static bound
+on the interpreter's stack depth (`S005`); the parser measures expression height iteratively; the verifier never
+throws; receipts are shape-checked; lookup tables have no prototype; the server runs every compile-and-run job on
+a worker thread with a 15 s and 512 MB limit and refuses cross-site and cross-origin requests. One fix broke
+itself on the first try: the new `S005` computation recursed through the call chain and overflowed on exactly the
+programs it measures; it now weighs callees before callers.
+
+After the fixes the fuzz campaign is unchanged (4,000 of 4,000 agree, 1,694 clean), instruction counts are
+unchanged, all three receipts were regenerated at `c437b8f` and reproduce 14/14, and `npm audit` reports 0.
+Versions: compiler 0.2.0, grammar `folio-grammar/0.2`, receipt `paper-tiger-receipt/0.2`.
+
 ## Repo and CI
-- Private repo `AlexRosen23/paper-tiger-compiler-works`, created with Actions disabled before the first push.
-  Work is on `feat/v0.1-compiler-works` with a PR. Nothing merged.
+- Repo `AlexRosen23/paper-tiger-compiler-works`, created private with Actions disabled before the first push.
+  PR #1 (v0.1) was merged on the owner's approval on 2026-11-12. The owner asked for the repository to be made
+  public after this hardening; it carries an MIT licence.
 - `.github/workflows/ci.yml` is written but dormant: enabling Actions is `OWNER_ACTION`.

@@ -53,7 +53,7 @@ Each item points to where the evidence is.
 | Optimizer legality reasoning | folding that refuses to fold faulting operations, DCE that respects strict evaluation, CSE that reasons about faults and commutativity (`core/optimize.ts`, `OPTIMIZATION_CORRECTNESS.md`) |
 | Bytecode design and verification | stack bytecode with debug tables, content hash, and a verifier that checks operands, jump targets, stack discipline and recursion (`core/bytecode.ts`) |
 | VM sandboxing | explicit frame stack, per-frame and whole-run fuel, call, stack, call-depth and scene-size limits, no host access beyond pure built-ins, and a server worker with a wall-clock and heap limit (`core/vm.ts`, `server/jobs.ts`, `VM_AND_SANDBOX.md`) |
-| Adversarial review | a pre-release red team of the server, the compiler and VM, and the IDE; every reproduction became a regression test (`SECURITY.md` section 7, `tests/security.test.ts`) |
+| Adversarial review | a pre-release red team of the server, the compiler and VM, and the IDE; every reproduction became a regression test (`SECURITY.md` section 5, `tests/security.test.ts`) |
 | Differential testing, fuzzing and reduction | an independent reference interpreter as oracle, seven pass configurations, a seeded type-directed generator, a token mutator, a deliberately broken pass caught by the oracle, and a delta-debugging reducer (`tests/differential.test.ts`, `tests/optimizer.test.ts`, `core/fuzz.ts`, `core/reduce.ts`) |
 | Reproducibility | stage hashes, run receipts with a digest, and an independent `reproduce` that re-derives every hash (`core/receipt.ts`, `evidence/receipts/`) |
 | Debugger engineering | stepping, line breakpoints, bounded checkpoints, rewind and a replay proof by state hash (`core/debugger.ts`) |

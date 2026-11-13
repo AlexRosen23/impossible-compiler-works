@@ -50,8 +50,8 @@ process. For development with hot reload, run `npm run server` (API on 127.0.0.1
 
 | command | what it does |
 |---|---|
-| `npm test` | 93 unit, differential, fuzz, optimizer, bytecode, debugger, receipt, regression and API tests (Vitest) |
-| `npm run e2e` | 9 Playwright tests against the production build, covering the six required demonstrations; saves screenshots to `evidence/screenshots/` |
+| `npm test` | 126 unit, differential, fuzz, optimizer, bytecode, debugger, receipt, regression, security and API tests (Vitest) |
+| `npm run e2e` | 10 Playwright tests against the production build, covering the six required demonstrations; saves screenshots to `evidence/screenshots/` |
 | `npm run fuzz -- 2000` | differential fuzz campaign (reference vs VM, optimizations off and on); writes `evidence/fuzz-summary.json` |
 | `npm run bench` | interleaved VM benchmark, optimizations off vs on; writes `evidence/benchmarks.json` |
 | `npm run receipt -- examples/02-rainfall-ledger.folio` | writes a receipt and bytecode artifact to `evidence/receipts/` |
@@ -90,7 +90,16 @@ holds 14 red-team cases, each declaring the diagnostic or fault it must produce 
 - Product: [PRODUCT](docs/PRODUCT.md) · [DESIGN_SYSTEM](docs/DESIGN_SYSTEM.md) · [RECRUITER_DEMO](docs/RECRUITER_DEMO.md) · [PORTFOLIO_CASE_STUDY](docs/PORTFOLIO_CASE_STUDY.md)
 - Evidence: [TEST_AND_EVIDENCE](docs/TEST_AND_EVIDENCE.md) · [BUILD_LEDGER](docs/BUILD_LEDGER.md) · [SECURITY](docs/SECURITY.md) · [EXISTING_WORK_AUDIT](docs/EXISTING_WORK_AUDIT.md) · [CONSTELLATION_INTEGRATION](docs/CONSTELLATION_INTEGRATION.md)
 
+## Security
+
+PAPER TIGER runs untrusted programs, so every program's total work and memory are bounded by the core, server
+jobs run on a worker thread with a time and memory limit, and the API refuses requests from other sites. Before
+the repository went public, a three-part red team attacked the server, the compiler and VM, and the IDE; every
+finding was fixed and became a regression test. No software is unhackable: [docs/SECURITY.md](docs/SECURITY.md)
+lists the controls, the red-team findings and the residual risks. To report a vulnerability, see
+[SECURITY.md](SECURITY.md).
+
 ## Status
 
-v0.1, private, loopback only. Nothing is deployed. The name FOLIO is used descriptively; no exclusivity is
-claimed.
+v0.2, loopback only. Nothing is deployed: it runs on your own machine. The name FOLIO is used descriptively; no
+exclusivity is claimed. MIT licensed ([LICENSE](LICENSE)).

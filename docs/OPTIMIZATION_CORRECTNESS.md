@@ -17,9 +17,10 @@ test helper `outcome` (`tests/helpers.ts`) and by the fuzz harness:
 So a pass must preserve not only the picture but also which fault happens, where, and in which frame. That rules
 out the usual compiler licence to remove or reorder operations that might trap.
 
-One exception is outside the contract: the VM's fuel limit (`R006`), a machine limit the reference interpreter
-does not have. A run that stops on fuel is not compared; receipts record it as `oracle.status:
-"vm-resource-limit"` instead of `agree` or `diverge` (`COMPILER_PIPELINE.md` section 5). The passes only remove or
+One exception is outside the contract: each executor's own fuel (`R006` for the VM, `R014` for the reference
+interpreter), machine limits the other does not share. A run that stops on fuel is not compared; receipts record
+it as `oracle.status: "vm-resource-limit"` or `"reference-resource-limit"` instead of `agree` or `diverge`
+(`COMPILER_PIPELINE.md` section 5). The passes only remove or
 simplify instructions, and in every benchmarked example the optimized program executes fewer VM instructions
 (section 4); this is an observation, not a proved property.
 
@@ -282,39 +283,37 @@ are interleaved (off, on, on, off, ...) inside one process so that JIT warm-up a
 instruction counts are deterministic; wall times are not.
 
 Environment, as recorded: Node v24.14.0, darwin 27.0.0, Apple M5 Pro, 18 cores, 48 GiB, commit
-`9f5ffd9c17393b3b60f8e689c4469612c9a0725c` (includes CSE copy propagation; the run was made from the working tree
-with the uncommitted review fixes), 2026-11-12T16:45:04.400Z. Recorded
-note: "Wall time of runVM over all frames; off/on runs interleaved; single process; machine not idle-controlled
-(other apps running)."
+`c437b8fe1735a0bf66493a70e274218d0e9b8c77` (compiler 0.2.0, after the pre-release security hardening), 2026-11-13T05:20:21.409Z, with
+`WARMUP=10 RUNS=41`. Recorded note: "Wall time of runVM over all frames; off/on runs interleaved; single process; machine not idle-controlled (other apps running)."
 
 | Example | VM instructions off → on | Reduction | Bytecode instrs off → on | Median ms off → on | Median speedup | SD ms off / on | Same scene |
 |---|---|---|---|---|---|---|---|
-| 01-rainfall-almanac | 1,571 → 1,407 | 10.4% | 89 → 63 | 0.084 → 0.076 | ×1.105 | 0.148 / 0.026 | yes |
-| 02-rainfall-ledger | 2,013 → 1,743 | 13.4% | 222 → 183 | 0.109 → 0.098 | ×1.112 | 0.038 / 0.05 | yes |
-| 03-orrery | 33,060 → 26,760 | 19.1% | 153 → 120 | 1.413 → 1.138 | ×1.242 | 0.227 / 0.269 | yes |
-| 04-spiral-garden | 57,140 → 48,735 | 14.7% | 159 → 134 | 2.227 → 2.029 | ×1.098 | 0.436 / 1.021 | yes |
-| 05-rain-trace | 2,611 → 2,368 | 9.3% | 246 → 217 | 0.144 → 0.129 | ×1.116 | 0.026 / 0.087 | yes |
-| 06-lissajous | 1,413,180 → 1,263,540 | 10.6% | 204 → 184 | 51.187 → 48.686 | ×1.051 | 5.826 / 8.489 | yes |
-| 07-ink-wheel | 4,471 → 3,802 | 15.0% | 169 → 138 | 0.183 → 0.166 | ×1.102 | 0.188 / 0.03 | yes |
-| 08-checker-press | 31,008 → 27,475 | 11.4% | 242 → 206 | 0.743 → 0.665 | ×1.117 | 0.097 / 0.109 | yes |
-| 09-station-map | 5,249 → 4,913 | 6.4% | 287 → 257 | 0.164 → 0.153 | ×1.072 | 0.073 / 0.031 | yes |
-| 10-type-specimen | 381 → 336 | 11.8% | 96 → 81 | 0.02 → 0.019 | ×1.053 | 0.017 / 0.007 | yes |
-| 11-clockwork | 79,440 → 64,200 | 19.2% | 135 → 96 | 3.628 → 3.307 | ×1.097 | 0.666 / 0.962 | yes |
-| 12-fibonacci-steps | 9,174 → 8,183 | 10.8% | 175 → 152 | 0.198 → 0.185 | ×1.070 | 0.037 / 0.167 | yes |
-| 13-optimizer-bench | 1,765,080 → 1,248,450 | 29.3% | 189 → 109 | 42.258 → 33.31 | ×1.269 | 3.924 / 2.598 | yes |
+| 01-rainfall-almanac | 1,571 → 1,407 | 10.4% | 89 → 63 | 0.052 → 0.07 | ×0.743 | 0.017 / 0.044 | yes |
+| 02-rainfall-ledger | 2,013 → 1,743 | 13.4% | 222 → 183 | 0.091 → 0.079 | ×1.152 | 0.034 / 0.029 | yes |
+| 03-orrery | 33,060 → 26,760 | 19.1% | 153 → 120 | 1.205 → 1.044 | ×1.154 | 0.252 / 0.264 | yes |
+| 04-spiral-garden | 57,140 → 48,735 | 14.7% | 159 → 134 | 1.767 → 1.606 | ×1.100 | 0.325 / 0.224 | yes |
+| 05-rain-trace | 2,611 → 2,368 | 9.3% | 246 → 217 | 0.09 → 0.092 | ×0.978 | 0.023 / 0.018 | yes |
+| 06-lissajous | 1,413,180 → 1,263,540 | 10.6% | 204 → 184 | 53.345 → 50.197 | ×1.063 | 8.81 / 10.097 | yes |
+| 07-ink-wheel | 4,471 → 3,802 | 15.0% | 169 → 138 | 0.199 → 0.181 | ×1.099 | 0.037 / 0.048 | yes |
+| 08-checker-press | 31,008 → 27,475 | 11.4% | 242 → 206 | 0.927 → 0.842 | ×1.101 | 0.139 / 0.128 | yes |
+| 09-station-map | 5,249 → 4,913 | 6.4% | 287 → 257 | 0.189 → 0.186 | ×1.016 | 1.26 / 0.232 | yes |
+| 10-type-specimen | 381 → 336 | 11.8% | 96 → 81 | 0.022 → 0.021 | ×1.048 | 0.013 / 0.013 | yes |
+| 11-clockwork | 79,440 → 64,200 | 19.2% | 135 → 96 | 3.949 → 3.401 | ×1.161 | 1.023 / 0.452 | yes |
+| 12-fibonacci-steps | 9,174 → 8,183 | 10.8% | 175 → 152 | 0.259 → 0.228 | ×1.136 | 0.056 / 0.053 | yes |
+| 13-optimizer-bench | 1,765,080 → 1,248,450 | 29.3% | 189 → 109 | 46.08 → 36.366 | ×1.267 | 9.008 / 6.298 | yes |
 
 Plain statement of what this shows:
 
 - The optimizer reduces executed VM instructions by 6.4% to 29.3%. The largest reduction is on
   `13-optimizer-bench`, which was written to contain foldable constants, a dead debug branch and repeated
-  subexpressions.
-- Wall-time gains are small: median speedups from ×1.05 to ×1.27. For 11 of the 13 examples the difference between
-  the medians is smaller than the standard deviation of at least one configuration (for example `06-lissajous`:
-  medians 51.187 and 48.686 ms, standard deviations 5.826 and 8.489 ms; `04-spiral-garden`: medians 2.227 and
-  2.029 ms, standard deviations 0.436 and 1.021 ms), so those speedups are within noise. Only `03-orrery` and
-  `13-optimizer-bench` show a median difference larger than both standard deviations.
-- Wall times move between runs of the same code: an earlier run on the same commit 20 minutes before this one
-  recorded ×1.008 for `06-lissajous` and ×1.334 for `13-optimizer-bench`. The instruction counts were identical.
+  subexpressions. These counts are deterministic and identical to the counts before the hardening.
+- Wall-time gains are small and noisy: median speedups from ×0.74 to ×1.27. Only `13-optimizer-bench` shows a median
+  difference larger than both standard deviations; for the others the difference is within noise. The ×0.74
+  is on a sub-millisecond example on a machine that was busy with other work: the optimized configuration was
+  not slower in instructions, only in measured time.
+- Wall times move between runs of the same code: a run with the default 5 warm-up and 25 timed iterations a few
+  minutes earlier on the same commit recorded ×1.10 for `01-rainfall-almanac` and ×1.27 for `13-optimizer-bench`.
+  The instruction counts were identical.
 - The per-instruction cost of this VM (a `switch` dispatch with fuel checks, fingerprinting and fault handling on
   every instruction) dominates, so removing instructions helps less than the instruction counts suggest.
 - An earlier, non-interleaved version of the benchmark (all "off" runs, then all "on" runs) reported a ×6.4

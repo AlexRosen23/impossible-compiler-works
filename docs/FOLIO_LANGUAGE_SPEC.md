@@ -1,6 +1,7 @@
 # FOLIO Language Specification
 
-Grammar version: `folio-grammar/0.1` (`GRAMMAR_VERSION` in `core/version.ts`). Compiler version `0.1.0`.
+Grammar version: `folio-grammar/0.2` (`GRAMMAR_VERSION` in `core/version.ts`). Compiler version `0.2.0`. Grammar 0.2
+rejects source that is not valid Unicode (`L008`); nothing else changed from 0.1.
 
 This document is normative for FOLIO 0.1 as implemented in `core/`. Where this text and the code disagree, the
 code is what runs; the disagreement is a documentation bug. Every rule below cites the module that implements it.

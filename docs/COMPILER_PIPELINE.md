@@ -41,7 +41,7 @@ Every stage appends one record to `CompileResult.stages`:
 | Field | Meaning |
 |---|---|
 | `stage` | stage name from the table above |
-| `compilerVersion` | `COMPILER_VERSION` (`0.1.0`) |
+| `compilerVersion` | `COMPILER_VERSION` (`0.2.0`) |
 | `inputHash` | SHA-256 identifying the stage input (see section 3) |
 | `outputHash` | SHA-256 of the canonical JSON of the stage output, or `null` when there is no output |
 | `ok` | false if the stage produced at least one error |
@@ -117,7 +117,7 @@ the evidence files). See `LIMITATIONS.md`.
 | `fixtures`, `fixtureHash` | the embedded fixture table and its canonical hash |
 | `optimizations` | the pass list |
 | `seed` | always `null` (FOLIO has no randomness) |
-| `limits` | `fuelPerFrame`, `maxIterationsPerFrame`, `maxDrawsPerFrame`, `maxStack`, `maxCallDepth` |
+| `limits` | the run-time limits (`RUN_LIMITS` in `core/receipt.ts`): `fuelPerFrame`, `fuelPerRun`, `refFuelPerFrame`, `refFuelPerRun`, `maxIterationsPerFrame`, `maxCallsPerFrame`, `maxDrawsPerFrame`, `maxSceneUnitsPerFrame`, `maxSceneUnits`, `maxStack`, `maxCallDepth` |
 | `bytecodeHash`, `traceHash`, `sceneHash` | results of the VM run |
 | `fault` | `{ code, frame, line }` or `null` |
 | `oracle` | `engine` (`reference-interpreter`), the reference interpreter's `sceneHash`, `status` and `agrees` (true exactly when `status` is `agree`); see below |
@@ -126,11 +126,12 @@ the evidence files). See `LIMITATIONS.md`.
 | `commit`, `createdAt` | git commit of the compiler (if known) and creation time |
 | `digest` | SHA-256 over every field except `timingMs`, `createdAt` and `digest` |
 
-The oracle verdict (`oracleStatus` in `core/receipt.ts`) has three values:
+The oracle verdict (`oracleStatus` in `core/receipt.ts`) has four values:
 
 | `oracle.status` | When |
 |---|---|
 | `vm-resource-limit` | the VM stopped with `R006` (fuel) or `R007` (stack or call depth), machine limits the reference interpreter does not have; scene and fault are then not compared, because only the part before the VM stopped is comparable |
+| `reference-resource-limit` | otherwise, the reference interpreter stopped with `R014` (its own evaluation budget); likewise not compared |
 | `agree` | otherwise, when the scene hashes are equal and the fault code and fault source offset are equal (or both runs have no fault) |
 | `diverge` | anything else |
 

@@ -1,4 +1,4 @@
-// Regressions for the pre-release red-team review (docs/SECURITY.md §7, docs/BUILD_LEDGER.md "red-team review").
+// Regressions for the pre-release red-team review (docs/SECURITY.md §5, docs/BUILD_LEDGER.md "red-team review").
 // Each test is a reproduction that crashed, hung or misreported before the fix. Small custom limits keep the
 // resource tests fast; the defaults are what the server and the IDE use.
 import { spawnSync } from 'node:child_process';

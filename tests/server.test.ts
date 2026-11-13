@@ -55,7 +55,7 @@ test('journey: run broken counter -> violation; run repaired -> bounded verifica
   const fixed = (await j('/api/models/by-slug/counter-atomic')).body;
   const done2 = await waitRun((await post('/api/runs', { revisionId: fixed.latest.id })).body.id);
   assert.equal(done2.result.verdict, 'NO_VIOLATION_IN_BOUNDED_MODEL');
-  const receipt = await (await fetch(`${base}/api/runs/${done1.id}/receipt`)).json();
+  const receipt: any = await (await fetch(`${base}/api/runs/${done1.id}/receipt`)).json();
   const v = await post('/api/receipts/verify', { receipt });
   assert.equal(v.body.verdict, 'VALID');
   receipt.result.verdict = 'NO_VIOLATION_IN_BOUNDED_MODEL';
@@ -80,7 +80,7 @@ test('INCOMPLETE under a 50-state cap, exported, tampered and rejected (journey 
   const run = await waitRun((await post('/api/runs', { revisionId: m.latest.id, bounds: { maxStates: 50 } })).body.id);
   assert.equal(run.result.verdict, 'INCOMPLETE');
   assert.equal(run.result.stats.states, 50);
-  const receipt = await (await fetch(`${base}/api/runs/${run.id}/receipt`)).json();
+  const receipt: any = await (await fetch(`${base}/api/runs/${run.id}/receipt`)).json();
   assert.equal((await post('/api/receipts/verify', { receipt })).body.verdict, 'VALID');
   receipt.result.verdict = 'NO_VIOLATION_IN_BOUNDED_MODEL';
   const rej = await post('/api/receipts/verify', { receipt });

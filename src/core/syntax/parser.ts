@@ -358,8 +358,8 @@ class Parser {
     if (this.accept('self')) return { kind: 'self', span: t.span };
     if (this.accept('(')) {
       const e = this.expr();
-      this.expect(')', 'to close the parenthesis');
-      return e;
+      const close = this.expect(')', 'to close the parenthesis');
+      return { ...e, span: join(t.span, close.span) };
     }
     if (this.accept('if')) {
       const cond = this.expr();

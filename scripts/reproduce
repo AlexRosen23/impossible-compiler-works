@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# Re-check every receipt under evidence/ from its pinned inputs (embedded source + bounds).
+# Exits non-zero if any receipt is tampered with or no longer reproduces.
+set -uo pipefail
+cd "$(dirname "$0")/.."
+fail=0; n=0
+while IFS= read -r f; do
+  n=$((n+1))
+  if node src/cli/witness.ts verify "$f" >/dev/null 2>&1; then echo "VALID     $f"; else
+    if [[ "$f" == *TAMPERED* ]]; then echo "REJECTED  $f (expected: deliberately tampered)"; else echo "REJECTED  $f"; fail=1; fi
+  fi
+done < <(find evidence -name '*.json' -path '*receipt*' -o -name '*TAMPERED*.json' | sort)
+echo "$n receipt(s) checked"
+exit $fail

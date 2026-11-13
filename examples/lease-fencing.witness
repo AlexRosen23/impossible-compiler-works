@@ -1,0 +1,31 @@
+model lease_fencing "Leader lease with fencing tokens (repaired)"
+description "Storage remembers the highest token it has accepted and rejects writes that carry an older one. A paused ex-leader can still try to write, but the write is fenced off."
+
+type Node = {nobody, N1, N2}
+var holder      : Node = nobody
+var next_token  : 0..2 = 0
+var last_token  : 0..2 = 0
+var highest     : 0..2 = 0
+
+process N1, N2 {
+  var token  : 0..2 = 0
+  var leader : bool = false
+  var wrote  : bool = false
+  action acquire when not leader and not wrote and holder = nobody and next_token < 2 {
+    holder := self; next_token := next_token + 1; token := next_token + 1; leader := true
+  }
+  action write when leader and not wrote and token >= highest {
+    last_token := token; highest := token; wrote := true
+  }
+  action fenced when leader and not wrote and token < highest {
+    wrote := true    // storage rejected the stale write
+  }
+}
+
+process LockService {
+  action expire when holder != nobody { holder := nobody }
+}
+
+terminal holder = nobody and (N1.wrote or not N1.leader) and (N2.wrote or not N2.leader)
+
+invariant NoStaleOverwrite: last_token >= highest

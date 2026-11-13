@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# Typecheck + unit/integration tests; add --e2e for the browser suite, --tlc for the live TLC corpus.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+npx tsc -p tsconfig.json
+npx tsc -p web/tsconfig.json
+node --test --test-reporter=spec tests/*.test.ts
+if [[ " $* " == *" --tlc "* ]]; then node scripts/corpus.ts --tlc; fi
+if [[ " $* " == *" --e2e "* ]]; then npx playwright test -c e2e/playwright.config.ts; fi

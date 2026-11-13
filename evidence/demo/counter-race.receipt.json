@@ -1,0 +1,177 @@
+{
+  "schema": "impossible-witness/receipt",
+  "schemaVersion": 1,
+  "createdAt": "2026-11-13T05:42:56.339Z",
+  "model": {
+    "name": "counter_race",
+    "title": "Two threads share one counter (non-atomic increment)",
+    "language": "WML/1",
+    "source": "model counter_race \"Two threads share one counter (non-atomic increment)\"\ndescription \"Each thread reads the shared counter into a private register, then writes register + 1 back. The read and the write are separate atomic steps, so the scheduler may interleave them.\"\n\nvar counter : 0..2 = 0\n\nprocess A, B {\n  var pc  : {start, read_done, done} = start\n  var tmp : 0..2 = 0\n\n  // step 1: load the shared value into a private register\n  action read when pc = start {\n    tmp := counter\n    pc  := read_done\n  }\n\n  // step 2: store register + 1 (the check-then-act window is between read and write)\n  action write when pc = read_done {\n    counter := tmp + 1\n    pc      := done\n  }\n}\n\nterminal A.pc = done and B.pc = done\n\ninvariant NoLostUpdate: (A.pc = done and B.pc = done) => counter = 2\n",
+    "sourceSha256": "4cce14cc874d6222af9a7c29f182e0b16f1310772240085f9776b57db3e5a6de",
+    "variables": [
+      {
+        "name": "counter",
+        "type": "0..2"
+      },
+      {
+        "name": "A.pc",
+        "type": "{start, read_done, done}"
+      },
+      {
+        "name": "A.tmp",
+        "type": "0..2"
+      },
+      {
+        "name": "B.pc",
+        "type": "{start, read_done, done}"
+      },
+      {
+        "name": "B.tmp",
+        "type": "0..2"
+      }
+    ],
+    "properties": [
+      {
+        "name": "NoLostUpdate",
+        "kind": "invariant",
+        "text": "(A.pc = done and B.pc = done) => counter = 2"
+      },
+      {
+        "name": "DeadlockFreedom",
+        "kind": "deadlock-freedom",
+        "text": "no stuck state except intended terminal states (A.pc = done and B.pc = done)"
+      },
+      {
+        "name": "TypeOK",
+        "kind": "domain",
+        "text": "every variable stays inside its declared domain"
+      }
+    ],
+    "fairness": []
+  },
+  "checker": {
+    "engine": "witness-bfs",
+    "version": "0.1.0",
+    "order": "breadth-first; initial states in declaration order; actions in declaration order, then parameter order",
+    "replay": "witness-replay@0.1.0",
+    "node": "v24.14.0"
+  },
+  "bounds": {
+    "maxStates": 200000,
+    "maxEdges": 2000000,
+    "maxDepth": 5000,
+    "timeLimitMs": 30000,
+    "maxHeapMB": 1536
+  },
+  "result": {
+    "verdict": "VIOLATION_FOUND",
+    "complete": true,
+    "capReason": null,
+    "states": 13,
+    "edges": 14,
+    "maxDepth": 4,
+    "deadlocks": 0,
+    "properties": [
+      {
+        "name": "NoLostUpdate",
+        "status": "VIOLATED",
+        "violatingStates": 1,
+        "traceHash": "65e71e99e766663130304d89ca5a704c196082586960c9d50cc35a35bbd98c22",
+        "traceLength": 4
+      },
+      {
+        "name": "DeadlockFreedom",
+        "status": "VERIFIED_BOUNDED",
+        "violatingStates": 0
+      },
+      {
+        "name": "TypeOK",
+        "status": "VERIFIED_BOUNDED",
+        "violatingStates": 0
+      }
+    ]
+  },
+  "witnesses": [
+    {
+      "property": "NoLostUpdate",
+      "kind": "invariant",
+      "steps": [
+        {
+          "action": null,
+          "state": {
+            "counter": 0,
+            "A.pc": "start",
+            "A.tmp": 0,
+            "B.pc": "start",
+            "B.tmp": 0
+          }
+        },
+        {
+          "action": "A.read",
+          "state": {
+            "counter": 0,
+            "A.pc": "read_done",
+            "A.tmp": 0,
+            "B.pc": "start",
+            "B.tmp": 0
+          }
+        },
+        {
+          "action": "B.read",
+          "state": {
+            "counter": 0,
+            "A.pc": "read_done",
+            "A.tmp": 0,
+            "B.pc": "read_done",
+            "B.tmp": 0
+          }
+        },
+        {
+          "action": "A.write",
+          "state": {
+            "counter": 1,
+            "A.pc": "done",
+            "A.tmp": 0,
+            "B.pc": "read_done",
+            "B.tmp": 0
+          }
+        },
+        {
+          "action": "B.write",
+          "state": {
+            "counter": 1,
+            "A.pc": "done",
+            "A.tmp": 0,
+            "B.pc": "done",
+            "B.tmp": 0
+          }
+        }
+      ],
+      "length": 4,
+      "traceHash": "65e71e99e766663130304d89ca5a704c196082586960c9d50cc35a35bbd98c22"
+    }
+  ],
+  "replay": [
+    {
+      "property": "NoLostUpdate",
+      "ok": true,
+      "reason": "all 4 transitions re-derived; NoLostUpdate is false in the final state"
+    }
+  ],
+  "runtime": {
+    "elapsedMs": 0.6,
+    "peakHeapMB": 10,
+    "platform": "darwin-arm64",
+    "cpu": "Apple M5 Pro"
+  },
+  "git": {
+    "commit": "1e1ac35765d8324bccc32e72a460011f6348e5e7",
+    "dirty": true
+  },
+  "limitations": [
+    "Evidence covers only this finite model: its declared variable domains, initial states, actions and fairness assumptions.",
+    "Logical steps are interleaved atomic actions; no wall-clock time, latency or real scheduler is modelled unless the model encodes it.",
+    "A model that verifies does not show that any implementation matches the model."
+  ],
+  "digest": "df13975c5d711db85f3c7d5680a6645e3ab63a3e816b35617dbf9491afaa87e5"
+}

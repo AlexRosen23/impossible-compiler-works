@@ -1,0 +1,32 @@
+model queue_idempotent "At-least-once queue with an idempotency key (repaired)"
+description "Delivery is still at-least-once, but the consumer records the message id in a dedup store in the same atomic step as the side effect, and skips the effect for an id it has already seen."
+
+var queued   : bool = true
+var inflight : bool = false
+var acked    : bool = false
+var effects  : 0..3 = 0
+var seen_id  : bool = false   // dedup store: message id already applied
+
+process Consumer {
+  var pc : {waiting, received, handled} = waiting
+  action receive when pc = waiting and queued { queued := false; inflight := true; pc := received }
+  action handle  when pc = received {
+    effects := if seen_id then effects else effects + 1
+    seen_id := true
+    pc := handled
+  }
+  action ack when pc = handled { acked := true; inflight := false; pc := waiting }
+}
+
+process Broker {
+  var redeliveries : 0..1 = 0
+  action timeout when inflight and not acked and redeliveries < 1 {
+    inflight := false
+    queued := true
+    redeliveries := redeliveries + 1
+  }
+}
+
+terminal not queued and not inflight and Consumer.pc = waiting
+
+invariant EffectAtMostOnce: effects <= 1

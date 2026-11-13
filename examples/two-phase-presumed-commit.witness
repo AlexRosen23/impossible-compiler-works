@@ -1,0 +1,27 @@
+model two_phase_presumed_commit "Two-phase commit with a 'presume commit' timeout (broken)"
+description "A coordinator asks two participants to vote. A participant that votes no aborts locally at once. If a vote is slow, this coordinator times out and presumes commit, so one participant commits while the other has aborted."
+
+type Vote = {none, yes, no}
+type Decision = {undecided, commit, abort}
+var decision : Decision = undecided
+
+process P1, P2 {
+  var vote  : Vote = none
+  var state : {working, prepared, committed, aborted} = working
+  action vote_yes when vote = none                         { vote := yes; state := prepared }
+  action vote_no  when vote = none                         { vote := no; state := aborted }
+  action learn_commit when state = prepared and decision = commit { state := committed }
+  action learn_abort  when state = prepared and decision = abort  { state := aborted }
+}
+
+process Coordinator {
+  action decide_commit when decision = undecided and P1.vote = yes and P2.vote = yes { decision := commit }
+  action decide_abort  when decision = undecided and (P1.vote = no or P2.vote = no)  { decision := abort }
+  // the bug: a missing vote is treated as yes
+  action timeout_commit when decision = undecided and (P1.vote = none or P2.vote = none) { decision := commit }
+}
+
+terminal decision != undecided and P1.state != working and P1.state != prepared and P2.state != working and P2.state != prepared
+
+invariant Atomicity: not ((P1.state = committed and P2.state = aborted) or (P1.state = aborted and P2.state = committed))
+invariant CommitNeedsYes: decision = commit => (P1.vote != no and P2.vote != no)

@@ -1,0 +1,693 @@
+{
+  "bank-transfer-atomic": {
+    "verdict": "NO_VIOLATION_IN_BOUNDED_MODEL",
+    "states": 9,
+    "edges": 12,
+    "maxDepth": 4,
+    "properties": {
+      "Conservation": {
+        "status": "VERIFIED_BOUNDED"
+      },
+      "DeadlockFreedom": {
+        "status": "VERIFIED_BOUNDED"
+      },
+      "TypeOK": {
+        "status": "VERIFIED_BOUNDED"
+      }
+    },
+    "oracle": "regression snapshot, cross-checked with TLC (evidence/tlc-crosscheck.md)"
+  },
+  "bank-transfer-race": {
+    "verdict": "VIOLATION_FOUND",
+    "states": 51,
+    "edges": 64,
+    "maxDepth": 8,
+    "properties": {
+      "Conservation": {
+        "status": "VIOLATED",
+        "witnessLength": 8
+      },
+      "DeadlockFreedom": {
+        "status": "VERIFIED_BOUNDED"
+      },
+      "TypeOK": {
+        "status": "VERIFIED_BOUNDED"
+      }
+    },
+    "oracle": "regression snapshot, cross-checked with TLC (evidence/tlc-crosscheck.md)"
+  },
+  "benchmark-grid": {
+    "verdict": "NO_VIOLATION_IN_BOUNDED_MODEL",
+    "states": 160000,
+    "edges": 608000,
+    "maxDepth": 76,
+    "properties": {
+      "Bounded": {
+        "status": "VERIFIED_BOUNDED"
+      },
+      "DeadlockFreedom": {
+        "status": "VERIFIED_BOUNDED"
+      },
+      "TypeOK": {
+        "status": "VERIFIED_BOUNDED"
+      }
+    },
+    "oracle": "hand-derived counts (see docs/SEARCH_ALGORITHMS.md) + TLC"
+  },
+  "bounded-counter-unfair": {
+    "verdict": "VIOLATION_FOUND",
+    "states": 4,
+    "edges": 3,
+    "maxDepth": 3,
+    "properties": {
+      "InRange": {
+        "status": "VERIFIED_BOUNDED"
+      },
+      "DeadlockFreedom": {
+        "status": "VERIFIED_BOUNDED"
+      },
+      "TypeOK": {
+        "status": "VERIFIED_BOUNDED"
+      },
+      "ReachesThree": {
+        "status": "VIOLATED",
+        "witnessLength": 1
+      }
+    },
+    "oracle": "hand-derived counts (see docs/SEARCH_ALGORITHMS.md) + TLC"
+  },
+  "bounded-counter": {
+    "verdict": "NO_VIOLATION_IN_BOUNDED_MODEL",
+    "states": 4,
+    "edges": 3,
+    "maxDepth": 3,
+    "properties": {
+      "InRange": {
+        "status": "VERIFIED_BOUNDED"
+      },
+      "DeadlockFreedom": {
+        "status": "VERIFIED_BOUNDED"
+      },
+      "TypeOK": {
+        "status": "VERIFIED_BOUNDED"
+      },
+      "ReachesThree": {
+        "status": "VERIFIED_BOUNDED"
+      }
+    },
+    "oracle": "hand-derived counts (see docs/SEARCH_ALGORITHMS.md) + TLC"
+  },
+  "cache-stale-read": {
+    "verdict": "VIOLATION_FOUND",
+    "states": 15,
+    "edges": 16,
+    "maxDepth": 4,
+    "properties": {
+      "NoStaleCacheAtRest": {
+        "status": "VIOLATED",
+        "witnessLength": 4
+      },
+      "DeadlockFreedom": {
+        "status": "VERIFIED_BOUNDED"
+      },
+      "TypeOK": {
+        "status": "VERIFIED_BOUNDED"
+      }
+    },
+    "oracle": "regression snapshot, cross-checked with TLC (evidence/tlc-crosscheck.md)"
+  },
+  "cache-versioned": {
+    "verdict": "NO_VIOLATION_IN_BOUNDED_MODEL",
+    "states": 15,
+    "edges": 17,
+    "maxDepth": 4,
+    "properties": {
+      "NoStaleCacheAtRest": {
+        "status": "VERIFIED_BOUNDED"
+      },
+      "DeadlockFreedom": {
+        "status": "VERIFIED_BOUNDED"
+      },
+      "TypeOK": {
+        "status": "VERIFIED_BOUNDED"
+      }
+    },
+    "oracle": "regression snapshot, cross-checked with TLC (evidence/tlc-crosscheck.md)"
+  },
+  "counter-atomic": {
+    "verdict": "NO_VIOLATION_IN_BOUNDED_MODEL",
+    "states": 4,
+    "edges": 4,
+    "maxDepth": 2,
+    "properties": {
+      "NoLostUpdate": {
+        "status": "VERIFIED_BOUNDED"
+      },
+      "DeadlockFreedom": {
+        "status": "VERIFIED_BOUNDED"
+      },
+      "TypeOK": {
+        "status": "VERIFIED_BOUNDED"
+      }
+    },
+    "oracle": "hand-derived counts (see docs/SEARCH_ALGORITHMS.md) + TLC"
+  },
+  "counter-race": {
+    "verdict": "VIOLATION_FOUND",
+    "states": 13,
+    "edges": 14,
+    "maxDepth": 4,
+    "properties": {
+      "NoLostUpdate": {
+        "status": "VIOLATED",
+        "witnessLength": 4
+      },
+      "DeadlockFreedom": {
+        "status": "VERIFIED_BOUNDED"
+      },
+      "TypeOK": {
+        "status": "VERIFIED_BOUNDED"
+      }
+    },
+    "oracle": "hand-derived counts (see docs/SEARCH_ALGORITHMS.md) + TLC"
+  },
+  "dining-philosophers-deadlock": {
+    "verdict": "VIOLATION_FOUND",
+    "states": 14,
+    "edges": 27,
+    "maxDepth": 3,
+    "properties": {
+      "ForkExclusive": {
+        "status": "VERIFIED_BOUNDED"
+      },
+      "DeadlockFreedom": {
+        "status": "VIOLATED",
+        "witnessLength": 3
+      },
+      "TypeOK": {
+        "status": "VERIFIED_BOUNDED"
+      }
+    },
+    "oracle": "regression snapshot, cross-checked with TLC (evidence/tlc-crosscheck.md)"
+  },
+  "dining-philosophers-ordered": {
+    "verdict": "NO_VIOLATION_IN_BOUNDED_MODEL",
+    "states": 12,
+    "edges": 22,
+    "maxDepth": 3,
+    "properties": {
+      "ForkExclusive": {
+        "status": "VERIFIED_BOUNDED"
+      },
+      "DeadlockFreedom": {
+        "status": "VERIFIED_BOUNDED"
+      },
+      "TypeOK": {
+        "status": "VERIFIED_BOUNDED"
+      }
+    },
+    "oracle": "regression snapshot, cross-checked with TLC (evidence/tlc-crosscheck.md)"
+  },
+  "inventory-atomic": {
+    "verdict": "NO_VIOLATION_IN_BOUNDED_MODEL",
+    "states": 5,
+    "edges": 4,
+    "maxDepth": 2,
+    "properties": {
+      "NoDoubleAllocation": {
+        "status": "VERIFIED_BOUNDED"
+      },
+      "NoNegativeInventory": {
+        "status": "VERIFIED_BOUNDED"
+      },
+      "DeadlockFreedom": {
+        "status": "VERIFIED_BOUNDED"
+      },
+      "TypeOK": {
+        "status": "VERIFIED_BOUNDED"
+      }
+    },
+    "oracle": "regression snapshot, cross-checked with TLC (evidence/tlc-crosscheck.md)"
+  },
+  "inventory-race": {
+    "verdict": "VIOLATION_FOUND",
+    "states": 11,
+    "edges": 12,
+    "maxDepth": 4,
+    "properties": {
+      "NoDoubleAllocation": {
+        "status": "VIOLATED",
+        "witnessLength": 4
+      },
+      "NoNegativeInventory": {
+        "status": "VIOLATED",
+        "witnessLength": 4
+      },
+      "DeadlockFreedom": {
+        "status": "VERIFIED_BOUNDED"
+      },
+      "TypeOK": {
+        "status": "VERIFIED_BOUNDED"
+      }
+    },
+    "oracle": "regression snapshot, cross-checked with TLC (evidence/tlc-crosscheck.md)"
+  },
+  "lease-fencing": {
+    "verdict": "NO_VIOLATION_IN_BOUNDED_MODEL",
+    "states": 25,
+    "edges": 38,
+    "maxDepth": 6,
+    "properties": {
+      "NoStaleOverwrite": {
+        "status": "VERIFIED_BOUNDED"
+      },
+      "DeadlockFreedom": {
+        "status": "VERIFIED_BOUNDED"
+      },
+      "TypeOK": {
+        "status": "VERIFIED_BOUNDED"
+      }
+    },
+    "oracle": "regression snapshot, cross-checked with TLC (evidence/tlc-crosscheck.md)"
+  },
+  "lease-stale-writer": {
+    "verdict": "VIOLATION_FOUND",
+    "states": 29,
+    "edges": 40,
+    "maxDepth": 6,
+    "properties": {
+      "NoStaleOverwrite": {
+        "status": "VIOLATED",
+        "witnessLength": 5
+      },
+      "DeadlockFreedom": {
+        "status": "VERIFIED_BOUNDED"
+      },
+      "TypeOK": {
+        "status": "VERIFIED_BOUNDED"
+      }
+    },
+    "oracle": "regression snapshot, cross-checked with TLC (evidence/tlc-crosscheck.md)"
+  },
+  "lock-order-deadlock": {
+    "verdict": "VIOLATION_FOUND",
+    "states": 13,
+    "edges": 14,
+    "maxDepth": 6,
+    "properties": {
+      "ExclusiveLock1": {
+        "status": "VERIFIED_BOUNDED"
+      },
+      "DeadlockFreedom": {
+        "status": "VIOLATED",
+        "witnessLength": 2
+      },
+      "TypeOK": {
+        "status": "VERIFIED_BOUNDED"
+      }
+    },
+    "oracle": "regression snapshot, cross-checked with TLC (evidence/tlc-crosscheck.md)"
+  },
+  "lock-order-fixed": {
+    "verdict": "NO_VIOLATION_IN_BOUNDED_MODEL",
+    "states": 12,
+    "edges": 12,
+    "maxDepth": 6,
+    "properties": {
+      "ExclusiveLock1": {
+        "status": "VERIFIED_BOUNDED"
+      },
+      "DeadlockFreedom": {
+        "status": "VERIFIED_BOUNDED"
+      },
+      "TypeOK": {
+        "status": "VERIFIED_BOUNDED"
+      }
+    },
+    "oracle": "regression snapshot, cross-checked with TLC (evidence/tlc-crosscheck.md)"
+  },
+  "mutex-check-then-set": {
+    "verdict": "VIOLATION_FOUND",
+    "states": 13,
+    "edges": 24,
+    "maxDepth": 6,
+    "properties": {
+      "MutualExclusion": {
+        "status": "VIOLATED",
+        "witnessLength": 4
+      },
+      "DeadlockFreedom": {
+        "status": "VERIFIED_BOUNDED"
+      },
+      "TypeOK": {
+        "status": "VERIFIED_BOUNDED"
+      }
+    },
+    "oracle": "regression snapshot, cross-checked with TLC (evidence/tlc-crosscheck.md)"
+  },
+  "mutex-test-and-set": {
+    "verdict": "NO_VIOLATION_IN_BOUNDED_MODEL",
+    "states": 3,
+    "edges": 4,
+    "maxDepth": 1,
+    "properties": {
+      "MutualExclusion": {
+        "status": "VERIFIED_BOUNDED"
+      },
+      "DeadlockFreedom": {
+        "status": "VERIFIED_BOUNDED"
+      },
+      "TypeOK": {
+        "status": "VERIFIED_BOUNDED"
+      }
+    },
+    "oracle": "hand-derived counts (see docs/SEARCH_ALGORITHMS.md) + TLC"
+  },
+  "peterson": {
+    "verdict": "NO_VIOLATION_IN_BOUNDED_MODEL",
+    "states": 20,
+    "edges": 34,
+    "maxDepth": 6,
+    "properties": {
+      "MutualExclusion": {
+        "status": "VERIFIED_BOUNDED"
+      },
+      "DeadlockFreedom": {
+        "status": "VERIFIED_BOUNDED"
+      },
+      "TypeOK": {
+        "status": "VERIFIED_BOUNDED"
+      },
+      "AEventuallyEnters": {
+        "status": "VERIFIED_BOUNDED"
+      },
+      "BEventuallyEnters": {
+        "status": "VERIFIED_BOUNDED"
+      }
+    },
+    "oracle": "regression snapshot, cross-checked with TLC (evidence/tlc-crosscheck.md)"
+  },
+  "polite-livelock": {
+    "verdict": "VIOLATION_FOUND",
+    "states": 15,
+    "edges": 30,
+    "maxDepth": 5,
+    "properties": {
+      "MutualExclusion": {
+        "status": "VERIFIED_BOUNDED"
+      },
+      "DeadlockFreedom": {
+        "status": "VERIFIED_BOUNDED"
+      },
+      "TypeOK": {
+        "status": "VERIFIED_BOUNDED"
+      },
+      "AEventuallyEnters": {
+        "status": "VIOLATED",
+        "witnessLength": 12
+      }
+    },
+    "oracle": "regression snapshot, cross-checked with TLC (evidence/tlc-crosscheck.md)"
+  },
+  "producer-consumer-bounded": {
+    "verdict": "NO_VIOLATION_IN_BOUNDED_MODEL",
+    "states": 9,
+    "edges": 10,
+    "maxDepth": 6,
+    "properties": {
+      "WithinCapacity": {
+        "status": "VERIFIED_BOUNDED"
+      },
+      "Conservation": {
+        "status": "VERIFIED_BOUNDED"
+      },
+      "DeadlockFreedom": {
+        "status": "VERIFIED_BOUNDED"
+      },
+      "TypeOK": {
+        "status": "VERIFIED_BOUNDED"
+      },
+      "AllConsumed": {
+        "status": "VERIFIED_BOUNDED"
+      }
+    },
+    "oracle": "regression snapshot, cross-checked with TLC (evidence/tlc-crosscheck.md)"
+  },
+  "producer-consumer-overflow": {
+    "verdict": "VIOLATION_FOUND",
+    "states": 10,
+    "edges": 12,
+    "maxDepth": 6,
+    "properties": {
+      "WithinCapacity": {
+        "status": "VIOLATED",
+        "witnessLength": 3
+      },
+      "DeadlockFreedom": {
+        "status": "VERIFIED_BOUNDED"
+      },
+      "TypeOK": {
+        "status": "VERIFIED_BOUNDED"
+      }
+    },
+    "oracle": "regression snapshot, cross-checked with TLC (evidence/tlc-crosscheck.md)"
+  },
+  "queue-idempotent": {
+    "verdict": "NO_VIOLATION_IN_BOUNDED_MODEL",
+    "states": 10,
+    "edges": 10,
+    "maxDepth": 7,
+    "properties": {
+      "EffectAtMostOnce": {
+        "status": "VERIFIED_BOUNDED"
+      },
+      "DeadlockFreedom": {
+        "status": "VERIFIED_BOUNDED"
+      },
+      "TypeOK": {
+        "status": "VERIFIED_BOUNDED"
+      }
+    },
+    "oracle": "regression snapshot, cross-checked with TLC (evidence/tlc-crosscheck.md)"
+  },
+  "queue-redelivery": {
+    "verdict": "VIOLATION_FOUND",
+    "states": 10,
+    "edges": 10,
+    "maxDepth": 7,
+    "properties": {
+      "EffectAtMostOnce": {
+        "status": "VIOLATED",
+        "witnessLength": 6
+      },
+      "DeadlockFreedom": {
+        "status": "VERIFIED_BOUNDED"
+      },
+      "TypeOK": {
+        "status": "VERIFIED_BOUNDED"
+      }
+    },
+    "oracle": "regression snapshot, cross-checked with TLC (evidence/tlc-crosscheck.md)"
+  },
+  "reorder-apply": {
+    "verdict": "VIOLATION_FOUND",
+    "states": 8,
+    "edges": 8,
+    "maxDepth": 4,
+    "properties": {
+      "LastWriteWins": {
+        "status": "VIOLATED",
+        "witnessLength": 4
+      },
+      "DeadlockFreedom": {
+        "status": "VERIFIED_BOUNDED"
+      },
+      "TypeOK": {
+        "status": "VERIFIED_BOUNDED"
+      }
+    },
+    "oracle": "regression snapshot, cross-checked with TLC (evidence/tlc-crosscheck.md)"
+  },
+  "reorder-sequenced": {
+    "verdict": "NO_VIOLATION_IN_BOUNDED_MODEL",
+    "states": 7,
+    "edges": 8,
+    "maxDepth": 4,
+    "properties": {
+      "LastWriteWins": {
+        "status": "VERIFIED_BOUNDED"
+      },
+      "DeadlockFreedom": {
+        "status": "VERIFIED_BOUNDED"
+      },
+      "TypeOK": {
+        "status": "VERIFIED_BOUNDED"
+      }
+    },
+    "oracle": "regression snapshot, cross-checked with TLC (evidence/tlc-crosscheck.md)"
+  },
+  "retry-double-charge": {
+    "verdict": "VIOLATION_FOUND",
+    "states": 9,
+    "edges": 8,
+    "maxDepth": 6,
+    "properties": {
+      "NoDuplicateAuthorization": {
+        "status": "VIOLATED",
+        "witnessLength": 5
+      },
+      "DeadlockFreedom": {
+        "status": "VERIFIED_BOUNDED"
+      },
+      "TypeOK": {
+        "status": "VERIFIED_BOUNDED"
+      }
+    },
+    "oracle": "regression snapshot, cross-checked with TLC (evidence/tlc-crosscheck.md)"
+  },
+  "retry-idempotency-key": {
+    "verdict": "NO_VIOLATION_IN_BOUNDED_MODEL",
+    "states": 9,
+    "edges": 8,
+    "maxDepth": 6,
+    "properties": {
+      "NoDuplicateAuthorization": {
+        "status": "VERIFIED_BOUNDED"
+      },
+      "DeadlockFreedom": {
+        "status": "VERIFIED_BOUNDED"
+      },
+      "TypeOK": {
+        "status": "VERIFIED_BOUNDED"
+      }
+    },
+    "oracle": "regression snapshot, cross-checked with TLC (evidence/tlc-crosscheck.md)"
+  },
+  "starvation-strong": {
+    "verdict": "NO_VIOLATION_IN_BOUNDED_MODEL",
+    "states": 8,
+    "edges": 14,
+    "maxDepth": 3,
+    "properties": {
+      "MutualExclusion": {
+        "status": "VERIFIED_BOUNDED"
+      },
+      "DeadlockFreedom": {
+        "status": "VERIFIED_BOUNDED"
+      },
+      "TypeOK": {
+        "status": "VERIFIED_BOUNDED"
+      },
+      "BEventuallyEnters": {
+        "status": "VERIFIED_BOUNDED"
+      }
+    },
+    "oracle": "regression snapshot, cross-checked with TLC (evidence/tlc-crosscheck.md)"
+  },
+  "starvation-unfair": {
+    "verdict": "VIOLATION_FOUND",
+    "states": 8,
+    "edges": 14,
+    "maxDepth": 3,
+    "properties": {
+      "MutualExclusion": {
+        "status": "VERIFIED_BOUNDED"
+      },
+      "DeadlockFreedom": {
+        "status": "VERIFIED_BOUNDED"
+      },
+      "TypeOK": {
+        "status": "VERIFIED_BOUNDED"
+      },
+      "BEventuallyEnters": {
+        "status": "VIOLATED",
+        "witnessLength": 2
+      }
+    },
+    "oracle": "regression snapshot, cross-checked with TLC (evidence/tlc-crosscheck.md)"
+  },
+  "starvation-weak": {
+    "verdict": "VIOLATION_FOUND",
+    "states": 8,
+    "edges": 14,
+    "maxDepth": 3,
+    "properties": {
+      "MutualExclusion": {
+        "status": "VERIFIED_BOUNDED"
+      },
+      "DeadlockFreedom": {
+        "status": "VERIFIED_BOUNDED"
+      },
+      "TypeOK": {
+        "status": "VERIFIED_BOUNDED"
+      },
+      "BEventuallyEnters": {
+        "status": "VIOLATED",
+        "witnessLength": 4
+      }
+    },
+    "oracle": "regression snapshot, cross-checked with TLC (evidence/tlc-crosscheck.md)"
+  },
+  "state-explosion": {
+    "verdict": "NO_VIOLATION_IN_BOUNDED_MODEL",
+    "states": 1000,
+    "edges": 2700,
+    "maxDepth": 27,
+    "properties": {
+      "SumBounded": {
+        "status": "VERIFIED_BOUNDED"
+      },
+      "DeadlockFreedom": {
+        "status": "VERIFIED_BOUNDED"
+      },
+      "TypeOK": {
+        "status": "VERIFIED_BOUNDED"
+      }
+    },
+    "oracle": "hand-derived counts (see docs/SEARCH_ALGORITHMS.md) + TLC"
+  },
+  "two-phase-presumed-abort": {
+    "verdict": "NO_VIOLATION_IN_BOUNDED_MODEL",
+    "states": 25,
+    "edges": 47,
+    "maxDepth": 5,
+    "properties": {
+      "Atomicity": {
+        "status": "VERIFIED_BOUNDED"
+      },
+      "CommitNeedsYes": {
+        "status": "VERIFIED_BOUNDED"
+      },
+      "DeadlockFreedom": {
+        "status": "VERIFIED_BOUNDED"
+      },
+      "TypeOK": {
+        "status": "VERIFIED_BOUNDED"
+      }
+    },
+    "oracle": "regression snapshot, cross-checked with TLC (evidence/tlc-crosscheck.md)"
+  },
+  "two-phase-presumed-commit": {
+    "verdict": "VIOLATION_FOUND",
+    "states": 32,
+    "edges": 53,
+    "maxDepth": 5,
+    "properties": {
+      "Atomicity": {
+        "status": "VIOLATED",
+        "witnessLength": 4
+      },
+      "CommitNeedsYes": {
+        "status": "VIOLATED",
+        "witnessLength": 2
+      },
+      "DeadlockFreedom": {
+        "status": "VERIFIED_BOUNDED"
+      },
+      "TypeOK": {
+        "status": "VERIFIED_BOUNDED"
+      }
+    },
+    "oracle": "regression snapshot, cross-checked with TLC (evidence/tlc-crosscheck.md)"
+  }
+}

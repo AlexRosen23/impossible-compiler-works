@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# Report what this machine can do: Node, deps, TLC (pinned jar + Java runtime), ports.
+cd "$(dirname "$0")/.."
+echo "node $(node -v)"
+[ -d node_modules ] && echo "deps: installed" || echo "deps: MISSING (run scripts/setup)"
+node src/cli/witness.ts doctor
+for p in 5720 5721; do
+  if lsof -nP -iTCP:$p -sTCP:LISTEN >/dev/null 2>&1; then echo "port $p: in use"; else echo "port $p: free"; fi
+done

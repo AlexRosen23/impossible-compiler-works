@@ -1,0 +1,12 @@
+model mutex_test_and_set "Mutex with atomic test-and-set (repaired)"
+description "Acquiring the lock is one atomic test-and-set: the flag is checked and set in the same step."
+
+var locked : bool = false
+
+process A, B {
+  var pc : {idle, critical} = idle
+  action acquire when pc = idle and not locked { locked := true; pc := critical }
+  action release when pc = critical            { locked := false; pc := idle }
+}
+
+invariant MutualExclusion: not (A.pc = critical and B.pc = critical)

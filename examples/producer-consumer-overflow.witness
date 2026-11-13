@@ -1,0 +1,19 @@
+model producer_consumer_overflow "Bounded buffer: producer ignores capacity (broken)"
+description "A producer puts N items into a buffer of capacity 2 and a consumer takes them out. The producer never checks whether the buffer is full."
+
+const CAP = 2
+const N = 3
+var count    : 0..3 = 0   // items currently buffered
+var produced : 0..3 = 0
+var consumed : 0..3 = 0
+
+process Producer {
+  action put when produced < N { count := count + 1; produced := produced + 1 }
+}
+process Consumer {
+  action take when count > 0 { count := count - 1; consumed := consumed + 1 }
+}
+
+terminal consumed = N
+
+invariant WithinCapacity: count <= CAP

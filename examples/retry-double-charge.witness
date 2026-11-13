@@ -1,0 +1,28 @@
+model retry_double_charge "Client retries after a timeout: double charge (broken)"
+description "A client sends a payment request; the server charges and replies; the reply can be lost. The client times out and retries, and the server charges again because it cannot tell a retry from a new payment."
+
+var request_in_net : bool = false
+var reply_in_net   : bool = false
+var charges        : 0..2 = 0
+
+process Client {
+  var pc       : {start, waiting, done} = start
+  var attempts : 0..2 = 0
+  action send    when pc = start                         { request_in_net := true; attempts := attempts + 1; pc := waiting }
+  action receive when pc = waiting and reply_in_net      { reply_in_net := false; pc := done }
+  action retry   when pc = waiting and not reply_in_net and not request_in_net and attempts < 2 {
+    request_in_net := true; attempts := attempts + 1
+  }
+}
+
+process Server {
+  action charge when request_in_net { request_in_net := false; charges := charges + 1; reply_in_net := true }
+}
+
+process Network {
+  action lose_reply when reply_in_net { reply_in_net := false }
+}
+
+terminal not request_in_net and not reply_in_net
+
+invariant NoDuplicateAuthorization: charges <= 1

@@ -1,0 +1,25 @@
+model reorder_apply "Reordered messages applied in arrival order (broken)"
+description "A sender sends 'set 1' then 'set 2' over a network that may deliver them in either order. The receiver applies each message on arrival, so a late 'set 1' can overwrite the newer value."
+
+var sent1    : bool = false
+var sent2    : bool = false
+var in_net1  : bool = false
+var in_net2  : bool = false
+var value    : 0..2 = 0
+var got1     : bool = false
+var got2     : bool = false
+
+process Sender {
+  action send1 when not sent1           { sent1 := true; in_net1 := true }
+  action send2 when sent1 and not sent2 { sent2 := true; in_net2 := true }
+}
+
+process Network {
+  // delivery order is chosen by the scheduler: this IS the reordering
+  action deliver1 when in_net1 { in_net1 := false; got1 := true; value := 1 }
+  action deliver2 when in_net2 { in_net2 := false; got2 := true; value := 2 }
+}
+
+terminal sent2 and not in_net1 and not in_net2
+
+invariant LastWriteWins: (got1 and got2) => value = 2

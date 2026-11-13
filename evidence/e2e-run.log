@@ -1,0 +1,23 @@
+[WebServer] (node:18638) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 15 tests using 1 worker
+
+  ✓   1 [chromium] › e2e/journeys.spec.ts:14:1 › journey 1: broken two-thread counter -> real violating schedule -> step the exact trace (2.5s)
+  ✓   2 [chromium] › e2e/journeys.spec.ts:27:1 › journey 2: atomic transaction -> complete bounded exploration, no violation (not a universal proof) (1.5s)
+  ✓   3 [chromium] › e2e/journeys.spec.ts:36:1 › journey 3: at-least-once queue duplicates output; idempotency fixes it (2.6s)
+  ✓   4 [chromium] › e2e/journeys.spec.ts:46:1 › journey 4: resource deadlock -> state with no enabled action -> fix lock order (1.3s)
+  ✓   5 [chromium] › e2e/journeys.spec.ts:55:1 › journey 5: export to TLA+, run TLC, compare with the internal checker (13.2s)
+  ✓   6 [chromium] › e2e/journeys.spec.ts:68:1 › journey 6: 50-state cap -> INCOMPLETE; receipt verifies, tampered receipt is rejected (1.3s)
+  ✓   7 [chromium] › e2e/journeys.spec.ts:85:1 › the guided 90-second journey runs end to end (21.6s)
+  ✓   8 [chromium] › e2e/journeys.spec.ts:99:1 › editing: diagnostics appear with positions and block running (1.5s)
+  ✓   9 [chromium] › e2e/journeys.spec.ts:111:1 › accessible fallbacks: state table, keyboard graph navigation, screen-reader trace lanes (1.7s)
+  ✓  10 [chromium] › e2e/journeys.spec.ts:129:1 › temporal observatory: weak fairness starves B, strong fairness does not (2.4s)
+  ✓  11 [chromium] › e2e/journeys.spec.ts:139:1 › mutation testing kills a mutant that removes the lock guard (1.4s)
+  ✓  12 [chromium] › e2e/journeys.spec.ts:148:1 › compare broken and repaired runs at aligned transition points (2.4s)
+  ✓  13 [chromium] › e2e/journeys.spec.ts:161:1 › model titles cannot inject markup (XSS) (1.2s)
+  ✓  14 [chromium] › e2e/journeys.spec.ts:171:1 › accessibility: no serious or critical axe violations on the bazaar and a workspace (4.0s)
+  ✓  15 [chromium] › e2e/journeys.spec.ts:185:3 › mobile › bazaar and workspace fit a phone without horizontal scrolling (1.3s)
+
+  15 passed (1.1m)
+exit 0

@@ -1,0 +1,23 @@
+model bank_transfer_atomic "Bank transfer: atomic debit and credit (repaired)"
+description "Each balance update is one atomic step (x := x - 1), so no write can be lost. Money is briefly in flight between the debit and the credit; the conservation invariant counts it."
+
+const TOTAL = 4
+var x : 0..4 = 2
+var y : 0..4 = 2
+var in_flight : 0..2 = 0
+
+process T1 {
+  var pc : {start, debited, done} = start
+  action debit  when pc = start   { x := x - 1; in_flight := in_flight + 1; pc := debited }
+  action credit when pc = debited { y := y + 1; in_flight := in_flight - 1; pc := done }
+}
+
+process T2 {
+  var pc : {start, debited, done} = start
+  action debit  when pc = start   { y := y - 1; in_flight := in_flight + 1; pc := debited }
+  action credit when pc = debited { x := x + 1; in_flight := in_flight - 1; pc := done }
+}
+
+terminal T1.pc = done and T2.pc = done
+
+invariant Conservation: x + y + in_flight = TOTAL

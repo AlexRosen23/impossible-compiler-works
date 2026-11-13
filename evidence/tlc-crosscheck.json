@@ -1,0 +1,2297 @@
+[
+  {
+    "model": "bank-transfer-atomic.witness",
+    "tlc": {
+      "available": true,
+      "version": "TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)",
+      "jarSha256": "936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88",
+      "runtime": "docker (quay.io/keycloak/keycloak, --network none, 768 MB, 1 CPU)",
+      "results": [
+        {
+          "property": "StateCount",
+          "status": "NO_ERROR",
+          "distinctStates": 9
+        },
+        {
+          "property": "TypeOK",
+          "status": "NO_ERROR",
+          "distinctStates": 9
+        },
+        {
+          "property": "DeadlockFreedom",
+          "status": "NO_ERROR",
+          "distinctStates": 9
+        },
+        {
+          "property": "Conservation",
+          "status": "NO_ERROR",
+          "distinctStates": 9
+        }
+      ],
+      "comparison": [
+        {
+          "property": "StateCount",
+          "internal": "9 states",
+          "tlc": "9 distinct states",
+          "agree": true,
+          "note": "identical reachable-state count"
+        },
+        {
+          "property": "TypeOK",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "DeadlockFreedom",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "Conservation",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        }
+      ],
+      "note": "TLC AGREES on 4/4 comparisons (TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802))"
+    }
+  },
+  {
+    "model": "bank-transfer-race.witness",
+    "tlc": {
+      "available": true,
+      "version": "TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)",
+      "jarSha256": "936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88",
+      "runtime": "docker (quay.io/keycloak/keycloak, --network none, 768 MB, 1 CPU)",
+      "results": [
+        {
+          "property": "StateCount",
+          "status": "NO_ERROR",
+          "distinctStates": 51
+        },
+        {
+          "property": "TypeOK",
+          "status": "NO_ERROR",
+          "distinctStates": 51
+        },
+        {
+          "property": "DeadlockFreedom",
+          "status": "NO_ERROR",
+          "distinctStates": 51
+        },
+        {
+          "property": "Conservation",
+          "status": "INVARIANT_VIOLATED",
+          "distinctStates": 46,
+          "traceLength": 8
+        }
+      ],
+      "comparison": [
+        {
+          "property": "StateCount",
+          "internal": "51 states",
+          "tlc": "51 distinct states",
+          "agree": true,
+          "note": "identical reachable-state count"
+        },
+        {
+          "property": "TypeOK",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "DeadlockFreedom",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "Conservation",
+          "internal": "VIOLATED",
+          "tlc": "INVARIANT_VIOLATED",
+          "agree": true,
+          "note": "same shortest witness length (8 steps) — TLC trace re-derived by the independent replay evaluator"
+        }
+      ],
+      "note": "TLC AGREES on 4/4 comparisons (TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802))"
+    }
+  },
+  {
+    "model": "bounded-counter-unfair.witness",
+    "tlc": {
+      "available": true,
+      "version": "TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)",
+      "jarSha256": "936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88",
+      "runtime": "docker (quay.io/keycloak/keycloak, --network none, 768 MB, 1 CPU)",
+      "results": [
+        {
+          "property": "StateCount",
+          "status": "NO_ERROR",
+          "distinctStates": 4
+        },
+        {
+          "property": "TypeOK",
+          "status": "NO_ERROR",
+          "distinctStates": 4
+        },
+        {
+          "property": "DeadlockFreedom",
+          "status": "NO_ERROR",
+          "distinctStates": 4
+        },
+        {
+          "property": "InRange",
+          "status": "NO_ERROR",
+          "distinctStates": 4
+        },
+        {
+          "property": "ReachesThree",
+          "status": "TEMPORAL_VIOLATED",
+          "distinctStates": 4,
+          "traceLength": 3
+        }
+      ],
+      "comparison": [
+        {
+          "property": "StateCount",
+          "internal": "4 states",
+          "tlc": "4 distinct states",
+          "agree": true,
+          "note": "identical reachable-state count"
+        },
+        {
+          "property": "TypeOK",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "DeadlockFreedom",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "InRange",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "ReachesThree",
+          "internal": "VIOLATED",
+          "tlc": "TEMPORAL_VIOLATED",
+          "agree": true,
+          "note": "both report a violation; lasso lengths 1 (internal) vs 3 (TLC) — TLC does not promise a shortest lasso — TLC trace re-derived by the independent replay evaluator"
+        }
+      ],
+      "note": "TLC AGREES on 5/5 comparisons (TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802))"
+    }
+  },
+  {
+    "model": "bounded-counter.witness",
+    "tlc": {
+      "available": true,
+      "version": "TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)",
+      "jarSha256": "936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88",
+      "runtime": "docker (quay.io/keycloak/keycloak, --network none, 768 MB, 1 CPU)",
+      "results": [
+        {
+          "property": "StateCount",
+          "status": "NO_ERROR",
+          "distinctStates": 4
+        },
+        {
+          "property": "TypeOK",
+          "status": "NO_ERROR",
+          "distinctStates": 4
+        },
+        {
+          "property": "DeadlockFreedom",
+          "status": "NO_ERROR",
+          "distinctStates": 4
+        },
+        {
+          "property": "InRange",
+          "status": "NO_ERROR",
+          "distinctStates": 4
+        },
+        {
+          "property": "ReachesThree",
+          "status": "NO_ERROR",
+          "distinctStates": 4
+        }
+      ],
+      "comparison": [
+        {
+          "property": "StateCount",
+          "internal": "4 states",
+          "tlc": "4 distinct states",
+          "agree": true,
+          "note": "identical reachable-state count"
+        },
+        {
+          "property": "TypeOK",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "DeadlockFreedom",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "InRange",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "ReachesThree",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        }
+      ],
+      "note": "TLC AGREES on 5/5 comparisons (TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802))"
+    }
+  },
+  {
+    "model": "cache-stale-read.witness",
+    "tlc": {
+      "available": true,
+      "version": "TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)",
+      "jarSha256": "936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88",
+      "runtime": "docker (quay.io/keycloak/keycloak, --network none, 768 MB, 1 CPU)",
+      "results": [
+        {
+          "property": "StateCount",
+          "status": "NO_ERROR",
+          "distinctStates": 15
+        },
+        {
+          "property": "TypeOK",
+          "status": "NO_ERROR",
+          "distinctStates": 15
+        },
+        {
+          "property": "DeadlockFreedom",
+          "status": "NO_ERROR",
+          "distinctStates": 15
+        },
+        {
+          "property": "NoStaleCacheAtRest",
+          "status": "INVARIANT_VIOLATED",
+          "distinctStates": 14,
+          "traceLength": 4
+        }
+      ],
+      "comparison": [
+        {
+          "property": "StateCount",
+          "internal": "15 states",
+          "tlc": "15 distinct states",
+          "agree": true,
+          "note": "identical reachable-state count"
+        },
+        {
+          "property": "TypeOK",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "DeadlockFreedom",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "NoStaleCacheAtRest",
+          "internal": "VIOLATED",
+          "tlc": "INVARIANT_VIOLATED",
+          "agree": true,
+          "note": "same shortest witness length (4 steps) — TLC trace re-derived by the independent replay evaluator"
+        }
+      ],
+      "note": "TLC AGREES on 4/4 comparisons (TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802))"
+    }
+  },
+  {
+    "model": "cache-versioned.witness",
+    "tlc": {
+      "available": true,
+      "version": "TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)",
+      "jarSha256": "936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88",
+      "runtime": "docker (quay.io/keycloak/keycloak, --network none, 768 MB, 1 CPU)",
+      "results": [
+        {
+          "property": "StateCount",
+          "status": "NO_ERROR",
+          "distinctStates": 15
+        },
+        {
+          "property": "TypeOK",
+          "status": "NO_ERROR",
+          "distinctStates": 15
+        },
+        {
+          "property": "DeadlockFreedom",
+          "status": "NO_ERROR",
+          "distinctStates": 15
+        },
+        {
+          "property": "NoStaleCacheAtRest",
+          "status": "NO_ERROR",
+          "distinctStates": 15
+        }
+      ],
+      "comparison": [
+        {
+          "property": "StateCount",
+          "internal": "15 states",
+          "tlc": "15 distinct states",
+          "agree": true,
+          "note": "identical reachable-state count"
+        },
+        {
+          "property": "TypeOK",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "DeadlockFreedom",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "NoStaleCacheAtRest",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        }
+      ],
+      "note": "TLC AGREES on 4/4 comparisons (TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802))"
+    }
+  },
+  {
+    "model": "counter-atomic.witness",
+    "tlc": {
+      "available": true,
+      "version": "TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)",
+      "jarSha256": "936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88",
+      "runtime": "docker (quay.io/keycloak/keycloak, --network none, 768 MB, 1 CPU)",
+      "results": [
+        {
+          "property": "StateCount",
+          "status": "NO_ERROR",
+          "distinctStates": 4
+        },
+        {
+          "property": "TypeOK",
+          "status": "NO_ERROR",
+          "distinctStates": 4
+        },
+        {
+          "property": "DeadlockFreedom",
+          "status": "NO_ERROR",
+          "distinctStates": 4
+        },
+        {
+          "property": "NoLostUpdate",
+          "status": "NO_ERROR",
+          "distinctStates": 4
+        }
+      ],
+      "comparison": [
+        {
+          "property": "StateCount",
+          "internal": "4 states",
+          "tlc": "4 distinct states",
+          "agree": true,
+          "note": "identical reachable-state count"
+        },
+        {
+          "property": "TypeOK",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "DeadlockFreedom",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "NoLostUpdate",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        }
+      ],
+      "note": "TLC AGREES on 4/4 comparisons (TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802))"
+    }
+  },
+  {
+    "model": "counter-race.witness",
+    "tlc": {
+      "available": true,
+      "version": "TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)",
+      "jarSha256": "936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88",
+      "runtime": "docker (quay.io/keycloak/keycloak, --network none, 768 MB, 1 CPU)",
+      "results": [
+        {
+          "property": "StateCount",
+          "status": "NO_ERROR",
+          "distinctStates": 13
+        },
+        {
+          "property": "TypeOK",
+          "status": "NO_ERROR",
+          "distinctStates": 13
+        },
+        {
+          "property": "DeadlockFreedom",
+          "status": "NO_ERROR",
+          "distinctStates": 13
+        },
+        {
+          "property": "NoLostUpdate",
+          "status": "INVARIANT_VIOLATED",
+          "distinctStates": 11,
+          "traceLength": 4
+        }
+      ],
+      "comparison": [
+        {
+          "property": "StateCount",
+          "internal": "13 states",
+          "tlc": "13 distinct states",
+          "agree": true,
+          "note": "identical reachable-state count"
+        },
+        {
+          "property": "TypeOK",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "DeadlockFreedom",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "NoLostUpdate",
+          "internal": "VIOLATED",
+          "tlc": "INVARIANT_VIOLATED",
+          "agree": true,
+          "note": "same shortest witness length (4 steps) — TLC trace re-derived by the independent replay evaluator"
+        }
+      ],
+      "note": "TLC AGREES on 4/4 comparisons (TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802))"
+    }
+  },
+  {
+    "model": "dining-philosophers-deadlock.witness",
+    "tlc": {
+      "available": true,
+      "version": "TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)",
+      "jarSha256": "936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88",
+      "runtime": "docker (quay.io/keycloak/keycloak, --network none, 768 MB, 1 CPU)",
+      "results": [
+        {
+          "property": "StateCount",
+          "status": "NO_ERROR",
+          "distinctStates": 14
+        },
+        {
+          "property": "TypeOK",
+          "status": "NO_ERROR",
+          "distinctStates": 14
+        },
+        {
+          "property": "DeadlockFreedom",
+          "status": "DEADLOCK",
+          "distinctStates": 14,
+          "traceLength": 3
+        },
+        {
+          "property": "ForkExclusive",
+          "status": "NO_ERROR",
+          "distinctStates": 14
+        }
+      ],
+      "comparison": [
+        {
+          "property": "StateCount",
+          "internal": "14 states",
+          "tlc": "14 distinct states",
+          "agree": true,
+          "note": "identical reachable-state count"
+        },
+        {
+          "property": "TypeOK",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "DeadlockFreedom",
+          "internal": "VIOLATED",
+          "tlc": "DEADLOCK",
+          "agree": true,
+          "note": "same shortest witness length (3 steps) — TLC trace re-derived by the independent replay evaluator"
+        },
+        {
+          "property": "ForkExclusive",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        }
+      ],
+      "note": "TLC AGREES on 4/4 comparisons (TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802))"
+    }
+  },
+  {
+    "model": "dining-philosophers-ordered.witness",
+    "tlc": {
+      "available": true,
+      "version": "TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)",
+      "jarSha256": "936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88",
+      "runtime": "docker (quay.io/keycloak/keycloak, --network none, 768 MB, 1 CPU)",
+      "results": [
+        {
+          "property": "StateCount",
+          "status": "NO_ERROR",
+          "distinctStates": 12
+        },
+        {
+          "property": "TypeOK",
+          "status": "NO_ERROR",
+          "distinctStates": 12
+        },
+        {
+          "property": "DeadlockFreedom",
+          "status": "NO_ERROR",
+          "distinctStates": 12
+        },
+        {
+          "property": "ForkExclusive",
+          "status": "NO_ERROR",
+          "distinctStates": 12
+        }
+      ],
+      "comparison": [
+        {
+          "property": "StateCount",
+          "internal": "12 states",
+          "tlc": "12 distinct states",
+          "agree": true,
+          "note": "identical reachable-state count"
+        },
+        {
+          "property": "TypeOK",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "DeadlockFreedom",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "ForkExclusive",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        }
+      ],
+      "note": "TLC AGREES on 4/4 comparisons (TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802))"
+    }
+  },
+  {
+    "model": "inventory-atomic.witness",
+    "tlc": {
+      "available": true,
+      "version": "TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)",
+      "jarSha256": "936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88",
+      "runtime": "docker (quay.io/keycloak/keycloak, --network none, 768 MB, 1 CPU)",
+      "results": [
+        {
+          "property": "StateCount",
+          "status": "NO_ERROR",
+          "distinctStates": 5
+        },
+        {
+          "property": "TypeOK",
+          "status": "NO_ERROR",
+          "distinctStates": 5
+        },
+        {
+          "property": "DeadlockFreedom",
+          "status": "NO_ERROR",
+          "distinctStates": 5
+        },
+        {
+          "property": "NoDoubleAllocation",
+          "status": "NO_ERROR",
+          "distinctStates": 5
+        },
+        {
+          "property": "NoNegativeInventory",
+          "status": "NO_ERROR",
+          "distinctStates": 5
+        }
+      ],
+      "comparison": [
+        {
+          "property": "StateCount",
+          "internal": "5 states",
+          "tlc": "5 distinct states",
+          "agree": true,
+          "note": "identical reachable-state count"
+        },
+        {
+          "property": "TypeOK",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "DeadlockFreedom",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "NoDoubleAllocation",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "NoNegativeInventory",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        }
+      ],
+      "note": "TLC AGREES on 5/5 comparisons (TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802))"
+    }
+  },
+  {
+    "model": "inventory-race.witness",
+    "tlc": {
+      "available": true,
+      "version": "TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)",
+      "jarSha256": "936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88",
+      "runtime": "docker (quay.io/keycloak/keycloak, --network none, 768 MB, 1 CPU)",
+      "results": [
+        {
+          "property": "StateCount",
+          "status": "NO_ERROR",
+          "distinctStates": 11
+        },
+        {
+          "property": "TypeOK",
+          "status": "NO_ERROR",
+          "distinctStates": 11
+        },
+        {
+          "property": "DeadlockFreedom",
+          "status": "NO_ERROR",
+          "distinctStates": 11
+        },
+        {
+          "property": "NoDoubleAllocation",
+          "status": "INVARIANT_VIOLATED",
+          "distinctStates": 11,
+          "traceLength": 4
+        },
+        {
+          "property": "NoNegativeInventory",
+          "status": "INVARIANT_VIOLATED",
+          "distinctStates": 11,
+          "traceLength": 4
+        }
+      ],
+      "comparison": [
+        {
+          "property": "StateCount",
+          "internal": "11 states",
+          "tlc": "11 distinct states",
+          "agree": true,
+          "note": "identical reachable-state count"
+        },
+        {
+          "property": "TypeOK",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "DeadlockFreedom",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "NoDoubleAllocation",
+          "internal": "VIOLATED",
+          "tlc": "INVARIANT_VIOLATED",
+          "agree": true,
+          "note": "same shortest witness length (4 steps) — TLC trace re-derived by the independent replay evaluator"
+        },
+        {
+          "property": "NoNegativeInventory",
+          "internal": "VIOLATED",
+          "tlc": "INVARIANT_VIOLATED",
+          "agree": true,
+          "note": "same shortest witness length (4 steps) — TLC trace re-derived by the independent replay evaluator"
+        }
+      ],
+      "note": "TLC AGREES on 5/5 comparisons (TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802))"
+    }
+  },
+  {
+    "model": "lease-fencing.witness",
+    "tlc": {
+      "available": true,
+      "version": "TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)",
+      "jarSha256": "936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88",
+      "runtime": "docker (quay.io/keycloak/keycloak, --network none, 768 MB, 1 CPU)",
+      "results": [
+        {
+          "property": "StateCount",
+          "status": "NO_ERROR",
+          "distinctStates": 25
+        },
+        {
+          "property": "TypeOK",
+          "status": "NO_ERROR",
+          "distinctStates": 25
+        },
+        {
+          "property": "DeadlockFreedom",
+          "status": "NO_ERROR",
+          "distinctStates": 25
+        },
+        {
+          "property": "NoStaleOverwrite",
+          "status": "NO_ERROR",
+          "distinctStates": 25
+        }
+      ],
+      "comparison": [
+        {
+          "property": "StateCount",
+          "internal": "25 states",
+          "tlc": "25 distinct states",
+          "agree": true,
+          "note": "identical reachable-state count"
+        },
+        {
+          "property": "TypeOK",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "DeadlockFreedom",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "NoStaleOverwrite",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        }
+      ],
+      "note": "TLC AGREES on 4/4 comparisons (TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802))"
+    }
+  },
+  {
+    "model": "lease-stale-writer.witness",
+    "tlc": {
+      "available": true,
+      "version": "TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)",
+      "jarSha256": "936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88",
+      "runtime": "docker (quay.io/keycloak/keycloak, --network none, 768 MB, 1 CPU)",
+      "results": [
+        {
+          "property": "StateCount",
+          "status": "NO_ERROR",
+          "distinctStates": 29
+        },
+        {
+          "property": "TypeOK",
+          "status": "NO_ERROR",
+          "distinctStates": 29
+        },
+        {
+          "property": "DeadlockFreedom",
+          "status": "NO_ERROR",
+          "distinctStates": 29
+        },
+        {
+          "property": "NoStaleOverwrite",
+          "status": "INVARIANT_VIOLATED",
+          "distinctStates": 20,
+          "traceLength": 5
+        }
+      ],
+      "comparison": [
+        {
+          "property": "StateCount",
+          "internal": "29 states",
+          "tlc": "29 distinct states",
+          "agree": true,
+          "note": "identical reachable-state count"
+        },
+        {
+          "property": "TypeOK",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "DeadlockFreedom",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "NoStaleOverwrite",
+          "internal": "VIOLATED",
+          "tlc": "INVARIANT_VIOLATED",
+          "agree": true,
+          "note": "same shortest witness length (5 steps) — TLC trace re-derived by the independent replay evaluator"
+        }
+      ],
+      "note": "TLC AGREES on 4/4 comparisons (TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802))"
+    }
+  },
+  {
+    "model": "lock-order-deadlock.witness",
+    "tlc": {
+      "available": true,
+      "version": "TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)",
+      "jarSha256": "936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88",
+      "runtime": "docker (quay.io/keycloak/keycloak, --network none, 768 MB, 1 CPU)",
+      "results": [
+        {
+          "property": "StateCount",
+          "status": "NO_ERROR",
+          "distinctStates": 13
+        },
+        {
+          "property": "TypeOK",
+          "status": "NO_ERROR",
+          "distinctStates": 13
+        },
+        {
+          "property": "DeadlockFreedom",
+          "status": "DEADLOCK",
+          "distinctStates": 7,
+          "traceLength": 2
+        },
+        {
+          "property": "ExclusiveLock1",
+          "status": "NO_ERROR",
+          "distinctStates": 13
+        }
+      ],
+      "comparison": [
+        {
+          "property": "StateCount",
+          "internal": "13 states",
+          "tlc": "13 distinct states",
+          "agree": true,
+          "note": "identical reachable-state count"
+        },
+        {
+          "property": "TypeOK",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "DeadlockFreedom",
+          "internal": "VIOLATED",
+          "tlc": "DEADLOCK",
+          "agree": true,
+          "note": "same shortest witness length (2 steps) — TLC trace re-derived by the independent replay evaluator"
+        },
+        {
+          "property": "ExclusiveLock1",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        }
+      ],
+      "note": "TLC AGREES on 4/4 comparisons (TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802))"
+    }
+  },
+  {
+    "model": "lock-order-fixed.witness",
+    "tlc": {
+      "available": true,
+      "version": "TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)",
+      "jarSha256": "936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88",
+      "runtime": "docker (quay.io/keycloak/keycloak, --network none, 768 MB, 1 CPU)",
+      "results": [
+        {
+          "property": "StateCount",
+          "status": "NO_ERROR",
+          "distinctStates": 12
+        },
+        {
+          "property": "TypeOK",
+          "status": "NO_ERROR",
+          "distinctStates": 12
+        },
+        {
+          "property": "DeadlockFreedom",
+          "status": "NO_ERROR",
+          "distinctStates": 12
+        },
+        {
+          "property": "ExclusiveLock1",
+          "status": "NO_ERROR",
+          "distinctStates": 12
+        }
+      ],
+      "comparison": [
+        {
+          "property": "StateCount",
+          "internal": "12 states",
+          "tlc": "12 distinct states",
+          "agree": true,
+          "note": "identical reachable-state count"
+        },
+        {
+          "property": "TypeOK",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "DeadlockFreedom",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "ExclusiveLock1",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        }
+      ],
+      "note": "TLC AGREES on 4/4 comparisons (TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802))"
+    }
+  },
+  {
+    "model": "mutex-check-then-set.witness",
+    "tlc": {
+      "available": true,
+      "version": "TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)",
+      "jarSha256": "936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88",
+      "runtime": "docker (quay.io/keycloak/keycloak, --network none, 768 MB, 1 CPU)",
+      "results": [
+        {
+          "property": "StateCount",
+          "status": "NO_ERROR",
+          "distinctStates": 13
+        },
+        {
+          "property": "TypeOK",
+          "status": "NO_ERROR",
+          "distinctStates": 13
+        },
+        {
+          "property": "DeadlockFreedom",
+          "status": "NO_ERROR",
+          "distinctStates": 13
+        },
+        {
+          "property": "MutualExclusion",
+          "status": "INVARIANT_VIOLATED",
+          "distinctStates": 9,
+          "traceLength": 4
+        }
+      ],
+      "comparison": [
+        {
+          "property": "StateCount",
+          "internal": "13 states",
+          "tlc": "13 distinct states",
+          "agree": true,
+          "note": "identical reachable-state count"
+        },
+        {
+          "property": "TypeOK",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "DeadlockFreedom",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "MutualExclusion",
+          "internal": "VIOLATED",
+          "tlc": "INVARIANT_VIOLATED",
+          "agree": true,
+          "note": "same shortest witness length (4 steps) — TLC trace re-derived by the independent replay evaluator"
+        }
+      ],
+      "note": "TLC AGREES on 4/4 comparisons (TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802))"
+    }
+  },
+  {
+    "model": "mutex-test-and-set.witness",
+    "tlc": {
+      "available": true,
+      "version": "TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)",
+      "jarSha256": "936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88",
+      "runtime": "docker (quay.io/keycloak/keycloak, --network none, 768 MB, 1 CPU)",
+      "results": [
+        {
+          "property": "StateCount",
+          "status": "NO_ERROR",
+          "distinctStates": 3
+        },
+        {
+          "property": "TypeOK",
+          "status": "NO_ERROR",
+          "distinctStates": 3
+        },
+        {
+          "property": "DeadlockFreedom",
+          "status": "NO_ERROR",
+          "distinctStates": 3
+        },
+        {
+          "property": "MutualExclusion",
+          "status": "NO_ERROR",
+          "distinctStates": 3
+        }
+      ],
+      "comparison": [
+        {
+          "property": "StateCount",
+          "internal": "3 states",
+          "tlc": "3 distinct states",
+          "agree": true,
+          "note": "identical reachable-state count"
+        },
+        {
+          "property": "TypeOK",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "DeadlockFreedom",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "MutualExclusion",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        }
+      ],
+      "note": "TLC AGREES on 4/4 comparisons (TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802))"
+    }
+  },
+  {
+    "model": "peterson.witness",
+    "tlc": {
+      "available": true,
+      "version": "TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)",
+      "jarSha256": "936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88",
+      "runtime": "docker (quay.io/keycloak/keycloak, --network none, 768 MB, 1 CPU)",
+      "results": [
+        {
+          "property": "StateCount",
+          "status": "NO_ERROR",
+          "distinctStates": 20
+        },
+        {
+          "property": "TypeOK",
+          "status": "NO_ERROR",
+          "distinctStates": 20
+        },
+        {
+          "property": "DeadlockFreedom",
+          "status": "NO_ERROR",
+          "distinctStates": 20
+        },
+        {
+          "property": "MutualExclusion",
+          "status": "NO_ERROR",
+          "distinctStates": 20
+        },
+        {
+          "property": "AEventuallyEnters",
+          "status": "NO_ERROR",
+          "distinctStates": 20
+        },
+        {
+          "property": "BEventuallyEnters",
+          "status": "NO_ERROR",
+          "distinctStates": 20
+        }
+      ],
+      "comparison": [
+        {
+          "property": "StateCount",
+          "internal": "20 states",
+          "tlc": "20 distinct states",
+          "agree": true,
+          "note": "identical reachable-state count"
+        },
+        {
+          "property": "TypeOK",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "DeadlockFreedom",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "MutualExclusion",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "AEventuallyEnters",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "BEventuallyEnters",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        }
+      ],
+      "note": "TLC AGREES on 6/6 comparisons (TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802))"
+    }
+  },
+  {
+    "model": "polite-livelock.witness",
+    "tlc": {
+      "available": true,
+      "version": "TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)",
+      "jarSha256": "936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88",
+      "runtime": "docker (quay.io/keycloak/keycloak, --network none, 768 MB, 1 CPU)",
+      "results": [
+        {
+          "property": "StateCount",
+          "status": "NO_ERROR",
+          "distinctStates": 15
+        },
+        {
+          "property": "TypeOK",
+          "status": "NO_ERROR",
+          "distinctStates": 15
+        },
+        {
+          "property": "DeadlockFreedom",
+          "status": "NO_ERROR",
+          "distinctStates": 15
+        },
+        {
+          "property": "MutualExclusion",
+          "status": "NO_ERROR",
+          "distinctStates": 15
+        },
+        {
+          "property": "AEventuallyEnters",
+          "status": "TEMPORAL_VIOLATED",
+          "distinctStates": 15,
+          "traceLength": 10
+        }
+      ],
+      "comparison": [
+        {
+          "property": "StateCount",
+          "internal": "15 states",
+          "tlc": "15 distinct states",
+          "agree": true,
+          "note": "identical reachable-state count"
+        },
+        {
+          "property": "TypeOK",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "DeadlockFreedom",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "MutualExclusion",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "AEventuallyEnters",
+          "internal": "VIOLATED",
+          "tlc": "TEMPORAL_VIOLATED",
+          "agree": true,
+          "note": "both report a violation; lasso lengths 12 (internal) vs 10 (TLC) — TLC does not promise a shortest lasso — TLC trace re-derived by the independent replay evaluator"
+        }
+      ],
+      "note": "TLC AGREES on 5/5 comparisons (TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802))"
+    }
+  },
+  {
+    "model": "producer-consumer-bounded.witness",
+    "tlc": {
+      "available": true,
+      "version": "TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)",
+      "jarSha256": "936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88",
+      "runtime": "docker (quay.io/keycloak/keycloak, --network none, 768 MB, 1 CPU)",
+      "results": [
+        {
+          "property": "StateCount",
+          "status": "NO_ERROR",
+          "distinctStates": 9
+        },
+        {
+          "property": "TypeOK",
+          "status": "NO_ERROR",
+          "distinctStates": 9
+        },
+        {
+          "property": "DeadlockFreedom",
+          "status": "NO_ERROR",
+          "distinctStates": 9
+        },
+        {
+          "property": "WithinCapacity",
+          "status": "NO_ERROR",
+          "distinctStates": 9
+        },
+        {
+          "property": "Conservation",
+          "status": "NO_ERROR",
+          "distinctStates": 9
+        },
+        {
+          "property": "AllConsumed",
+          "status": "NO_ERROR",
+          "distinctStates": 9
+        }
+      ],
+      "comparison": [
+        {
+          "property": "StateCount",
+          "internal": "9 states",
+          "tlc": "9 distinct states",
+          "agree": true,
+          "note": "identical reachable-state count"
+        },
+        {
+          "property": "TypeOK",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "DeadlockFreedom",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "WithinCapacity",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "Conservation",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "AllConsumed",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        }
+      ],
+      "note": "TLC AGREES on 6/6 comparisons (TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802))"
+    }
+  },
+  {
+    "model": "producer-consumer-overflow.witness",
+    "tlc": {
+      "available": true,
+      "version": "TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)",
+      "jarSha256": "936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88",
+      "runtime": "docker (quay.io/keycloak/keycloak, --network none, 768 MB, 1 CPU)",
+      "results": [
+        {
+          "property": "StateCount",
+          "status": "NO_ERROR",
+          "distinctStates": 10
+        },
+        {
+          "property": "TypeOK",
+          "status": "NO_ERROR",
+          "distinctStates": 10
+        },
+        {
+          "property": "DeadlockFreedom",
+          "status": "NO_ERROR",
+          "distinctStates": 10
+        },
+        {
+          "property": "WithinCapacity",
+          "status": "INVARIANT_VIOLATED",
+          "distinctStates": 5,
+          "traceLength": 3
+        }
+      ],
+      "comparison": [
+        {
+          "property": "StateCount",
+          "internal": "10 states",
+          "tlc": "10 distinct states",
+          "agree": true,
+          "note": "identical reachable-state count"
+        },
+        {
+          "property": "TypeOK",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "DeadlockFreedom",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "WithinCapacity",
+          "internal": "VIOLATED",
+          "tlc": "INVARIANT_VIOLATED",
+          "agree": true,
+          "note": "same shortest witness length (3 steps) — TLC trace re-derived by the independent replay evaluator"
+        }
+      ],
+      "note": "TLC AGREES on 4/4 comparisons (TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802))"
+    }
+  },
+  {
+    "model": "queue-idempotent.witness",
+    "tlc": {
+      "available": true,
+      "version": "TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)",
+      "jarSha256": "936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88",
+      "runtime": "docker (quay.io/keycloak/keycloak, --network none, 768 MB, 1 CPU)",
+      "results": [
+        {
+          "property": "StateCount",
+          "status": "NO_ERROR",
+          "distinctStates": 10
+        },
+        {
+          "property": "TypeOK",
+          "status": "NO_ERROR",
+          "distinctStates": 10
+        },
+        {
+          "property": "DeadlockFreedom",
+          "status": "NO_ERROR",
+          "distinctStates": 10
+        },
+        {
+          "property": "EffectAtMostOnce",
+          "status": "NO_ERROR",
+          "distinctStates": 10
+        }
+      ],
+      "comparison": [
+        {
+          "property": "StateCount",
+          "internal": "10 states",
+          "tlc": "10 distinct states",
+          "agree": true,
+          "note": "identical reachable-state count"
+        },
+        {
+          "property": "TypeOK",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "DeadlockFreedom",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "EffectAtMostOnce",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        }
+      ],
+      "note": "TLC AGREES on 4/4 comparisons (TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802))"
+    }
+  },
+  {
+    "model": "queue-redelivery.witness",
+    "tlc": {
+      "available": true,
+      "version": "TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)",
+      "jarSha256": "936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88",
+      "runtime": "docker (quay.io/keycloak/keycloak, --network none, 768 MB, 1 CPU)",
+      "results": [
+        {
+          "property": "StateCount",
+          "status": "NO_ERROR",
+          "distinctStates": 10
+        },
+        {
+          "property": "TypeOK",
+          "status": "NO_ERROR",
+          "distinctStates": 10
+        },
+        {
+          "property": "DeadlockFreedom",
+          "status": "NO_ERROR",
+          "distinctStates": 10
+        },
+        {
+          "property": "EffectAtMostOnce",
+          "status": "INVARIANT_VIOLATED",
+          "distinctStates": 9,
+          "traceLength": 6
+        }
+      ],
+      "comparison": [
+        {
+          "property": "StateCount",
+          "internal": "10 states",
+          "tlc": "10 distinct states",
+          "agree": true,
+          "note": "identical reachable-state count"
+        },
+        {
+          "property": "TypeOK",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "DeadlockFreedom",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "EffectAtMostOnce",
+          "internal": "VIOLATED",
+          "tlc": "INVARIANT_VIOLATED",
+          "agree": true,
+          "note": "same shortest witness length (6 steps) — TLC trace re-derived by the independent replay evaluator"
+        }
+      ],
+      "note": "TLC AGREES on 4/4 comparisons (TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802))"
+    }
+  },
+  {
+    "model": "reorder-apply.witness",
+    "tlc": {
+      "available": true,
+      "version": "TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)",
+      "jarSha256": "936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88",
+      "runtime": "docker (quay.io/keycloak/keycloak, --network none, 768 MB, 1 CPU)",
+      "results": [
+        {
+          "property": "StateCount",
+          "status": "NO_ERROR",
+          "distinctStates": 8
+        },
+        {
+          "property": "TypeOK",
+          "status": "NO_ERROR",
+          "distinctStates": 8
+        },
+        {
+          "property": "DeadlockFreedom",
+          "status": "NO_ERROR",
+          "distinctStates": 8
+        },
+        {
+          "property": "LastWriteWins",
+          "status": "INVARIANT_VIOLATED",
+          "distinctStates": 8,
+          "traceLength": 4
+        }
+      ],
+      "comparison": [
+        {
+          "property": "StateCount",
+          "internal": "8 states",
+          "tlc": "8 distinct states",
+          "agree": true,
+          "note": "identical reachable-state count"
+        },
+        {
+          "property": "TypeOK",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "DeadlockFreedom",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "LastWriteWins",
+          "internal": "VIOLATED",
+          "tlc": "INVARIANT_VIOLATED",
+          "agree": true,
+          "note": "same shortest witness length (4 steps) — TLC trace re-derived by the independent replay evaluator"
+        }
+      ],
+      "note": "TLC AGREES on 4/4 comparisons (TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802))"
+    }
+  },
+  {
+    "model": "reorder-sequenced.witness",
+    "tlc": {
+      "available": true,
+      "version": "TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)",
+      "jarSha256": "936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88",
+      "runtime": "docker (quay.io/keycloak/keycloak, --network none, 768 MB, 1 CPU)",
+      "results": [
+        {
+          "property": "StateCount",
+          "status": "NO_ERROR",
+          "distinctStates": 7
+        },
+        {
+          "property": "TypeOK",
+          "status": "NO_ERROR",
+          "distinctStates": 7
+        },
+        {
+          "property": "DeadlockFreedom",
+          "status": "NO_ERROR",
+          "distinctStates": 7
+        },
+        {
+          "property": "LastWriteWins",
+          "status": "NO_ERROR",
+          "distinctStates": 7
+        }
+      ],
+      "comparison": [
+        {
+          "property": "StateCount",
+          "internal": "7 states",
+          "tlc": "7 distinct states",
+          "agree": true,
+          "note": "identical reachable-state count"
+        },
+        {
+          "property": "TypeOK",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "DeadlockFreedom",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "LastWriteWins",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        }
+      ],
+      "note": "TLC AGREES on 4/4 comparisons (TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802))"
+    }
+  },
+  {
+    "model": "retry-double-charge.witness",
+    "tlc": {
+      "available": true,
+      "version": "TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)",
+      "jarSha256": "936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88",
+      "runtime": "docker (quay.io/keycloak/keycloak, --network none, 768 MB, 1 CPU)",
+      "results": [
+        {
+          "property": "StateCount",
+          "status": "NO_ERROR",
+          "distinctStates": 9
+        },
+        {
+          "property": "TypeOK",
+          "status": "NO_ERROR",
+          "distinctStates": 9
+        },
+        {
+          "property": "DeadlockFreedom",
+          "status": "NO_ERROR",
+          "distinctStates": 9
+        },
+        {
+          "property": "NoDuplicateAuthorization",
+          "status": "INVARIANT_VIOLATED",
+          "distinctStates": 7,
+          "traceLength": 5
+        }
+      ],
+      "comparison": [
+        {
+          "property": "StateCount",
+          "internal": "9 states",
+          "tlc": "9 distinct states",
+          "agree": true,
+          "note": "identical reachable-state count"
+        },
+        {
+          "property": "TypeOK",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "DeadlockFreedom",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "NoDuplicateAuthorization",
+          "internal": "VIOLATED",
+          "tlc": "INVARIANT_VIOLATED",
+          "agree": true,
+          "note": "same shortest witness length (5 steps) — TLC trace re-derived by the independent replay evaluator"
+        }
+      ],
+      "note": "TLC AGREES on 4/4 comparisons (TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802))"
+    }
+  },
+  {
+    "model": "retry-idempotency-key.witness",
+    "tlc": {
+      "available": true,
+      "version": "TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)",
+      "jarSha256": "936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88",
+      "runtime": "docker (quay.io/keycloak/keycloak, --network none, 768 MB, 1 CPU)",
+      "results": [
+        {
+          "property": "StateCount",
+          "status": "NO_ERROR",
+          "distinctStates": 9
+        },
+        {
+          "property": "TypeOK",
+          "status": "NO_ERROR",
+          "distinctStates": 9
+        },
+        {
+          "property": "DeadlockFreedom",
+          "status": "NO_ERROR",
+          "distinctStates": 9
+        },
+        {
+          "property": "NoDuplicateAuthorization",
+          "status": "NO_ERROR",
+          "distinctStates": 9
+        }
+      ],
+      "comparison": [
+        {
+          "property": "StateCount",
+          "internal": "9 states",
+          "tlc": "9 distinct states",
+          "agree": true,
+          "note": "identical reachable-state count"
+        },
+        {
+          "property": "TypeOK",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "DeadlockFreedom",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "NoDuplicateAuthorization",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        }
+      ],
+      "note": "TLC AGREES on 4/4 comparisons (TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802))"
+    }
+  },
+  {
+    "model": "starvation-strong.witness",
+    "tlc": {
+      "available": true,
+      "version": "TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)",
+      "jarSha256": "936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88",
+      "runtime": "docker (quay.io/keycloak/keycloak, --network none, 768 MB, 1 CPU)",
+      "results": [
+        {
+          "property": "StateCount",
+          "status": "NO_ERROR",
+          "distinctStates": 8
+        },
+        {
+          "property": "TypeOK",
+          "status": "NO_ERROR",
+          "distinctStates": 8
+        },
+        {
+          "property": "DeadlockFreedom",
+          "status": "NO_ERROR",
+          "distinctStates": 8
+        },
+        {
+          "property": "MutualExclusion",
+          "status": "NO_ERROR",
+          "distinctStates": 8
+        },
+        {
+          "property": "BEventuallyEnters",
+          "status": "NO_ERROR",
+          "distinctStates": 8
+        }
+      ],
+      "comparison": [
+        {
+          "property": "StateCount",
+          "internal": "8 states",
+          "tlc": "8 distinct states",
+          "agree": true,
+          "note": "identical reachable-state count"
+        },
+        {
+          "property": "TypeOK",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "DeadlockFreedom",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "MutualExclusion",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "BEventuallyEnters",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        }
+      ],
+      "note": "TLC AGREES on 5/5 comparisons (TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802))"
+    }
+  },
+  {
+    "model": "starvation-unfair.witness",
+    "tlc": {
+      "available": true,
+      "version": "TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)",
+      "jarSha256": "936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88",
+      "runtime": "docker (quay.io/keycloak/keycloak, --network none, 768 MB, 1 CPU)",
+      "results": [
+        {
+          "property": "StateCount",
+          "status": "NO_ERROR",
+          "distinctStates": 8
+        },
+        {
+          "property": "TypeOK",
+          "status": "NO_ERROR",
+          "distinctStates": 8
+        },
+        {
+          "property": "DeadlockFreedom",
+          "status": "NO_ERROR",
+          "distinctStates": 8
+        },
+        {
+          "property": "MutualExclusion",
+          "status": "NO_ERROR",
+          "distinctStates": 8
+        },
+        {
+          "property": "BEventuallyEnters",
+          "status": "TEMPORAL_VIOLATED",
+          "distinctStates": 8,
+          "traceLength": 2
+        }
+      ],
+      "comparison": [
+        {
+          "property": "StateCount",
+          "internal": "8 states",
+          "tlc": "8 distinct states",
+          "agree": true,
+          "note": "identical reachable-state count"
+        },
+        {
+          "property": "TypeOK",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "DeadlockFreedom",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "MutualExclusion",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "BEventuallyEnters",
+          "internal": "VIOLATED",
+          "tlc": "TEMPORAL_VIOLATED",
+          "agree": true,
+          "note": "both report a violation; lasso lengths 2 (internal) vs 2 (TLC) — TLC does not promise a shortest lasso — TLC trace re-derived by the independent replay evaluator"
+        }
+      ],
+      "note": "TLC AGREES on 5/5 comparisons (TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802))"
+    }
+  },
+  {
+    "model": "starvation-weak.witness",
+    "tlc": {
+      "available": true,
+      "version": "TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)",
+      "jarSha256": "936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88",
+      "runtime": "docker (quay.io/keycloak/keycloak, --network none, 768 MB, 1 CPU)",
+      "results": [
+        {
+          "property": "StateCount",
+          "status": "NO_ERROR",
+          "distinctStates": 8
+        },
+        {
+          "property": "TypeOK",
+          "status": "NO_ERROR",
+          "distinctStates": 8
+        },
+        {
+          "property": "DeadlockFreedom",
+          "status": "NO_ERROR",
+          "distinctStates": 8
+        },
+        {
+          "property": "MutualExclusion",
+          "status": "NO_ERROR",
+          "distinctStates": 8
+        },
+        {
+          "property": "BEventuallyEnters",
+          "status": "TEMPORAL_VIOLATED",
+          "distinctStates": 8,
+          "traceLength": 6
+        }
+      ],
+      "comparison": [
+        {
+          "property": "StateCount",
+          "internal": "8 states",
+          "tlc": "8 distinct states",
+          "agree": true,
+          "note": "identical reachable-state count"
+        },
+        {
+          "property": "TypeOK",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "DeadlockFreedom",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "MutualExclusion",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "BEventuallyEnters",
+          "internal": "VIOLATED",
+          "tlc": "TEMPORAL_VIOLATED",
+          "agree": true,
+          "note": "both report a violation; lasso lengths 4 (internal) vs 6 (TLC) — TLC does not promise a shortest lasso — TLC trace re-derived by the independent replay evaluator"
+        }
+      ],
+      "note": "TLC AGREES on 5/5 comparisons (TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802))"
+    }
+  },
+  {
+    "model": "state-explosion.witness",
+    "tlc": {
+      "available": true,
+      "version": "TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)",
+      "jarSha256": "936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88",
+      "runtime": "docker (quay.io/keycloak/keycloak, --network none, 768 MB, 1 CPU)",
+      "results": [
+        {
+          "property": "StateCount",
+          "status": "NO_ERROR",
+          "distinctStates": 1000
+        },
+        {
+          "property": "TypeOK",
+          "status": "NO_ERROR",
+          "distinctStates": 1000
+        },
+        {
+          "property": "DeadlockFreedom",
+          "status": "NO_ERROR",
+          "distinctStates": 1000
+        },
+        {
+          "property": "SumBounded",
+          "status": "NO_ERROR",
+          "distinctStates": 1000
+        }
+      ],
+      "comparison": [
+        {
+          "property": "StateCount",
+          "internal": "1000 states",
+          "tlc": "1000 distinct states",
+          "agree": true,
+          "note": "identical reachable-state count"
+        },
+        {
+          "property": "TypeOK",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "DeadlockFreedom",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "SumBounded",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        }
+      ],
+      "note": "TLC AGREES on 4/4 comparisons (TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802))"
+    }
+  },
+  {
+    "model": "two-phase-presumed-abort.witness",
+    "tlc": {
+      "available": true,
+      "version": "TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)",
+      "jarSha256": "936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88",
+      "runtime": "docker (quay.io/keycloak/keycloak, --network none, 768 MB, 1 CPU)",
+      "results": [
+        {
+          "property": "StateCount",
+          "status": "NO_ERROR",
+          "distinctStates": 25
+        },
+        {
+          "property": "TypeOK",
+          "status": "NO_ERROR",
+          "distinctStates": 25
+        },
+        {
+          "property": "DeadlockFreedom",
+          "status": "NO_ERROR",
+          "distinctStates": 25
+        },
+        {
+          "property": "Atomicity",
+          "status": "NO_ERROR",
+          "distinctStates": 25
+        },
+        {
+          "property": "CommitNeedsYes",
+          "status": "NO_ERROR",
+          "distinctStates": 25
+        }
+      ],
+      "comparison": [
+        {
+          "property": "StateCount",
+          "internal": "25 states",
+          "tlc": "25 distinct states",
+          "agree": true,
+          "note": "identical reachable-state count"
+        },
+        {
+          "property": "TypeOK",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "DeadlockFreedom",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "Atomicity",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "CommitNeedsYes",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        }
+      ],
+      "note": "TLC AGREES on 5/5 comparisons (TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802))"
+    }
+  },
+  {
+    "model": "two-phase-presumed-commit.witness",
+    "tlc": {
+      "available": true,
+      "version": "TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)",
+      "jarSha256": "936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88",
+      "runtime": "docker (quay.io/keycloak/keycloak, --network none, 768 MB, 1 CPU)",
+      "results": [
+        {
+          "property": "StateCount",
+          "status": "NO_ERROR",
+          "distinctStates": 32
+        },
+        {
+          "property": "TypeOK",
+          "status": "NO_ERROR",
+          "distinctStates": 32
+        },
+        {
+          "property": "DeadlockFreedom",
+          "status": "NO_ERROR",
+          "distinctStates": 32
+        },
+        {
+          "property": "Atomicity",
+          "status": "INVARIANT_VIOLATED",
+          "distinctStates": 29,
+          "traceLength": 4
+        },
+        {
+          "property": "CommitNeedsYes",
+          "status": "INVARIANT_VIOLATED",
+          "distinctStates": 14,
+          "traceLength": 2
+        }
+      ],
+      "comparison": [
+        {
+          "property": "StateCount",
+          "internal": "32 states",
+          "tlc": "32 distinct states",
+          "agree": true,
+          "note": "identical reachable-state count"
+        },
+        {
+          "property": "TypeOK",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "DeadlockFreedom",
+          "internal": "VERIFIED_BOUNDED",
+          "tlc": "NO_ERROR",
+          "agree": true,
+          "note": "both report no violation"
+        },
+        {
+          "property": "Atomicity",
+          "internal": "VIOLATED",
+          "tlc": "INVARIANT_VIOLATED",
+          "agree": true,
+          "note": "same shortest witness length (4 steps) — TLC trace re-derived by the independent replay evaluator"
+        },
+        {
+          "property": "CommitNeedsYes",
+          "internal": "VIOLATED",
+          "tlc": "INVARIANT_VIOLATED",
+          "agree": true,
+          "note": "same shortest witness length (2 steps) — TLC trace re-derived by the independent replay evaluator"
+        }
+      ],
+      "note": "TLC AGREES on 5/5 comparisons (TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802))"
+    }
+  }
+]

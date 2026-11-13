@@ -1,0 +1,30 @@
+model peterson "Peterson's algorithm: mutual exclusion and starvation freedom (repaired)"
+description "Peterson's algorithm adds a shared 'turn' variable that breaks the symmetry: a thread that wants in gives the turn away and waits only while the other both wants in and holds the turn. Under weak fairness both mutual exclusion and starvation freedom hold in this finite model."
+
+type Who = {A, B}
+var flagA : bool = false
+var flagB : bool = false
+var turn  : Who  = A
+
+process A {
+  var pc : {idle, flagged, waiting, critical} = idle
+  action want     when pc = idle     { flagA := true; pc := flagged }
+  action yield    when pc = flagged  { turn := B; pc := waiting }
+  action enter    when pc = waiting and (not flagB or turn = A) { pc := critical }
+  action leave    when pc = critical { flagA := false; pc := idle }
+}
+
+process B {
+  var pc : {idle, flagged, waiting, critical} = idle
+  action want     when pc = idle     { flagB := true; pc := flagged }
+  action yield    when pc = flagged  { turn := A; pc := waiting }
+  action enter    when pc = waiting and (not flagA or turn = B) { pc := critical }
+  action leave    when pc = critical { flagB := false; pc := idle }
+}
+
+invariant MutualExclusion: not (A.pc = critical and B.pc = critical)
+liveness AEventuallyEnters: A.pc = flagged leadsto A.pc = critical
+liveness BEventuallyEnters: B.pc = flagged leadsto B.pc = critical
+
+fairness weak A
+fairness weak B

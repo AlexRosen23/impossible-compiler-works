@@ -1,0 +1,15 @@
+model state_explosion "State explosion: three independent counters (resource bounds)"
+description "Three processes each count to 9 independently. Interleaving alone gives 10 x 10 x 10 = 1000 reachable states. Run it with a 50-state cap to see an honest INCOMPLETE verdict instead of a false 'safe'."
+
+const MAX = 9
+var a : 0..9 = 0
+var b : 0..9 = 0
+var c : 0..9 = 0
+
+process P { action inc when a < MAX { a := a + 1 } }
+process Q { action inc when b < MAX { b := b + 1 } }
+process R { action inc when c < MAX { c := c + 1 } }
+
+terminal a = MAX and b = MAX and c = MAX
+
+invariant SumBounded: a + b + c <= 3 * MAX

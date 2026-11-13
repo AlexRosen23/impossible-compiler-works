@@ -1,0 +1,102 @@
+{
+  "schema": "impossible-witness/receipt",
+  "schemaVersion": 1,
+  "createdAt": "2026-11-13T05:42:56.668Z",
+  "model": {
+    "name": "counter_atomic",
+    "title": "Two threads share one counter (atomic increment — repaired)",
+    "language": "WML/1",
+    "source": "model counter_atomic \"Two threads share one counter (atomic increment — repaired)\"\ndescription \"The repair: each thread performs read-modify-write as ONE atomic action (a fetch-and-add), so no other step can fall between the read and the write.\"\n\nvar counter : 0..2 = 0\n\nprocess A, B {\n  var pc : {start, done} = start\n\n  // one indivisible step: counter := counter + 1\n  action increment when pc = start {\n    counter := counter + 1\n    pc      := done\n  }\n}\n\nterminal A.pc = done and B.pc = done\n\ninvariant NoLostUpdate: (A.pc = done and B.pc = done) => counter = 2\n",
+    "sourceSha256": "dcfba73c74548f550099e1c36427e8e3a533fdbda5b76a658c5918e22ead218f",
+    "variables": [
+      {
+        "name": "counter",
+        "type": "0..2"
+      },
+      {
+        "name": "A.pc",
+        "type": "{start, done}"
+      },
+      {
+        "name": "B.pc",
+        "type": "{start, done}"
+      }
+    ],
+    "properties": [
+      {
+        "name": "NoLostUpdate",
+        "kind": "invariant",
+        "text": "(A.pc = done and B.pc = done) => counter = 2"
+      },
+      {
+        "name": "DeadlockFreedom",
+        "kind": "deadlock-freedom",
+        "text": "no stuck state except intended terminal states (A.pc = done and B.pc = done)"
+      },
+      {
+        "name": "TypeOK",
+        "kind": "domain",
+        "text": "every variable stays inside its declared domain"
+      }
+    ],
+    "fairness": []
+  },
+  "checker": {
+    "engine": "witness-bfs",
+    "version": "0.1.0",
+    "order": "breadth-first; initial states in declaration order; actions in declaration order, then parameter order",
+    "replay": "witness-replay@0.1.0",
+    "node": "v24.14.0"
+  },
+  "bounds": {
+    "maxStates": 200000,
+    "maxEdges": 2000000,
+    "maxDepth": 5000,
+    "timeLimitMs": 30000,
+    "maxHeapMB": 1536
+  },
+  "result": {
+    "verdict": "NO_VIOLATION_IN_BOUNDED_MODEL",
+    "complete": true,
+    "capReason": null,
+    "states": 4,
+    "edges": 4,
+    "maxDepth": 2,
+    "deadlocks": 0,
+    "properties": [
+      {
+        "name": "NoLostUpdate",
+        "status": "VERIFIED_BOUNDED",
+        "violatingStates": 0
+      },
+      {
+        "name": "DeadlockFreedom",
+        "status": "VERIFIED_BOUNDED",
+        "violatingStates": 0
+      },
+      {
+        "name": "TypeOK",
+        "status": "VERIFIED_BOUNDED",
+        "violatingStates": 0
+      }
+    ]
+  },
+  "witnesses": [],
+  "replay": [],
+  "runtime": {
+    "elapsedMs": 0.5,
+    "peakHeapMB": 10,
+    "platform": "darwin-arm64",
+    "cpu": "Apple M5 Pro"
+  },
+  "git": {
+    "commit": "1e1ac35765d8324bccc32e72a460011f6348e5e7",
+    "dirty": true
+  },
+  "limitations": [
+    "Evidence covers only this finite model: its declared variable domains, initial states, actions and fairness assumptions.",
+    "Logical steps are interleaved atomic actions; no wall-clock time, latency or real scheduler is modelled unless the model encodes it.",
+    "A model that verifies does not show that any implementation matches the model."
+  ],
+  "digest": "47b324a704621fe5cc43caf2f026c0db4a7ca5581221cdd2ca3160af297cb6fc"
+}

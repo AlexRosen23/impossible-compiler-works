@@ -1,0 +1,13 @@
+model mutex_check_then_set "Mutex from a plain flag: check, then set (broken)"
+description "A lock built from a boolean flag. A thread checks that the flag is clear and then sets it in a separate step, so both threads can see the flag clear before either sets it."
+
+var locked : bool = false
+
+process A, B {
+  var pc : {idle, saw_free, critical} = idle
+  action check   when pc = idle and not locked { pc := saw_free }
+  action acquire when pc = saw_free            { locked := true; pc := critical }
+  action release when pc = critical            { locked := false; pc := idle }
+}
+
+invariant MutualExclusion: not (A.pc = critical and B.pc = critical)

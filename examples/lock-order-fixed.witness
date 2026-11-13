@@ -1,0 +1,17 @@
+model lock_order_fixed "Two locks taken in one global order (repaired)"
+description "Both processes take lock1 before lock2. A global lock order removes the circular wait, so every run finishes."
+
+type Holder = {nobody, A, B}
+var lock1 : Holder = nobody
+var lock2 : Holder = nobody
+
+process A, B {
+  var pc : {start, has_one, has_both, done} = start
+  action take_lock1 when pc = start   and lock1 = nobody { lock1 := self; pc := has_one }
+  action take_lock2 when pc = has_one and lock2 = nobody { lock2 := self; pc := has_both }
+  action release    when pc = has_both { lock1 := nobody; lock2 := nobody; pc := done }
+}
+
+terminal A.pc = done and B.pc = done
+
+invariant ExclusiveLock1: not (A.pc = has_both and B.pc = has_both)

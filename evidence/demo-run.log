@@ -1,0 +1,38 @@
+== 1. broken two-thread counter
+Two threads share one counter (non-atomic increment)
+verdict: VIOLATION_FOUND   complete: true
+states: 13  edges: 14  depth: 4  time: 0.6 ms
+  VIOLATED          NoLostUpdate  (witness: 4 steps)
+        0 (initial)  
+        1 A.read  A.pc: start → read_done
+        2 B.read  B.pc: start → read_done
+        3 A.write  counter: 0 → 1, A.pc: read_done → done
+        4 B.write  B.pc: read_done → done
+  VERIFIED_BOUNDED  DeadlockFreedom
+  VERIFIED_BOUNDED  TypeOK
+receipt: evidence/demo/counter-race.receipt.json (digest df13975c5d711db8…; replay OK)
+
+== 2. repaired (atomic) counter
+Two threads share one counter (atomic increment — repaired)
+verdict: NO_VIOLATION_IN_BOUNDED_MODEL   complete: true
+states: 4  edges: 4  depth: 2  time: 0.5 ms
+  VERIFIED_BOUNDED  NoLostUpdate
+  VERIFIED_BOUNDED  DeadlockFreedom
+  VERIFIED_BOUNDED  TypeOK
+receipt: evidence/demo/counter-atomic.receipt.json (digest 47b324a704621fe5…; replay OK)
+
+== 3. verify both receipts independently
+VALID
+VALID
+
+== 4. tamper: claim the broken model is safe
+  ok   rerun:DeadlockFreedom: re-run VERIFIED_BOUNDED; receipt says VERIFIED_BOUNDED
+  ok   rerun:TypeOK: re-run VERIFIED_BOUNDED; receipt says VERIFIED_BOUNDED
+REJECTED
+(rejected as expected)
+
+== 5. INCOMPLETE under a 50-state cap
+State explosion: three independent counters (resource bounds)
+verdict: INCOMPLETE   complete: false (cap: maxStates)
+states: 50  edges: 90  depth: 5  time: 0.9 ms
+  INCOMPLETE        SumBounded

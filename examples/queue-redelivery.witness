@@ -1,0 +1,28 @@
+model queue_redelivery "At-least-once queue: redelivery duplicates side effects (broken)"
+description "A broker hands one message to a consumer and waits for an ack. If the visibility timeout fires before the ack, the broker redelivers. The consumer's side effect is not idempotent, so a redelivered message is applied twice."
+
+var queued   : bool = true    // message visible in the queue
+var inflight : bool = false   // delivered, waiting for ack
+var acked    : bool = false
+var effects  : 0..3 = 0       // how many times the side effect (e.g. send email) happened
+
+process Consumer {
+  var pc : {waiting, received, handled} = waiting
+  action receive when pc = waiting and queued { queued := false; inflight := true; pc := received }
+  action handle  when pc = received { effects := effects + 1; pc := handled }
+  action ack     when pc = handled  { acked := true; inflight := false; pc := waiting }
+}
+
+process Broker {
+  var redeliveries : 0..1 = 0
+  // visibility timeout: the broker cannot tell a slow consumer from a dead one
+  action timeout when inflight and not acked and redeliveries < 1 {
+    inflight := false
+    queued := true
+    redeliveries := redeliveries + 1
+  }
+}
+
+terminal not queued and not inflight and Consumer.pc = waiting
+
+invariant EffectAtMostOnce: effects <= 1

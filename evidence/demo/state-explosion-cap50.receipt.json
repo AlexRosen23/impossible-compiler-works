@@ -1,0 +1,103 @@
+{
+  "schema": "impossible-witness/receipt",
+  "schemaVersion": 1,
+  "createdAt": "2026-11-13T05:42:57.635Z",
+  "model": {
+    "name": "state_explosion",
+    "title": "State explosion: three independent counters (resource bounds)",
+    "language": "WML/1",
+    "source": "model state_explosion \"State explosion: three independent counters (resource bounds)\"\ndescription \"Three processes each count to 9 independently. Interleaving alone gives 10 x 10 x 10 = 1000 reachable states. Run it with a 50-state cap to see an honest INCOMPLETE verdict instead of a false 'safe'.\"\n\nconst MAX = 9\nvar a : 0..9 = 0\nvar b : 0..9 = 0\nvar c : 0..9 = 0\n\nprocess P { action inc when a < MAX { a := a + 1 } }\nprocess Q { action inc when b < MAX { b := b + 1 } }\nprocess R { action inc when c < MAX { c := c + 1 } }\n\nterminal a = MAX and b = MAX and c = MAX\n\ninvariant SumBounded: a + b + c <= 3 * MAX\n",
+    "sourceSha256": "4abbfb7b7056c5fa050c0b464a31e88705294b7cc341e0d2041364e12e2186ee",
+    "variables": [
+      {
+        "name": "a",
+        "type": "0..9"
+      },
+      {
+        "name": "b",
+        "type": "0..9"
+      },
+      {
+        "name": "c",
+        "type": "0..9"
+      }
+    ],
+    "properties": [
+      {
+        "name": "SumBounded",
+        "kind": "invariant",
+        "text": "a + b + c <= 3 * MAX"
+      },
+      {
+        "name": "DeadlockFreedom",
+        "kind": "deadlock-freedom",
+        "text": "no stuck state except intended terminal states (a = MAX and b = MAX and c = MAX)"
+      },
+      {
+        "name": "TypeOK",
+        "kind": "domain",
+        "text": "every variable stays inside its declared domain"
+      }
+    ],
+    "fairness": []
+  },
+  "checker": {
+    "engine": "witness-bfs",
+    "version": "0.1.0",
+    "order": "breadth-first; initial states in declaration order; actions in declaration order, then parameter order",
+    "replay": "witness-replay@0.1.0",
+    "node": "v24.14.0"
+  },
+  "bounds": {
+    "maxStates": 50,
+    "maxEdges": 2000000,
+    "maxDepth": 5000,
+    "timeLimitMs": 30000,
+    "maxHeapMB": 1536
+  },
+  "result": {
+    "verdict": "INCOMPLETE",
+    "complete": false,
+    "capReason": "maxStates",
+    "states": 50,
+    "edges": 90,
+    "maxDepth": 5,
+    "deadlocks": 0,
+    "properties": [
+      {
+        "name": "SumBounded",
+        "status": "INCOMPLETE",
+        "violatingStates": 0
+      },
+      {
+        "name": "DeadlockFreedom",
+        "status": "INCOMPLETE",
+        "violatingStates": 0
+      },
+      {
+        "name": "TypeOK",
+        "status": "INCOMPLETE",
+        "violatingStates": 0
+      }
+    ]
+  },
+  "witnesses": [],
+  "replay": [],
+  "runtime": {
+    "elapsedMs": 0.9,
+    "peakHeapMB": 10,
+    "platform": "darwin-arm64",
+    "cpu": "Apple M5 Pro"
+  },
+  "git": {
+    "commit": "1e1ac35765d8324bccc32e72a460011f6348e5e7",
+    "dirty": true
+  },
+  "limitations": [
+    "INCOMPLETE: exploration stopped at the maxStates cap after 50 states; absence of violations means nothing beyond the explored part.",
+    "Evidence covers only this finite model: its declared variable domains, initial states, actions and fairness assumptions.",
+    "Logical steps are interleaved atomic actions; no wall-clock time, latency or real scheduler is modelled unless the model encodes it.",
+    "A model that verifies does not show that any implementation matches the model."
+  ],
+  "digest": "2b1f4bb63f4507a87e62238e66fcd3ee506bc555cf47f6d8579fce6ea537e314"
+}

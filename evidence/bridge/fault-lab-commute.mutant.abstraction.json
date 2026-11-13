@@ -1,0 +1,217 @@
+{
+  "seed": "fault-lab-commute",
+  "sourceHash": "a3d46fff8bf777a91db843eeddf20ae177640b96c61b556bc035ebbc61755e07",
+  "alphabet": [
+    "constfold",
+    "cse",
+    "dce",
+    "BAD_cse_commute_all"
+  ],
+  "compilerVersion": "0.2.0",
+  "referenceSceneHash": "fd750730769cc5e0e94b65c0f9f56de3a5b2c705aae7515df0496ab87635bb9c",
+  "complete": true,
+  "states": [
+    {
+      "id": 0,
+      "irHash": "353022bccfe7dbf6693d7a05b47dd671aba74af70525e360264e75417b28417d",
+      "via": "unoptimized",
+      "label": "agree",
+      "vmSceneHash": "fd750730769cc5e0e94b65c0f9f56de3a5b2c705aae7515df0496ab87635bb9c",
+      "bytecodeHash": "a8b5a2832d56e30f5e0def42ce65c3d69c86b3f911c10bc310e9d68011d33d15"
+    },
+    {
+      "id": 1,
+      "irHash": "a09ff2f46391ab351bd4536f1ea0b3e4b1c49621e6012a0d71ee666cfe6eef12",
+      "via": "unoptimized → constfold",
+      "label": "agree",
+      "vmSceneHash": "fd750730769cc5e0e94b65c0f9f56de3a5b2c705aae7515df0496ab87635bb9c",
+      "bytecodeHash": "4f91ebe68ce573ebb70a9a3b3732d60fbb60336d2df082cee9ab60ac9b1e5876"
+    },
+    {
+      "id": 2,
+      "irHash": "501f1236b0844a920ad9c47dc50473f6aa0ddee226c7f99c5f07f3be0262c243",
+      "via": "unoptimized → cse",
+      "label": "agree",
+      "vmSceneHash": "fd750730769cc5e0e94b65c0f9f56de3a5b2c705aae7515df0496ab87635bb9c",
+      "bytecodeHash": "459cd11544b3b9f8b5191712ed3f0456ab82c50e2b3c1d4ac07ca311ba91e95b"
+    },
+    {
+      "id": 3,
+      "irHash": "4de261a715253f159ea4082e01891f496e6f1062eebfa99a3f127ad051e41887",
+      "via": "unoptimized → dce",
+      "label": "agree",
+      "vmSceneHash": "fd750730769cc5e0e94b65c0f9f56de3a5b2c705aae7515df0496ab87635bb9c",
+      "bytecodeHash": "a8b5a2832d56e30f5e0def42ce65c3d69c86b3f911c10bc310e9d68011d33d15"
+    },
+    {
+      "id": 4,
+      "irHash": "29d5b5c7745ea7f394731a7f26507248ebd5f80733adc48b8bbd2383411507c4",
+      "via": "unoptimized → BAD_cse_commute_all",
+      "label": "diverge",
+      "vmSceneHash": "43cad2b35d92c20a7357043dc8e5959207043489fa7ff326b352e9e8e5a45964",
+      "bytecodeHash": "acb503b48f680c6911e4105a5afcbe15937eb4a46586e4321ffe1886dc2d1a2c"
+    },
+    {
+      "id": 5,
+      "irHash": "a25f7614fcd3aac47bcf0a8d6ac998e19c7a3789b6f3e548869fc34b5a5ff450",
+      "via": "unoptimized → constfold → cse",
+      "label": "agree",
+      "vmSceneHash": "fd750730769cc5e0e94b65c0f9f56de3a5b2c705aae7515df0496ab87635bb9c",
+      "bytecodeHash": "eb4734c44af149a5126472f955860fbc7bb9e4edf3c8a514cdb3028ad834fdb2"
+    },
+    {
+      "id": 6,
+      "irHash": "85d153d4c1a231909a4c8b5454665c8e0b8e8c82e50e879c65487d2f2a93489e",
+      "via": "unoptimized → constfold → dce",
+      "label": "agree",
+      "vmSceneHash": "fd750730769cc5e0e94b65c0f9f56de3a5b2c705aae7515df0496ab87635bb9c",
+      "bytecodeHash": "4f91ebe68ce573ebb70a9a3b3732d60fbb60336d2df082cee9ab60ac9b1e5876"
+    },
+    {
+      "id": 7,
+      "irHash": "e2609506f2296217aef25513013cc53fe4955c1a0407473bc75b748f0b71b669",
+      "via": "unoptimized → constfold → BAD_cse_commute_all",
+      "label": "diverge",
+      "vmSceneHash": "43cad2b35d92c20a7357043dc8e5959207043489fa7ff326b352e9e8e5a45964",
+      "bytecodeHash": "d9a5fd0057cc330d302942a5739962d58c6efe42f4f058a619e725f55fba3ce9"
+    },
+    {
+      "id": 8,
+      "irHash": "c8b7fc5d72010493de1827913fd5bb3655205a8f61734058fb6da43c3873dedc",
+      "via": "unoptimized → cse → dce",
+      "label": "agree",
+      "vmSceneHash": "fd750730769cc5e0e94b65c0f9f56de3a5b2c705aae7515df0496ab87635bb9c",
+      "bytecodeHash": "459cd11544b3b9f8b5191712ed3f0456ab82c50e2b3c1d4ac07ca311ba91e95b"
+    },
+    {
+      "id": 9,
+      "irHash": "78949eef7d9c5a7c238fe28ddbc32f9f79ac44b49363ecaf9f8035e964bc8ff5",
+      "via": "unoptimized → dce → cse",
+      "label": "agree",
+      "vmSceneHash": "fd750730769cc5e0e94b65c0f9f56de3a5b2c705aae7515df0496ab87635bb9c",
+      "bytecodeHash": "005c064cd22d82ff8312a88e094f2f1073f083593d363658db911b2aab226854"
+    },
+    {
+      "id": 10,
+      "irHash": "f419b25e8e2a159771962a7487d229d5bf344bd362e686d88740a16c645c8b1c",
+      "via": "unoptimized → dce → BAD_cse_commute_all",
+      "label": "diverge",
+      "vmSceneHash": "43cad2b35d92c20a7357043dc8e5959207043489fa7ff326b352e9e8e5a45964",
+      "bytecodeHash": "bc538baf1ac6f3d7adeb00de35dd903b0fe91a91e16b7163b6d3dc8250c2e506"
+    },
+    {
+      "id": 11,
+      "irHash": "b2ed50c82af4224d03aaca6a8a590fd161e4a7b98b201d7175a87c283a0fdbe9",
+      "via": "unoptimized → BAD_cse_commute_all → dce",
+      "label": "diverge",
+      "vmSceneHash": "43cad2b35d92c20a7357043dc8e5959207043489fa7ff326b352e9e8e5a45964",
+      "bytecodeHash": "acb503b48f680c6911e4105a5afcbe15937eb4a46586e4321ffe1886dc2d1a2c"
+    },
+    {
+      "id": 12,
+      "irHash": "770ecc361a89a905c2fc8972f54538e68c69c20fa9e3b6297614140103704eb5",
+      "via": "unoptimized → constfold → cse → dce",
+      "label": "agree",
+      "vmSceneHash": "fd750730769cc5e0e94b65c0f9f56de3a5b2c705aae7515df0496ab87635bb9c",
+      "bytecodeHash": "eb4734c44af149a5126472f955860fbc7bb9e4edf3c8a514cdb3028ad834fdb2"
+    },
+    {
+      "id": 13,
+      "irHash": "4de468f33f1822ac89f741c817a16c3070438f6728d3f319143aa5cad685c9f9",
+      "via": "unoptimized → constfold → dce → cse",
+      "label": "agree",
+      "vmSceneHash": "fd750730769cc5e0e94b65c0f9f56de3a5b2c705aae7515df0496ab87635bb9c",
+      "bytecodeHash": "02d25cd804edc8a6a76fe3e0fba225a90dbee9fca8418be9c7ee47a69d1b328b"
+    },
+    {
+      "id": 14,
+      "irHash": "afcbe8fd421b0185f5c737656e9b7887774fb7a239830b078b0aaa84b3411b99",
+      "via": "unoptimized → constfold → dce → BAD_cse_commute_all",
+      "label": "diverge",
+      "vmSceneHash": "43cad2b35d92c20a7357043dc8e5959207043489fa7ff326b352e9e8e5a45964",
+      "bytecodeHash": "1a4339c53df587a18968e59580236b2c84a23efb9f326403d40868f870ac07e6"
+    },
+    {
+      "id": 15,
+      "irHash": "54d547714231879614ff601bd298d4dce11f82f2b556fd87e0b940f3dcebb3cb",
+      "via": "unoptimized → constfold → BAD_cse_commute_all → dce",
+      "label": "diverge",
+      "vmSceneHash": "43cad2b35d92c20a7357043dc8e5959207043489fa7ff326b352e9e8e5a45964",
+      "bytecodeHash": "d9a5fd0057cc330d302942a5739962d58c6efe42f4f058a619e725f55fba3ce9"
+    }
+  ],
+  "edges": {
+    "constfold": [
+      1,
+      1,
+      5,
+      6,
+      7,
+      5,
+      6,
+      7,
+      12,
+      13,
+      14,
+      15,
+      12,
+      13,
+      14,
+      15
+    ],
+    "cse": [
+      2,
+      5,
+      2,
+      9,
+      4,
+      5,
+      13,
+      7,
+      9,
+      9,
+      10,
+      10,
+      13,
+      13,
+      14,
+      14
+    ],
+    "dce": [
+      3,
+      6,
+      8,
+      3,
+      11,
+      12,
+      6,
+      15,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "BAD_cse_commute_all": [
+      4,
+      7,
+      4,
+      10,
+      4,
+      7,
+      14,
+      7,
+      10,
+      10,
+      10,
+      10,
+      14,
+      14,
+      14,
+      14
+    ]
+  }
+}

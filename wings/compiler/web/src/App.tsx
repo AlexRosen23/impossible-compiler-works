@@ -119,7 +119,7 @@ export function App() {
     <WB.Provider value={wb}>
       <div className="app">
         <header className="masthead">
-          <div className="wordmark">PAPER <b>TIGER</b> COMPILER WORKS<small>FOLIO {GRAMMAR_VERSION.split('/')[1]} · compiler {COMPILER_VERSION} · a language laboratory</small></div>
+          <div className="wordmark">COMPILER <b>WING</b><small>FOLIO {GRAMMAR_VERSION.split('/')[1]} · compiler {COMPILER_VERSION} · a language laboratory</small></div>
           <select className="btn" aria-label="Load an example program" value="" onChange={(e) => { const ex = EXAMPLES.find((x) => x.id === e.target.value); if (ex) { load(ex.source, ex.title); setProject(null); go({ mode: route.mode, example: ex.id }); } }}>
             <option value="">Examples ({EXAMPLES.length})…</option>
             {EXAMPLES.map((e) => <option key={e.id} value={e.id}>{e.id.slice(0, 2)} · {e.title}</option>)}

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { type PassName, SAFE_PASSES, compile, instrCount, interpret, runVM, sceneHash } from '../../../core/index.ts';
 import { FIXTURES, useWB } from '../workbench.ts';
 import { IRListing } from './Lowering.tsx';
+import { PassOrders } from './PassOrders.tsx';
 
 const evidence = import.meta.glob('../../../evidence/benchmarks.json', { import: 'default', eager: true }) as Record<string, { env: Record<string, unknown>; rows: { example: string; instructionReduction: number; medianSpeedup: number; off: { ms: { median: number } }; on: { ms: { median: number } } }[] }>;
 const BENCH = Object.values(evidence)[0];
@@ -71,6 +72,7 @@ export function Duel() {
         </div>
       </div>
       <div className="pane-foot" style={{ maxHeight: '28vh', overflow: 'auto' }}>
+        <PassOrders />
         <div className="subhead">Pass log ({changes.length} changes in {before.functions[idx].name}) · every pass is followed by the IR verifier</div>
         <table className="grid"><tbody>{changes.slice(0, 300).map((c, i) => <tr key={i}><td style={{ color: 'var(--brass)' }}>{c.pass}</td><td>{c.kind}</td><td>{c.detail}</td></tr>)}</tbody></table>
         {BENCH && <>

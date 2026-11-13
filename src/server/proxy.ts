@@ -17,7 +17,7 @@ http.createServer((req, res) => {
   if (!['127.0.0.1', 'localhost', '[::1]'].includes(host)) { res.writeHead(421).end(); return; }
   const url = new URL(req.url ?? '/', 'http://127.0.0.1');
   if (/^\/(api\/|engine\/|health$|capabilities$|runs(\/|$))/.test(url.pathname)) {
-    const p = http.request({ host: '127.0.0.1', port: apiPort, path: req.url, method: req.method, headers: { ...req.headers, host: `127.0.0.1:${apiPort}` } }, (r) => { res.writeHead(r.statusCode ?? 502, r.headers); r.pipe(res); });
+    const p = http.request({ host: '127.0.0.1', port: apiPort, path: req.url, method: req.method, headers: req.headers /* host kept: the API's origin checks compare Origin with the browser-facing host */ }, (r) => { res.writeHead(r.statusCode ?? 502, r.headers); r.pipe(res); });
     p.on('error', () => { if (!res.headersSent) res.writeHead(502, { 'content-type': 'application/json' }); res.end('{"error":"api unavailable"}'); });
     req.pipe(p);
     return;

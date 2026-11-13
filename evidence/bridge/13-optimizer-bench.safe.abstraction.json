@@ -1,0 +1,176 @@
+{
+  "seed": "13-optimizer-bench",
+  "sourceHash": "1cfdd37aa803e51e2ebb1c15e4ce788e8271a0b74bd8242bbb1823a7a0197588",
+  "alphabet": [
+    "constfold",
+    "cse",
+    "dce"
+  ],
+  "compilerVersion": "0.2.0",
+  "referenceSceneHash": "722eb8b18e7ab206d7a5500f1ff9bf26910b274efbc6517f3f3eb0886bd0da3d",
+  "complete": true,
+  "states": [
+    {
+      "id": 0,
+      "irHash": "6bc0deb54d125f65e9834f8b96cfe8c46f6a0a6ac111909c16274ebd81a36501",
+      "via": "unoptimized",
+      "label": "agree",
+      "vmSceneHash": "722eb8b18e7ab206d7a5500f1ff9bf26910b274efbc6517f3f3eb0886bd0da3d",
+      "bytecodeHash": "952ad389034eeba563f4cd11b703b6a39365aa65f96b4ce5dd27db7976ddf0e4"
+    },
+    {
+      "id": 1,
+      "irHash": "d4713ddcb98c53cc1e0c06a18d126f8ff332565a06620b39030b7a223983233f",
+      "via": "unoptimized → constfold",
+      "label": "agree",
+      "vmSceneHash": "722eb8b18e7ab206d7a5500f1ff9bf26910b274efbc6517f3f3eb0886bd0da3d",
+      "bytecodeHash": "e07fe9b0509686561b0672f7794a07a9f46c08f5da8f460b248f04630987328e"
+    },
+    {
+      "id": 2,
+      "irHash": "3a6a0cbefad1dddcd4ee78e00c05128e0a54c5b967aec70ba7ccb87190968e57",
+      "via": "unoptimized → cse",
+      "label": "agree",
+      "vmSceneHash": "722eb8b18e7ab206d7a5500f1ff9bf26910b274efbc6517f3f3eb0886bd0da3d",
+      "bytecodeHash": "7bfcc7387d012e93dc1a098d2de07d13e3ee5969522e4765e1fa6ef3e77f0dca"
+    },
+    {
+      "id": 3,
+      "irHash": "0ea93e292ed59e953e8bd908d037b26bbff77500d322fefa68ed1d9504803224",
+      "via": "unoptimized → dce",
+      "label": "agree",
+      "vmSceneHash": "722eb8b18e7ab206d7a5500f1ff9bf26910b274efbc6517f3f3eb0886bd0da3d",
+      "bytecodeHash": "0dd0243f4ba3710c701a9852d4331fc7df3daf58dbeeb6be436184e4a01624fb"
+    },
+    {
+      "id": 4,
+      "irHash": "e8ae8a29cbb3a54bea34fd5b5444cac64497362c090b494f88ab820fb4770747",
+      "via": "unoptimized → constfold → cse",
+      "label": "agree",
+      "vmSceneHash": "722eb8b18e7ab206d7a5500f1ff9bf26910b274efbc6517f3f3eb0886bd0da3d",
+      "bytecodeHash": "bf7deac2e3c53b0657accd6ce730eadb54852ec1f2dc1d09f22593a579a8827a"
+    },
+    {
+      "id": 5,
+      "irHash": "ea966e23bb7875e2aedc7d52ac8463f832b94ee298db60d991ac50be3ba085d3",
+      "via": "unoptimized → constfold → dce",
+      "label": "agree",
+      "vmSceneHash": "722eb8b18e7ab206d7a5500f1ff9bf26910b274efbc6517f3f3eb0886bd0da3d",
+      "bytecodeHash": "1a640b627a69750c9b44ab7ccbf6feb0bd1275e3d9ed0502b00d337f4aa29b3c"
+    },
+    {
+      "id": 6,
+      "irHash": "370ededd5f38adf2e9299047ffb920ac64afe2115a4f5acd43382647dcb1730f",
+      "via": "unoptimized → cse → dce",
+      "label": "agree",
+      "vmSceneHash": "722eb8b18e7ab206d7a5500f1ff9bf26910b274efbc6517f3f3eb0886bd0da3d",
+      "bytecodeHash": "b681f19483ff7776afc37194cc02d3606bcedda679eba9155ca676dbffe8454e"
+    },
+    {
+      "id": 7,
+      "irHash": "eb281dce34d75f4d8973beb827454ab17d98249ecfd7c38808459db3bf40753d",
+      "via": "unoptimized → dce → constfold",
+      "label": "agree",
+      "vmSceneHash": "722eb8b18e7ab206d7a5500f1ff9bf26910b274efbc6517f3f3eb0886bd0da3d",
+      "bytecodeHash": "711db4d7367c81e5ded02a553d29f71c40ca06af9bcba9a80e387858f6d53289"
+    },
+    {
+      "id": 8,
+      "irHash": "f73bfcf1355f5714d1700a6e3a18a453f6968c57ee625ffa64c759c292476407",
+      "via": "unoptimized → dce → cse",
+      "label": "agree",
+      "vmSceneHash": "722eb8b18e7ab206d7a5500f1ff9bf26910b274efbc6517f3f3eb0886bd0da3d",
+      "bytecodeHash": "abf13bcb2d5645fa1ee7fbfd4e0392594e43dbdef7e5eccb31c5de7da4d185ff"
+    },
+    {
+      "id": 9,
+      "irHash": "a06596155bee0daaa0d480ed701e47a0c5af213469379338ff33c078318f6ff4",
+      "via": "unoptimized → constfold → cse → dce",
+      "label": "agree",
+      "vmSceneHash": "722eb8b18e7ab206d7a5500f1ff9bf26910b274efbc6517f3f3eb0886bd0da3d",
+      "bytecodeHash": "1057d33071e9732402b36e114da87499ecf715a26af20536171475323a3a901e"
+    },
+    {
+      "id": 10,
+      "irHash": "4dd53c2074a6d2861b2132cc72b2f2f7f3e74a5755c3397b09ed744779191c9d",
+      "via": "unoptimized → constfold → dce → cse",
+      "label": "agree",
+      "vmSceneHash": "722eb8b18e7ab206d7a5500f1ff9bf26910b274efbc6517f3f3eb0886bd0da3d",
+      "bytecodeHash": "de3aaabc947c7983140178f353987da1acc0c106fadf60f8f84e4c4635b73161"
+    },
+    {
+      "id": 11,
+      "irHash": "b35b72857e4f95bbcf5ed81b1dcb61fff1038917f4c1183c6b920b136197df34",
+      "via": "unoptimized → cse → dce → constfold",
+      "label": "agree",
+      "vmSceneHash": "722eb8b18e7ab206d7a5500f1ff9bf26910b274efbc6517f3f3eb0886bd0da3d",
+      "bytecodeHash": "a6b025b08c410cbaafc276108faa38a687ecc8ff497371f1243c79fef43d210f"
+    },
+    {
+      "id": 12,
+      "irHash": "30b3bc6cb7352d99eb714c1cd5ec2ef954d1d07e25adf0f51a8a5a64d6effa4d",
+      "via": "unoptimized → dce → constfold → cse",
+      "label": "agree",
+      "vmSceneHash": "722eb8b18e7ab206d7a5500f1ff9bf26910b274efbc6517f3f3eb0886bd0da3d",
+      "bytecodeHash": "6111369bf123a209f5b6cac7f6b4bb32fffb2ca4337d1dc3800600dce8ecbbfc"
+    },
+    {
+      "id": 13,
+      "irHash": "5a5132b097c789adc6ed952630535b0bd6aca01378cc96d4a92e2779237e4c77",
+      "via": "unoptimized → dce → constfold → cse → dce",
+      "label": "agree",
+      "vmSceneHash": "722eb8b18e7ab206d7a5500f1ff9bf26910b274efbc6517f3f3eb0886bd0da3d",
+      "bytecodeHash": "50d0df6a00c44b2286af0cad512a2a5df0171e7f17521628a4bb5769572a640e"
+    }
+  ],
+  "edges": {
+    "constfold": [
+      1,
+      1,
+      4,
+      7,
+      4,
+      5,
+      11,
+      7,
+      12,
+      9,
+      10,
+      11,
+      12,
+      13
+    ],
+    "cse": [
+      2,
+      4,
+      2,
+      8,
+      4,
+      10,
+      8,
+      12,
+      8,
+      10,
+      10,
+      12,
+      12,
+      10
+    ],
+    "dce": [
+      3,
+      5,
+      6,
+      3,
+      9,
+      5,
+      6,
+      5,
+      8,
+      9,
+      10,
+      9,
+      13,
+      13
+    ]
+  }
+}

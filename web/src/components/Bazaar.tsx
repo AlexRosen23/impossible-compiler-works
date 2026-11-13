@@ -47,7 +47,7 @@ export function Bazaar() {
       <section className="hero">
         <div>
           <h1>Can this system ever reach a state that should be <em>impossible</em>?</h1>
-          <p>The Impossible Witness explores every reachable state of a small, finite model of a concurrent system. When something bad is reachable it returns the <b>shortest schedule</b> that gets there — a witness you can step through, replay independently, cross-check with TLC and seal in a tamper-evident receipt.</p>
+          <p>The Witness wing explores every reachable state of a small, finite model of a concurrent system. When something bad is reachable it returns the <b>shortest schedule</b> that gets there — a witness you can step through, replay independently, cross-check with TLC and seal in a tamper-evident receipt.</p>
           <p style={{ fontSize: 13, color: 'var(--muted)' }}>Every verdict is about the declared finite model and its assumptions — never a proof about production software.</p>
           <div className="row" style={{ marginTop: 14 }}>
             <a className="btn primary" href="#/journey" data-testid="start-journey">Start the 90-second journey</a>

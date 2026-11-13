@@ -153,8 +153,10 @@ export function Theater({ result, trace, cursor, setCursor, onSelectState, selec
         </div>
       )}
       <div className="lanes" style={{ gridTemplateColumns: `56px repeat(${procs.length}, minmax(170px, 1fr))` }} role="table" aria-label="Process lanes: one column per process, one row per logical step">
-        <div className="lane-head" role="columnheader">step</div>
-        {procs.map((p) => <div key={p} className="lane-head" role="columnheader">{p}</div>)}
+        <div role="row" style={{ display: 'contents' }}>
+          <div className="lane-head" role="columnheader">step</div>
+          {procs.map((p) => <div key={p} className="lane-head" role="columnheader">{p}</div>)}
+        </div>
         {steps.map((s, i) => (
           <div key={i} style={{ display: 'contents' }} role="row">
             <div className={`lane-cell step-no ${i === cursor ? 'current' : ''} ${i > cursor ? 'future' : ''}`} role="cell">

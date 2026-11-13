@@ -1,7 +1,7 @@
 {
   "schema": "impossible-witness/receipt",
   "schemaVersion": 1,
-  "createdAt": "2026-11-13T05:28:03.850Z",
+  "createdAt": "2026-11-13T05:42:56.339Z",
   "model": {
     "name": "counter_race",
     "title": "Two threads share one counter (non-atomic increment)",
@@ -159,13 +159,13 @@
     }
   ],
   "runtime": {
-    "elapsedMs": 0.7,
-    "peakHeapMB": 11,
+    "elapsedMs": 0.6,
+    "peakHeapMB": 10,
     "platform": "darwin-arm64",
     "cpu": "Apple M5 Pro"
   },
   "git": {
-    "commit": "15e36f65daafbed90d1d5dfd815ec2afc6fe8fd3",
+    "commit": "1e1ac35765d8324bccc32e72a460011f6348e5e7",
     "dirty": true
   },
   "limitations": [
@@ -173,5 +173,5 @@
     "Logical steps are interleaved atomic actions; no wall-clock time, latency or real scheduler is modelled unless the model encodes it.",
     "A model that verifies does not show that any implementation matches the model."
   ],
-  "digest": "9735ca3ee6879f7203af12c17d9ab36d0867509ad2e5c78662336a00bc46116a"
+  "digest": "df13975c5d711db85f3c7d5680a6645e3ab63a3e816b35617dbf9491afaa87e5"
 }

@@ -9,4 +9,5 @@ export WITNESS_PORT="${API_PORT:-${WITNESS_PORT:-5721}}"
 WEB="${WEB_PORT:-${WITNESS_WEB_PORT:-5720}}"
 node src/server/main.ts & API=$!
 trap 'kill $API 2>/dev/null || true' EXIT INT TERM
-WITNESS_PORT="$WEB" API_PORT="$WITNESS_PORT" node src/server/proxy.ts
+APIP="$WITNESS_PORT"
+WITNESS_PORT="$WEB" API_PORT="$APIP" node src/server/proxy.ts

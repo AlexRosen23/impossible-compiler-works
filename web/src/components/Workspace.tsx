@@ -198,8 +198,8 @@ export function Workspace({ initialSlug, runId, journey }: { initialSlug: string
                 <div className="section-title" style={{ marginTop: 0 }}>properties</div>
                 <ul className="list" style={{ marginBottom: 8 }} data-testid="property-list">
                   {result.properties.map((p) => (
-                    <li key={p.name}><button onClick={() => (p.trace ? showTrace(p) : setTab(p.kind === 'eventually' || p.kind === 'leadsto' ? 'temporal' : 'invariants'))} aria-label={`${p.name}: ${p.status}`}>
-                      <span className="row" style={{ justifyContent: 'space-between' }}><span className="mono">{p.name}</span><StatusChip s={p.status} /></span>
+                    <li key={p.name}><button onClick={() => (p.trace ? showTrace(p) : setTab(p.kind === 'eventually' || p.kind === 'leadsto' ? 'temporal' : 'invariants'))}>
+                      <span className="row" style={{ justifyContent: 'space-between' }}><span className="mono">{p.name}</span><span className="sr-only">: </span><StatusChip s={p.status} /></span>
                     </button></li>
                   ))}
                 </ul>

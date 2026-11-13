@@ -1,7 +1,7 @@
 {
   "schema": "impossible-witness/receipt",
   "schemaVersion": 1,
-  "createdAt": "2026-11-13T05:28:05.004Z",
+  "createdAt": "2026-11-13T05:42:57.635Z",
   "model": {
     "name": "state_explosion",
     "title": "State explosion: three independent counters (resource bounds)",
@@ -84,13 +84,13 @@
   "witnesses": [],
   "replay": [],
   "runtime": {
-    "elapsedMs": 0.6,
+    "elapsedMs": 0.9,
     "peakHeapMB": 10,
     "platform": "darwin-arm64",
     "cpu": "Apple M5 Pro"
   },
   "git": {
-    "commit": "15e36f65daafbed90d1d5dfd815ec2afc6fe8fd3",
+    "commit": "1e1ac35765d8324bccc32e72a460011f6348e5e7",
     "dirty": true
   },
   "limitations": [
@@ -99,5 +99,5 @@
     "Logical steps are interleaved atomic actions; no wall-clock time, latency or real scheduler is modelled unless the model encodes it.",
     "A model that verifies does not show that any implementation matches the model."
   ],
-  "digest": "607e2e98060b1cb73ac29cc8712e03d61b9cfc5e956b0d528f6ec3b305a056fd"
+  "digest": "2b1f4bb63f4507a87e62238e66fcd3ee506bc555cf47f6d8579fce6ea537e314"
 }

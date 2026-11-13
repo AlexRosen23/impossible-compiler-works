@@ -1,7 +1,7 @@
 {
   "schema": "impossible-witness/receipt",
   "schemaVersion": 1,
-  "createdAt": "2026-11-13T05:28:04.056Z",
+  "createdAt": "2026-11-13T05:42:56.668Z",
   "model": {
     "name": "counter_atomic",
     "title": "Two threads share one counter (atomic increment — repaired)",
@@ -84,13 +84,13 @@
   "witnesses": [],
   "replay": [],
   "runtime": {
-    "elapsedMs": 0.4,
+    "elapsedMs": 0.5,
     "peakHeapMB": 10,
     "platform": "darwin-arm64",
     "cpu": "Apple M5 Pro"
   },
   "git": {
-    "commit": "15e36f65daafbed90d1d5dfd815ec2afc6fe8fd3",
+    "commit": "1e1ac35765d8324bccc32e72a460011f6348e5e7",
     "dirty": true
   },
   "limitations": [
@@ -98,5 +98,5 @@
     "Logical steps are interleaved atomic actions; no wall-clock time, latency or real scheduler is modelled unless the model encodes it.",
     "A model that verifies does not show that any implementation matches the model."
   ],
-  "digest": "e9da66a038129e3d5193051cb24c82b1537a925175c9fe5b90776987417c81ad"
+  "digest": "47b324a704621fe5cc43caf2f026c0db4a7ca5581221cdd2ca3160af297cb6fc"
 }

@@ -1,0 +1,37 @@
+[
+  {
+    "slug": "counter-race",
+    "states": 13,
+    "edges": 14,
+    "medianMs": 0.1782500000000482,
+    "heapMB": 10
+  },
+  {
+    "slug": "polite-livelock",
+    "states": 15,
+    "edges": 30,
+    "medianMs": 0.3535420000000613,
+    "heapMB": 10
+  },
+  {
+    "slug": "two-phase-presumed-commit",
+    "states": 32,
+    "edges": 53,
+    "medianMs": 0.1875,
+    "heapMB": 11
+  },
+  {
+    "slug": "state-explosion",
+    "states": 1000,
+    "edges": 2700,
+    "medianMs": 2.079541000000063,
+    "heapMB": 11
+  },
+  {
+    "slug": "benchmark-grid",
+    "states": 160000,
+    "edges": 608000,
+    "medianMs": 853.3908329999999,
+    "heapMB": 195
+  }
+]

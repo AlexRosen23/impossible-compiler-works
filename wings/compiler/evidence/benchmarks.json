@@ -1,0 +1,406 @@
+{
+  "env": {
+    "node": "v24.14.0",
+    "platform": "darwin 27.0.0",
+    "cpu": "Apple M5 Pro",
+    "cores": 18,
+    "memGiB": 48,
+    "warmup": 10,
+    "runs": 41,
+    "commit": "c437b8fe1735a0bf66493a70e274218d0e9b8c77",
+    "date": "2026-11-13T05:20:21.409Z",
+    "note": "Wall time of runVM over all frames; off/on runs interleaved; single process; machine not idle-controlled (other apps running)."
+  },
+  "rows": [
+    {
+      "example": "01-rainfall-almanac.folio",
+      "off": {
+        "ms": {
+          "median": 0.052,
+          "p95": 0.089,
+          "mean": 0.061,
+          "sd": 0.017,
+          "min": 0.048,
+          "max": 0.113
+        },
+        "vmInstructions": 1571,
+        "bytecodeInstructions": 89
+      },
+      "on": {
+        "ms": {
+          "median": 0.07,
+          "p95": 0.155,
+          "mean": 0.084,
+          "sd": 0.044,
+          "min": 0.047,
+          "max": 0.264
+        },
+        "vmInstructions": 1407,
+        "bytecodeInstructions": 63
+      },
+      "sameScene": true,
+      "instructionReduction": 0.104,
+      "medianSpeedup": 0.743
+    },
+    {
+      "example": "02-rainfall-ledger.folio",
+      "off": {
+        "ms": {
+          "median": 0.091,
+          "p95": 0.167,
+          "mean": 0.102,
+          "sd": 0.034,
+          "min": 0.069,
+          "max": 0.207
+        },
+        "vmInstructions": 2013,
+        "bytecodeInstructions": 222
+      },
+      "on": {
+        "ms": {
+          "median": 0.079,
+          "p95": 0.123,
+          "mean": 0.087,
+          "sd": 0.029,
+          "min": 0.062,
+          "max": 0.229
+        },
+        "vmInstructions": 1743,
+        "bytecodeInstructions": 183
+      },
+      "sameScene": true,
+      "instructionReduction": 0.134,
+      "medianSpeedup": 1.152
+    },
+    {
+      "example": "03-orrery.folio",
+      "off": {
+        "ms": {
+          "median": 1.205,
+          "p95": 1.782,
+          "mean": 1.292,
+          "sd": 0.252,
+          "min": 1.036,
+          "max": 2.019
+        },
+        "vmInstructions": 33060,
+        "bytecodeInstructions": 153
+      },
+      "on": {
+        "ms": {
+          "median": 1.044,
+          "p95": 1.425,
+          "mean": 1.126,
+          "sd": 0.264,
+          "min": 0.869,
+          "max": 2.292
+        },
+        "vmInstructions": 26760,
+        "bytecodeInstructions": 120
+      },
+      "sameScene": true,
+      "instructionReduction": 0.191,
+      "medianSpeedup": 1.154
+    },
+    {
+      "example": "04-spiral-garden.folio",
+      "off": {
+        "ms": {
+          "median": 1.767,
+          "p95": 2.191,
+          "mean": 1.843,
+          "sd": 0.325,
+          "min": 1.46,
+          "max": 3.269
+        },
+        "vmInstructions": 57140,
+        "bytecodeInstructions": 159
+      },
+      "on": {
+        "ms": {
+          "median": 1.606,
+          "p95": 1.983,
+          "mean": 1.633,
+          "sd": 0.224,
+          "min": 1.345,
+          "max": 2.396
+        },
+        "vmInstructions": 48735,
+        "bytecodeInstructions": 134
+      },
+      "sameScene": true,
+      "instructionReduction": 0.147,
+      "medianSpeedup": 1.1
+    },
+    {
+      "example": "05-rain-trace.folio",
+      "off": {
+        "ms": {
+          "median": 0.09,
+          "p95": 0.152,
+          "mean": 0.1,
+          "sd": 0.023,
+          "min": 0.082,
+          "max": 0.179
+        },
+        "vmInstructions": 2611,
+        "bytecodeInstructions": 246
+      },
+      "on": {
+        "ms": {
+          "median": 0.092,
+          "p95": 0.133,
+          "mean": 0.094,
+          "sd": 0.018,
+          "min": 0.077,
+          "max": 0.161
+        },
+        "vmInstructions": 2368,
+        "bytecodeInstructions": 217
+      },
+      "sameScene": true,
+      "instructionReduction": 0.093,
+      "medianSpeedup": 0.978
+    },
+    {
+      "example": "06-lissajous.folio",
+      "off": {
+        "ms": {
+          "median": 53.345,
+          "p95": 72.019,
+          "mean": 54.086,
+          "sd": 8.81,
+          "min": 42.337,
+          "max": 75.489
+        },
+        "vmInstructions": 1413180,
+        "bytecodeInstructions": 204
+      },
+      "on": {
+        "ms": {
+          "median": 50.197,
+          "p95": 71.413,
+          "mean": 51.394,
+          "sd": 10.097,
+          "min": 40.3,
+          "max": 81.365
+        },
+        "vmInstructions": 1263540,
+        "bytecodeInstructions": 184
+      },
+      "sameScene": true,
+      "instructionReduction": 0.106,
+      "medianSpeedup": 1.063
+    },
+    {
+      "example": "07-ink-wheel.folio",
+      "off": {
+        "ms": {
+          "median": 0.199,
+          "p95": 0.257,
+          "mean": 0.202,
+          "sd": 0.037,
+          "min": 0.153,
+          "max": 0.365
+        },
+        "vmInstructions": 4471,
+        "bytecodeInstructions": 169
+      },
+      "on": {
+        "ms": {
+          "median": 0.181,
+          "p95": 0.302,
+          "mean": 0.188,
+          "sd": 0.048,
+          "min": 0.137,
+          "max": 0.337
+        },
+        "vmInstructions": 3802,
+        "bytecodeInstructions": 138
+      },
+      "sameScene": true,
+      "instructionReduction": 0.15,
+      "medianSpeedup": 1.099
+    },
+    {
+      "example": "08-checker-press.folio",
+      "off": {
+        "ms": {
+          "median": 0.927,
+          "p95": 1.174,
+          "mean": 0.949,
+          "sd": 0.139,
+          "min": 0.788,
+          "max": 1.486
+        },
+        "vmInstructions": 31008,
+        "bytecodeInstructions": 242
+      },
+      "on": {
+        "ms": {
+          "median": 0.842,
+          "p95": 1.116,
+          "mean": 0.879,
+          "sd": 0.128,
+          "min": 0.679,
+          "max": 1.212
+        },
+        "vmInstructions": 27475,
+        "bytecodeInstructions": 206
+      },
+      "sameScene": true,
+      "instructionReduction": 0.114,
+      "medianSpeedup": 1.101
+    },
+    {
+      "example": "09-station-map.folio",
+      "off": {
+        "ms": {
+          "median": 0.189,
+          "p95": 0.824,
+          "mean": 0.453,
+          "sd": 1.26,
+          "min": 0.125,
+          "max": 8.173
+        },
+        "vmInstructions": 5249,
+        "bytecodeInstructions": 287
+      },
+      "on": {
+        "ms": {
+          "median": 0.186,
+          "p95": 0.783,
+          "mean": 0.27,
+          "sd": 0.232,
+          "min": 0.12,
+          "max": 1.198
+        },
+        "vmInstructions": 4913,
+        "bytecodeInstructions": 257
+      },
+      "sameScene": true,
+      "instructionReduction": 0.064,
+      "medianSpeedup": 1.016
+    },
+    {
+      "example": "10-type-specimen.folio",
+      "off": {
+        "ms": {
+          "median": 0.022,
+          "p95": 0.046,
+          "mean": 0.026,
+          "sd": 0.013,
+          "min": 0.021,
+          "max": 0.078
+        },
+        "vmInstructions": 381,
+        "bytecodeInstructions": 96
+      },
+      "on": {
+        "ms": {
+          "median": 0.021,
+          "p95": 0.051,
+          "mean": 0.025,
+          "sd": 0.013,
+          "min": 0.02,
+          "max": 0.081
+        },
+        "vmInstructions": 336,
+        "bytecodeInstructions": 81
+      },
+      "sameScene": true,
+      "instructionReduction": 0.118,
+      "medianSpeedup": 1.048
+    },
+    {
+      "example": "11-clockwork.folio",
+      "off": {
+        "ms": {
+          "median": 3.949,
+          "p95": 5.237,
+          "mean": 4.179,
+          "sd": 1.023,
+          "min": 3.368,
+          "max": 9.947
+        },
+        "vmInstructions": 79440,
+        "bytecodeInstructions": 135
+      },
+      "on": {
+        "ms": {
+          "median": 3.401,
+          "p95": 4.593,
+          "mean": 3.543,
+          "sd": 0.452,
+          "min": 3.059,
+          "max": 4.989
+        },
+        "vmInstructions": 64200,
+        "bytecodeInstructions": 96
+      },
+      "sameScene": true,
+      "instructionReduction": 0.192,
+      "medianSpeedup": 1.161
+    },
+    {
+      "example": "12-fibonacci-steps.folio",
+      "off": {
+        "ms": {
+          "median": 0.259,
+          "p95": 0.373,
+          "mean": 0.279,
+          "sd": 0.056,
+          "min": 0.23,
+          "max": 0.443
+        },
+        "vmInstructions": 9174,
+        "bytecodeInstructions": 175
+      },
+      "on": {
+        "ms": {
+          "median": 0.228,
+          "p95": 0.356,
+          "mean": 0.248,
+          "sd": 0.053,
+          "min": 0.214,
+          "max": 0.448
+        },
+        "vmInstructions": 8183,
+        "bytecodeInstructions": 152
+      },
+      "sameScene": true,
+      "instructionReduction": 0.108,
+      "medianSpeedup": 1.136
+    },
+    {
+      "example": "13-optimizer-bench.folio",
+      "off": {
+        "ms": {
+          "median": 46.08,
+          "p95": 65.801,
+          "mean": 49.234,
+          "sd": 9.008,
+          "min": 38.934,
+          "max": 68.422
+        },
+        "vmInstructions": 1765080,
+        "bytecodeInstructions": 189
+      },
+      "on": {
+        "ms": {
+          "median": 36.366,
+          "p95": 51.497,
+          "mean": 38.393,
+          "sd": 6.298,
+          "min": 30.713,
+          "max": 53.373
+        },
+        "vmInstructions": 1248450,
+        "bytecodeInstructions": 109
+      },
+      "sameScene": true,
+      "instructionReduction": 0.293,
+      "medianSpeedup": 1.267
+    }
+  ]
+}

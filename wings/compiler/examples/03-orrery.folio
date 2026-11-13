@@ -1,0 +1,14 @@
+// Animation: every frame is the same pure program evaluated at a different `time` in [0, 1).
+scene "Paper Orrery" size 800 x 480 frames 60 background #101013 {
+  let cx = WIDTH / 2;
+  let cy = HEIGHT / 2;
+  circle(x: cx, y: cy, radius: 26, fill: #bb9c67);
+  repeat k in 1..6 {
+    let r = 40 + k * 34;
+    circle(x: cx, y: cy, radius: r, fill: #00000000, stroke: alpha(#98abb9, 0.35), strokeWidth: 1);
+    group(translate: point(cx, cy), rotate: time * 360 * (7 - k) / 2) {
+      circle(x: r, y: 0, radius: 4 + k, fill: hsl(k * 52, 0.45, 0.62));
+    }
+  }
+  text(x: 24, y: 456, value: "frame " + str(frame) + " / time " + fmt(time, 3), size: 12, fill: #8db7a2);
+}

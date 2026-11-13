@@ -1,0 +1,25 @@
+// User-defined functions with local returns, called from a bounded loop.
+fn golden(i: Number) -> Number {
+  return i * 137.508 * PI / 180;
+}
+
+fn petalRadius(i: Number, count: Number) -> Number {
+  if i < count / 3 {
+    return 2 + i * 0.04;
+  }
+  return 3 + sqrt(i) * 0.35;
+}
+
+scene "Spiral Garden" size 800 x 480 background #101013 {
+  let n = 420;
+  repeat i in 0..n {
+    let a = golden(i);
+    let d = sqrt(i) * 10.5;
+    circle(
+      x: WIDTH / 2 + cos(a) * d,
+      y: HEIGHT / 2 + sin(a) * d,
+      radius: petalRadius(i, n),
+      fill: mix(#b2534f, #bb9c67, i / n)
+    );
+  }
+}

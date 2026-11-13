@@ -1,0 +1,10 @@
+// expect: C009 @ 2:30
+fn pick(n: Number) -> Number {
+  if n > 0 {
+    return 1;
+  }
+}
+
+scene "Missing Return" {
+  circle(x: pick(1), y: 10, radius: 2);
+}

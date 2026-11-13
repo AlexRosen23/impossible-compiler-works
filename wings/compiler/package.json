@@ -1,0 +1,56 @@
+{
+  "name": "paper-tiger-compiler-works",
+  "version": "0.2.0",
+  "private": true,
+  "license": "MIT",
+  "description": "PAPER TIGER COMPILER WORKS: FOLIO, a small typed diagram language with a real compiler, optimizer, bytecode VM, independent reference interpreter, debugger and browser IDE.",
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "NODE_NO_WARNINGS=1 node server/index.ts & vite --config web/vite.config.ts",
+    "server": "NODE_NO_WARNINGS=1 node server/index.ts",
+    "start": "npm run build && PT_STATIC=1 NODE_NO_WARNINGS=1 node server/index.ts",
+    "web": "vite --config web/vite.config.ts",
+    "build": "vite build --config web/vite.config.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint .",
+    "test": "NODE_NO_WARNINGS=1 vitest run",
+    "e2e": "playwright test",
+    "fuzz": "NODE_NO_WARNINGS=1 node scripts/fuzz.ts",
+    "bench": "NODE_NO_WARNINGS=1 node scripts/bench.ts",
+    "reproduce": "NODE_NO_WARNINGS=1 node scripts/reproduce.ts",
+    "receipt": "NODE_NO_WARNINGS=1 node scripts/receipt.ts",
+    "folio": "NODE_NO_WARNINGS=1 node scripts/folio.ts",
+    "check": "npm run typecheck && npm run lint && npm test && npm run build"
+  },
+  "dependencies": {
+    "@codemirror/autocomplete": "6.20.4",
+    "@codemirror/commands": "6.11.1",
+    "@codemirror/language": "6.13.1",
+    "@codemirror/lint": "6.9.7",
+    "@codemirror/state": "6.7.6",
+    "@codemirror/view": "6.43.15",
+    "@lezer/highlight": "1.2.5",
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@playwright/test": "1.63.0",
+    "@types/node": "24.19.0",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "5.2.0",
+    "eslint": "10.14.0",
+    "globals": "17.14.0",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.72.2",
+    "vite": "8.3.8",
+    "vitest": "5.1.0"
+  },
+  "overrides": {
+    "minimatch": "^11.0.8"
+  }
+}

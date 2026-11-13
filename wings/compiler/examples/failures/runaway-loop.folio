@@ -1,0 +1,8 @@
+// expect-fault: R004 @ 4:5
+scene "Runaway Iteration" {
+  repeat i in 0..1000 {
+    repeat j in 0..1000 {
+      let _x = i * j;
+    }
+  }
+}

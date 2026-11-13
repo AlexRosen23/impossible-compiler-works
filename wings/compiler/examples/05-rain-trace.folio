@@ -1,0 +1,20 @@
+// A line chart: consecutive points joined with line segments, with axis ticks.
+data rain: List<Number> from "rainfall";
+
+fn px(i: Number) -> Number { return 80 + i * 60; }
+fn py(mm: Number) -> Number { return 400 - mm * 3; }
+
+scene "Rain Trace" size 800 x 480 background #101013 {
+  repeat t in 0..6 {
+    let y = 400 - t * 60;
+    line(from: point(70, y), to: point(760, y), stroke: alpha(#98abb9, 0.18));
+    text(x: 30, y: y + 4, value: str(t * 20), size: 11, fill: #98abb9);
+  }
+  repeat i in 1..len(rain) {
+    line(from: point(px(i - 1), py(rain[i - 1])), to: point(px(i), py(rain[i])), stroke: #8db7a2, strokeWidth: 2.5);
+  }
+  repeat i in 0..len(rain) {
+    circle(x: px(i), y: py(rain[i]), radius: 4, fill: #101013, stroke: #8db7a2, strokeWidth: 2);
+  }
+  text(x: 80, y: 60, value: "RAIN TRACE", size: 20, fill: #f0eadd);
+}

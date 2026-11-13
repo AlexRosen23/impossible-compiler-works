@@ -1,0 +1,19 @@
+// Built for the Optimization Duel: constants to fold, a dead debug branch, repeated subexpressions.
+scene "Optimizer Bench" size 800 x 480 frames 30 background #101013 {
+  let debug = false;
+  let unit = 360 / 24;
+  let scale = 2 * 3 + 4;
+  repeat i in 0..400 {
+    let a = (i * unit + time * 360) * PI / 180;  // the same angle is recomputed below on purpose (CSE)
+    let r = 60 + (i % 40) * scale / 2;
+    if debug {
+      text(x: 10, y: 10, value: "debug " + str(i), size: 9);
+    }
+    circle(
+      x: 400 + cos(a) * r,
+      y: 240 + sin((i * unit + time * 360) * PI / 180) * r * 0.55,
+      radius: 2 + (i % 5),
+      fill: hsl(i * unit, 0.5, 0.6)
+    );
+  }
+}

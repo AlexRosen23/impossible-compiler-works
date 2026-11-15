@@ -26,7 +26,7 @@ export const MAX_STRING = 400;
 
 export function lex(source: string): Token[] {
   if (typeof source !== 'string') throw new DiagnosticError('E001', 'Source must be text.', undefined);
-  if (Buffer.byteLength(source, 'utf8') > MAX_SOURCE_BYTES) {
+  if (new TextEncoder().encode(source).length > MAX_SOURCE_BYTES) {
     throw new DiagnosticError('E002', `Model source exceeds ${MAX_SOURCE_BYTES} bytes.`, undefined);
   }
   const tokens: Token[] = [];

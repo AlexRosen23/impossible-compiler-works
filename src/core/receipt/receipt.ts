@@ -2,9 +2,7 @@
 // A receipt is verified by (1) schema checks, (2) its digest, (3) the source hash,
 // (4) re-running the checker from the embedded source with the recorded bounds and
 // (5) replaying every witness with the independent evaluator. See docs/REPRODUCIBILITY.md.
-import { createHash } from 'node:crypto';
-import { execFileSync } from 'node:child_process';
-import os from 'node:os';
+import { sha256Hex } from '../hash.ts';
 import { compileSource } from '../model/compile.ts';
 import { check, type CheckResult, type Trace } from '../engine/check.ts';
 import { ENGINE_NAME, ENGINE_VERSION, type Bounds } from '../engine/explore.ts';
@@ -28,7 +26,13 @@ export function canonicalJson(v: unknown): string {
   throw new Error(`unsupported value in canonical JSON: ${typeof v}`);
 }
 
-export const sha256 = (s: string): string => createHash('sha256').update(s).digest('hex');
+export const sha256 = (s: string): string => sha256Hex(s);
+
+// Node-only facts (git, CPU, OS) are read through process.getBuiltinModule, so this file has no static node: import
+// and the same code runs in the browser demo, where those facts are simply reported as unknown.
+type NodeProc = { version?: string; cwd?: () => string; getBuiltinModule?: (id: string) => unknown };
+const nodeProc = (): NodeProc | undefined => (globalThis as { process?: NodeProc }).process;
+const builtin = <T>(id: string): T | undefined => { try { return nodeProc()?.getBuiltinModule?.(id) as T | undefined; } catch { return undefined; } };
 
 export interface WitnessRecord {
   property: string;
@@ -87,14 +91,22 @@ export interface Receipt {
   digest: string;
 }
 
-export function gitInfo(cwd = process.cwd()): Receipt['git'] {
+export function gitInfo(cwd: string | undefined = nodeProc()?.cwd?.()): Receipt['git'] {
   try {
+    const execFileSync = builtin<typeof import('node:child_process')>('node:child_process')?.execFileSync;
+    if (!execFileSync || !cwd) return { commit: 'unknown', dirty: null };
     const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], timeout: 3000 }).trim();
     const status = execFileSync('git', ['status', '--porcelain', '--untracked-files=no'], { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], timeout: 3000 });
     return { commit, dirty: status.trim().length > 0 };
   } catch {
     return { commit: 'unknown', dirty: null };
   }
+}
+
+function osInfo(): { platform: string; cpu: string } {
+  const os = builtin<typeof import('node:os')>('node:os');
+  if (!os) return { platform: 'browser', cpu: 'unknown' };
+  return { platform: `${os.platform()}-${os.arch()}`, cpu: os.cpus()[0]?.model ?? 'unknown' };
 }
 
 export function witnessFromTrace(t: Trace): WitnessRecord {
@@ -131,7 +143,7 @@ export function buildReceipt(source: string, result: CheckResult, opts: { tlc?: 
       properties: result.properties.map((p) => ({ name: p.name, kind: p.kind, text: p.text })),
       fairness: result.model.fairness,
     },
-    checker: { engine: ENGINE_NAME, version: ENGINE_VERSION, order: result.engine.order, replay: `${REPLAY_NAME}@${REPLAY_VERSION}`, node: process.version },
+    checker: { engine: ENGINE_NAME, version: ENGINE_VERSION, order: result.engine.order, replay: `${REPLAY_NAME}@${REPLAY_VERSION}`, node: nodeProc()?.version ?? 'browser' },
     bounds: result.bounds,
     result: {
       verdict: result.verdict, complete: result.complete, capReason: result.capReason, states: result.stats.states, edges: result.stats.edges,
@@ -141,7 +153,7 @@ export function buildReceipt(source: string, result: CheckResult, opts: { tlc?: 
     witnesses,
     replay,
     tlc: opts.tlc,
-    runtime: { elapsedMs: result.stats.elapsedMs, peakHeapMB: result.stats.peakHeapMB, platform: `${os.platform()}-${os.arch()}`, cpu: os.cpus()[0]?.model ?? 'unknown' },
+    runtime: { elapsedMs: result.stats.elapsedMs, peakHeapMB: result.stats.peakHeapMB, platform: osInfo().platform, cpu: osInfo().cpu },
     git: gitInfo(),
     limitations: result.limitations,
     annotation: opts.annotation,

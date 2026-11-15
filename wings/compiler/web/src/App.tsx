@@ -10,18 +10,21 @@ import { Lowering } from './modes/Lowering.tsx';
 import { Observatory } from './modes/Observatory.tsx';
 import { Theater } from './modes/Theater.tsx';
 import { Tour } from './Tour.tsx';
-import { EXAMPLES, FIXTURES, MODES, type Mode, type Route, WB, type Workbench, api, lineDiff, parseRoute, routeHash } from './workbench.ts';
+import { EXAMPLES, FIXTURES, MODES, type Mode, type Route, DEMO, DEMO_NOTE, WB, type Workbench, api, lineDiff, parseRoute, routeHash } from './workbench.ts';
 
 interface Project { id: string; name: string; head: { id: string; seq: number; source: string }; versions: { id: string; seq: number; message: string; created_at: string }[]; forkedFrom: string | null }
 
+const session = { get(k: string) { try { return sessionStorage.getItem(k); } catch { return null; } }, set(k: string, v: string) { try { sessionStorage.setItem(k, v); } catch { /* optional */ } } };
 const store = { get(k: string) { try { return localStorage.getItem(k); } catch { return null; } }, set(k: string, v: string) { try { localStorage.setItem(k, v); } catch { /* storage unavailable: drafts are a convenience only */ } } };
 
 export function App() {
   const initialRoute = useMemo(() => parseRoute(location.hash), []);
   const firstExample = EXAMPLES.find((e) => e.id === initialRoute.example) ?? EXAMPLES[0];
   const [route, setRoute] = useState<Route>(initialRoute.project ? initialRoute : { ...initialRoute, example: firstExample.id });
-  const [source, setSourceState] = useState(firstExample.source);
-  const [label, setLabel] = useState(firstExample.title);
+  // Demo only: keep the visitor's edits for this tab session (sessionStorage; nothing leaves the browser).
+  const kept = useMemo(() => { if (!DEMO || initialRoute.example || initialRoute.project) return null; try { const k = JSON.parse(session.get('icw:demo:edit') ?? 'null'); return k && typeof k.source === 'string' && typeof k.label === 'string' ? (k as { source: string; label: string }) : null; } catch { return null; } }, []);
+  const [source, setSourceState] = useState(kept?.source ?? firstExample.source);
+  const [label, setLabel] = useState(kept?.label ?? firstExample.title);
   const [passes, setPasses] = useState<PassName[]>(SAFE_PASSES);
   const [frame, setFrame] = useState(0);
   const [breakpoints, setBreakpoints] = useState<Set<number>>(new Set());
@@ -40,8 +43,9 @@ export function App() {
   const go = useCallback((r: Route) => { setRoute(r); history.replaceState(null, '', routeHash(r)); }, []);
   const setMode = useCallback((m: Mode) => go({ ...route, mode: m }), [go, route]);
 
-  useEffect(() => { api<{ ok: boolean }>('/health').then((r) => setOnline(r.status === 200)).catch(() => setOnline(false)); }, []);
+  useEffect(() => { if (DEMO) return; api<{ ok: boolean }>('/health').then((r) => setOnline(r.status === 200)).catch(() => setOnline(false)); }, []);
   useEffect(() => { history.replaceState(null, '', routeHash(route)); }, []);
+  useEffect(() => { if (DEMO) session.set('icw:demo:edit', JSON.stringify({ source, label })); }, [source, label]);
   // Open a saved project by id (deep link or hash change). parseRoute only passes server-shaped ids.
   const projectId = useRef<string | null>(null);
   const openProject = useCallback((id: string) => {
@@ -72,7 +76,7 @@ export function App() {
   useEffect(() => { if (project) store.set(`pt:draft:${project.id}:${project.head.id}`, source); }, [source, project]);
 
   const save = useCallback(async (force = false) => {
-    if (!online) { toast('server offline: saving needs the API on 127.0.0.1:5721'); return; }
+    if (!online) { toast(DEMO ? `saving, history and forking ${DEMO_NOTE}` : 'server offline: saving needs the API on 127.0.0.1:5721'); return; }
     const src = editor.current?.getSource() ?? source;
     if (!project) {
       const r = await api<Project>('/api/projects', { method: 'POST', body: { name: label || 'untitled', source: src } });
@@ -89,7 +93,7 @@ export function App() {
   }, [online, source, project, label, go, route.mode, toast, dialog]);
 
   const fork = useCallback(async () => {
-    if (!project) { toast('save the project first, then fork it'); return; }
+    if (!project) { toast(DEMO ? `forking ${DEMO_NOTE}` : 'save the project first, then fork it'); return; }
     const r = await api<Project>(`/api/projects/${project.id}/fork`, { method: 'POST', body: {} });
     if (r.status === 201) { setProject(r.data); setLabel(r.data.name); go({ mode: route.mode, project: r.data.id }); toast(`forked into ${r.data.name}`); }
   }, [project, go, route.mode, toast]);
@@ -127,7 +131,7 @@ export function App() {
           {status}
           {warnings.length > 0 && <span className="chip warn">{warnings.length} warning{warnings.length === 1 ? '' : 's'}</span>}
           <span className="spacer" />
-          <span className={`chip desk-only ${online ? 'ok' : 'warn'}`} title="API server on 127.0.0.1:5721 (/engine/compiler)">{online ? 'server ● loopback' : 'server offline · local only'}</span>
+          <span className={`chip desk-only ${online ? 'ok' : 'warn'}`} title={DEMO ? 'Static demo: everything runs in your browser' : 'API server on 127.0.0.1:5721 (/engine/compiler)'}>{online ? 'server ● loopback' : DEMO ? 'browser demo · local only' : 'server offline · local only'}</span>
           <button className="btn" onClick={() => setTour(true)}>90-second tour</button>
         </header>
         <nav className="modes" role="tablist" aria-label="Workshop modes">
@@ -140,7 +144,7 @@ export function App() {
             <div className="projectbar">
               <input aria-label="Project name" value={label} onChange={(e) => setLabel(e.target.value)} />
               <button className="btn" onClick={() => save()} title="Save a new version (⌘S)">Save<kbd>⌘S</kbd></button>
-              <button className="btn" onClick={() => (project ? setDialog({ kind: 'history' }) : toast('save first to start a history'))}>History{project ? ` · v${project.head.seq}` : ''}</button>
+              <button className="btn" onClick={() => (project ? setDialog({ kind: 'history' }) : toast(DEMO ? `history ${DEMO_NOTE}` : 'save first to start a history'))}>History{project ? ` · v${project.head.seq}` : ''}</button>
               <button className="btn" onClick={fork}>Fork</button>
               <button className="btn ghost" onClick={format} title="Format (⇧⌥F)">Format</button>
             </div>

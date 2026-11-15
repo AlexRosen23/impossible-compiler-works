@@ -24,6 +24,7 @@ export default defineConfig({
     proxy: { '/api': api, '/health': api, '/capabilities': api, '/runs': api, '/engine': api },
   },
   preview: { host: '127.0.0.1', port, strictPort: true, cors: false },
+  worker: { format: 'es' },
   build: {
     outDir: path.join(here, 'dist'),
     emptyOutDir: true,

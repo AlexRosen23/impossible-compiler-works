@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useState } from 'react';
 import { BYTECODE_VERSION, COMPILER_VERSION, GRAMMAR_VERSION, IR_VERSION, RECEIPT_FORMAT, SCENE_FORMAT, type Receipt } from '../../../core/index.ts';
-import { FIXTURES, api, download, routeHash, useWB } from '../workbench.ts';
+import { DEMO, DEMO_NOTE, FIXTURES, api, download, routeHash, useWB } from '../workbench.ts';
 
 const ev = import.meta.glob('../../../evidence/*.json', { import: 'default', eager: true }) as Record<string, Record<string, unknown>>;
 const fuzzSummary = Object.entries(ev).find(([p]) => p.endsWith('fuzz-summary.json'))?.[1];
@@ -34,6 +34,7 @@ export function Cabinet({ project }: { project: { id: string; name: string } | n
     setChecks({ title: tamper ? `Tampered (${tamper}) → ${r.data.reproduced ? 'ACCEPTED (bad!)' : 'rejected'}` : r.data.reproduced ? 'Reproduced from scratch on the server' : 'Did not reproduce', list: r.data.checks });
   };
   const importBundle = async (file: File) => {
+    if (DEMO) { toast(`importing bundles ${DEMO_NOTE}`); return; }
     if (file.size > 2_000_000) { toast('bundle over 2 MB: refused'); return; }
     let body: unknown;
     try { body = JSON.parse(await file.text()); } catch { toast('not a JSON bundle'); return; }
@@ -52,9 +53,9 @@ export function Cabinet({ project }: { project: { id: string; name: string } | n
           <div className="stat"><b>{SCENE_FORMAT}</b><span>scene</span></div><div className="stat"><b>{RECEIPT_FORMAT}</b><span>receipt</span></div>
         </div>
         <h3 className="section-title">This program</h3>
-        <p className="lede">Recording sends the source to the loopback server, which compiles it again in its own process, runs the VM and the reference interpreter, and stores a content-addressed receipt in SQLite. The browser's bytecode hash below should equal the server's.</p>
+        <p className="lede">Recording sends the source to the loopback server (not available in the browser demo), which compiles it again in its own process, runs the VM and the reference interpreter, and stores a content-addressed receipt in SQLite. The browser's bytecode hash below should equal the server's.</p>
         <div className="toolbar">
-          <button className="btn primary" onClick={record} disabled={!online || !compiled.ok}>{online ? 'Record run on the server' : 'Server offline'}</button>
+          <button className="btn primary" onClick={record} disabled={!online || !compiled.ok}>{online ? 'Record run on the server' : DEMO ? 'Record run (full app only)' : 'Server offline'}</button>
           <span className="badge">browser bytecode {localHash ? localHash.slice(0, 16) : '—'}</span>
           {sel && localHash && <span className={`badge ${sel.receipt.bytecodeHash === localHash ? 'mint' : ''}`}>{sel.receipt.bytecodeHash === localHash ? '✓ browser and server compiled the same bytes' : 'selected run is a different program or configuration'}</span>}
           <label className="btn">Import bundle…<input type="file" accept="application/json" className="sr-only" onChange={(e) => e.target.files?.[0] && importBundle(e.target.files[0])} /></label>
@@ -66,7 +67,7 @@ export function Cabinet({ project }: { project: { id: string; name: string } | n
             <div className="subhead">Recorded runs ({runs.length})</div>
             <table className="grid"><thead><tr><th>run</th><th>project</th><th>oracle</th><th>passes</th><th>when</th></tr></thead><tbody>
               {runs.map((r) => <tr key={r.id} className={`click ${sel?.id === r.id ? 'cur' : ''}`} onClick={() => open(r.id)}><td>{r.id}</td><td>{r.project ?? '—'}</td><td style={{ color: r.oracleAgrees ? 'var(--mint)' : 'var(--oxblood)' }}>{r.oracleAgrees ? 'agrees' : 'DIVERGES'}{r.fault ? ` · ${r.fault.code}` : ''}</td><td>{r.passes.join('+') || 'none'}</td><td>{new Date(r.createdAt).toLocaleTimeString()}</td></tr>)}
-              {!runs.length && <tr><td colSpan={5} style={{ color: 'var(--muted)' }}>{online ? 'No runs yet: record one.' : 'Start the API server (npm run server) to keep run records.'}</td></tr>}
+              {!runs.length && <tr><td colSpan={5} style={{ color: 'var(--muted)' }}>{online ? 'No runs yet: record one.' : (DEMO ? `Recording runs ${DEMO_NOTE}.` : 'Start the API server (npm run server) to keep run records.')}</td></tr>}
             </tbody></table>
           </div>
           <div>

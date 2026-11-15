@@ -2,6 +2,8 @@
 // (export, verify, tamper demonstration), annotations and the HTML report.
 import { useEffect, useState } from 'react';
 import { api } from '../api';
+import { DEMO } from '../../shell/demo.ts';
+import { demoReportHtml } from '../demo/demoApi.ts';
 import type { CheckResult, RunView, Trace } from '../types';
 import { StatusChip } from './Panels';
 import { show } from './Rail';
@@ -124,7 +126,9 @@ export function Archive({ run, onOpenRun }: { run: RunView | null; onOpenRun: (i
             <p style={{ margin: '0 0 8px', color: 'var(--porcelain-dim)' }}>Digest <code>{run.receipt_digest?.slice(0, 24)}…</code> · model rev {run.revision.rev} (sha256 <code>{run.revision.source_sha256.slice(0, 12)}…</code>) · bounds {Object.entries(run.bounds).map(([k, v]) => `${k}=${v}`).join(', ')}</p>
             <div className="row">
               <button className="btn" onClick={download} data-testid="download-receipt">Export receipt (JSON)</button>
-              <a className="btn" href={`/api/runs/${run.id}/report.html`} download>Export HTML report</a>
+              {DEMO
+                ? <button className="btn" onClick={() => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([demoReportHtml(run.id)], { type: 'text/html' })); a.download = `witness-report-${run.id}.html`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000); }}>Export HTML report</button>
+                : <a className="btn" href={`/api/runs/${run.id}/report.html`} download>Export HTML report</a>}
               <button className="btn" onClick={() => void (async () => { await loadReceipt(); })()}>Show receipt</button>
               <button className="btn" onClick={() => void doVerify()} disabled={!receiptText || busy} data-testid="verify-receipt">Verify</button>
               <button className="btn danger" onClick={() => void tamper()} disabled={busy} data-testid="tamper-receipt">Tamper &amp; verify</button>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Bazaar, NewModel } from './components/Bazaar';
 import { Workspace } from './components/Workspace';
+import { DEMO } from '../shell/demo.ts';
 
 function useHash() {
   const [h, setH] = useState(location.hash || '#/');
@@ -11,7 +12,7 @@ function useHash() {
 export function App() {
   const hash = useHash();
   const [health, setHealth] = useState<'ok' | 'down' | '…'>('…');
-  useEffect(() => { void fetch('/health').then((r) => setHealth(r.ok ? 'ok' : 'down')).catch(() => setHealth('down')); }, []);
+  useEffect(() => { if (DEMO) { setHealth('ok'); return; } void fetch('/health').then((r) => setHealth(r.ok ? 'ok' : 'down')).catch(() => setHealth('down')); }, []);
   const [path, query] = hash.slice(1).split('?');
   const params = new URLSearchParams(query ?? '');
   const m = /^\/model\/([a-z0-9-]+)$/.exec(path);
@@ -32,7 +33,7 @@ export function App() {
           <a href="#/new" aria-current={path === '/new' ? 'page' : undefined}>Write a model</a>
         </nav>
         <span className="spacer" />
-        <span className={`pill ${health === 'ok' ? 'ok' : health === 'down' ? 'bad' : ''}`} title="checker service on 127.0.0.1">{health === 'ok' ? 'checker online · local only' : health === 'down' ? 'checker offline' : 'connecting…'}</span>
+        <span className={`pill ${health === 'ok' ? 'ok' : health === 'down' ? 'bad' : ''}`} title={DEMO ? 'Static demo: the checker runs in your browser' : 'checker service on 127.0.0.1'}>{health === 'ok' ? (DEMO ? 'browser demo · local only' : 'checker online · local only') : health === 'down' ? 'checker offline' : 'connecting…'}</span>
       </header>
       {page}
     </div>

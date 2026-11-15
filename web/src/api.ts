@@ -1,4 +1,6 @@
 import type { Diagnostic, ModelRow, Revision, RunView, Scenario } from './types';
+import { DEMO } from '../shell/demo.ts';
+import { demoApi } from './demo/demoApi.ts';
 
 async function req<T>(path: string, init?: RequestInit): Promise<T> {
   const r = await fetch(path, { ...init, headers: { 'content-type': 'application/json', ...(init?.headers ?? {}) } });
@@ -8,7 +10,7 @@ async function req<T>(path: string, init?: RequestInit): Promise<T> {
 }
 const post = <T>(path: string, body: unknown) => req<T>(path, { method: 'POST', body: JSON.stringify(body) });
 
-export const api = {
+const serverApi = {
   catalog: () => req<{ scenarios: Scenario[]; walkthroughVersion: string }>('/api/catalog'),
   models: () => req<{ models: ModelRow[] }>('/api/models'),
   modelBySlug: (slug: string) => req<{ model: ModelRow; revisions: Revision[]; latest: Revision & { source: string } }>(`/api/models/by-slug/${encodeURIComponent(slug)}`),
@@ -28,6 +30,10 @@ export const api = {
   tlc: () => req<{ available: boolean; status: string; reason?: string; version?: string; runtime?: string; pin: { release: string; sha256: string; url: string } }>('/api/tlc'),
   annotate: (id: string, property: string, text: string) => post<{ annotations: RunView['annotations'] }>(`/api/runs/${id}/annotations`, { property, text }),
 };
+
+export type ServerApi = typeof serverApi;
+/** Static demo build: the same calls answered in the browser. Normal builds talk to the server, as before. */
+export const api: ServerApi = DEMO ? demoApi : serverApi;
 
 export async function waitForRun(id: string, onUpdate: (r: RunView) => void, signal?: { cancelled: boolean }): Promise<RunView> {
   for (;;) {

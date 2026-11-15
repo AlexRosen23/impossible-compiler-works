@@ -3,7 +3,7 @@ import type { CompiledModel } from '../model/ir.ts';
 import { explore, pathTo, ENGINE_NAME, ENGINE_VERSION, type Bounds, type Exploration, type ExploreOptions } from './explore.ts';
 import { checkLiveness, graphSccs, type LivenessResult } from './liveness.ts';
 import { renderState, stateDigest, type Value } from './state.ts';
-import { createHash } from 'node:crypto';
+import { sha256Hex } from '../hash.ts';
 
 export type PropertyStatus = 'VERIFIED_BOUNDED' | 'VIOLATED' | 'INCOMPLETE' | 'UNSUPPORTED' | 'NOT_RUN' | 'ERROR';
 export type RunVerdict = 'VIOLATION_FOUND' | 'NO_VIOLATION_IN_BOUNDED_MODEL' | 'INCOMPLETE' | 'ERROR';
@@ -76,7 +76,7 @@ function typeText(m: CompiledModel, i: number): string {
 
 export function traceHash(steps: TraceStep[], extra: object = {}): string {
   const body = JSON.stringify({ steps: steps.map((s) => ({ a: s.action, s: s.state, st: !!s.stutter })), ...extra });
-  return createHash('sha256').update(body).digest('hex');
+  return sha256Hex(body);
 }
 
 export function buildSteps(ex: Exploration, ids: number[], actions: (number | null)[]): TraceStep[] {

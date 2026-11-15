@@ -12,10 +12,15 @@
     "strict": true,
     "noEmit": true,
     "skipLibCheck": true,
-    "types": []
+    "types": ["node"],
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true
   },
   "include": [
     "src",
-    "shell"
+    "shell",
+    "../src/core",
+    "../src/server/diff.ts",
+    "../src/server/report.ts"
   ]
 }

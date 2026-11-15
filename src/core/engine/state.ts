@@ -1,7 +1,7 @@
 // Canonical state encoding. A state is a fixed-length vector of encoded values in
 // variable-declaration order. Its canonical key is the decimal encoding joined by ','
 // (an exact content key: equal keys <=> equal states; no hashing is involved in dedup).
-import { createHash } from 'node:crypto';
+import { sha256Hex } from '../hash.ts';
 import type { CompiledModel, VarInfo } from '../model/ir.ts';
 
 export type StateVec = Int32Array;
@@ -49,5 +49,5 @@ export function renderValue(m: CompiledModel, vi: number, x: number): string {
 /** SHA-256 over the canonical rendering: `name=value` lines in declaration order. */
 export function stateDigest(m: CompiledModel, s: ArrayLike<number>): string {
   const lines = m.vars.map((v) => `${v.name}=${JSON.stringify(decodeValue(m, v, s[v.index]))}`);
-  return createHash('sha256').update(lines.join('\n')).digest('hex');
+  return sha256Hex(lines.join('\n'));
 }

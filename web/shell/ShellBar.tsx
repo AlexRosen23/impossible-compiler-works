@@ -8,14 +8,16 @@ export const SHELL_NAME = 'THE IMPOSSIBLE COMPILER WORKS';
 export const SHELL_TAGLINE = 'write it, compile it, prove nothing impossible can happen';
 export const SHELL_FORMERLY = 'Formerly Paper Tiger Compiler Works and The Impossible Witness';
 
+const BASE = import.meta.env.BASE_URL;
+
 export function ShellBar({ wing }: { wing: Wing }) {
   return (
     <header className="icw-shell" data-testid="icw-shell" aria-label={SHELL_NAME}>
       <span className="icw-shell__name">{SHELL_NAME}</span>
       <span className="icw-shell__tagline">{SHELL_TAGLINE}</span>
       <nav className="icw-shell__wings" aria-label="Wings">
-        <a href="/compiler/" aria-current={wing === 'compiler' ? 'page' : undefined}>Compiler wing</a>
-        <a href="/" aria-current={wing === 'witness' ? 'page' : undefined}>Witness wing</a>
+        <a href={`${BASE}compiler/`} aria-current={wing === 'compiler' ? 'page' : undefined}>Compiler wing</a>
+        <a href={BASE} aria-current={wing === 'witness' ? 'page' : undefined}>Witness wing</a>
       </nav>
       <span className="icw-shell__formerly" data-testid="icw-formerly">{SHELL_FORMERLY}</span>
     </header>

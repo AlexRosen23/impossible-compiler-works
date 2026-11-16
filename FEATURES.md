@@ -313,6 +313,7 @@ source are lower because some tests are generated in loops.
 
 | Date | PR | Change |
 | --- | --- | --- |
+| 2026-11-16 | #8 | static demo hosted on GitHub Pages (`gh-pages` branch, no Actions); `npm run build:demo` and the publish steps in the README |
 | 2026-11-15 | #6 | static browser demo (`VITE_DEMO=1`): Compiler wing offline, Witness wing in a Web Worker; pure SHA-256 shared by both wings |
 | 2026-11-13 | #5 | SECURITY.md: maintainer email as a reporting contact |
 | 2026-11-13 | #4 | SECURITY.md: report through GitHub private vulnerability reporting |

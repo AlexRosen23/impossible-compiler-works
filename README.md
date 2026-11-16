@@ -46,6 +46,37 @@ npm run folio -- wings/compiler/examples/03-orrery.folio                        
 npm run pass-check -- fault-lab-commute --mutant                                   # the cross-feature
 ```
 
+## Try it in the browser (static demo)
+
+A static build of both wings is on GitHub Pages: <https://alexrosen23.github.io/impossible-compiler-works/>
+(Witness wing) and <https://alexrosen23.github.io/impossible-compiler-works/compiler/> (Compiler wing). It needs no
+server: the Witness wing's checker runs in a Web Worker on the built-in models, and the Compiler wing runs offline
+in the page. Nothing is sent anywhere. The TLC cross-check, saved projects and history, the Proof Cabinet and the
+pass-order panel say they need the full app.
+
+Build it (from a clean `main` checkout):
+
+```bash
+npm ci
+npm run build:demo   # = VITE_DEMO=1 vite build --config web/vite.config.ts --base /impossible-compiler-works/
+                     # writes web/dist/ (git-ignored); every asset path starts with /impossible-compiler-works/
+```
+
+Publish it. GitHub Pages serves the `gh-pages` branch (root folder, "deploy from a branch"), which holds only the
+built files. No GitHub Actions workflow is involved. Publishing is an owner step:
+
+```bash
+MAIN=$PWD                                         # your main checkout, after npm run build:demo
+git fetch origin
+git worktree add -B gh-pages ../icw-gh-pages origin/gh-pages
+cd ../icw-gh-pages
+git rm -rq . && cp -R "$MAIN/web/dist/." . && touch .nojekyll
+git add -A && git commit -m "deploy: static demo from main $(git -C "$MAIN" rev-parse --short HEAD)"
+git push origin gh-pages                          # owner step
+```
+
+Pages republishes within a minute or two. Check both URLs above and the browser console.
+
 ## What is verified, and how
 
 | Claim | How it is checked | Where |

@@ -19,6 +19,7 @@
     "server": "node src/server/main.ts",
     "web": "vite --config web/vite.config.ts",
     "build:web": "vite build --config web/vite.config.ts",
+    "build:demo": "VITE_DEMO=1 vite build --config web/vite.config.ts --base /impossible-compiler-works/",
     "witness": "node src/cli/witness.ts",
     "folio": "NODE_NO_WARNINGS=1 node wings/compiler/scripts/folio.ts",
     "fuzz": "NODE_NO_WARNINGS=1 node wings/compiler/scripts/fuzz.ts",

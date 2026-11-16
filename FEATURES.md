@@ -251,7 +251,7 @@ source -> tokens -> AST -> typed AST -> register IR -> optimized IR -> verified 
 
 - **One shell** *(live)*: the same top bar in both wings with the name, the tagline, links between wings and the "Formerly Paper Tiger Compiler Works and The Impossible Witness" line. `web/shell/ShellBar.tsx`
 - **One `/health`** *(live)*: names the app, its former names, and the status of each wing.
-- **Static browser demo** *(Off by default; build with `VITE_DEMO=1`)*: the Compiler wing runs offline in the page; the Witness wing's checker runs in a Web Worker with an in-browser adapter and in-memory store. Nothing is sent anywhere. The TLC cross-check, project save/history/fork, the Proof Cabinet and the pass-order panel say they need the full app. The exact build command is not documented in the README (unverified). `web/src/demo`, PR #6
+- **Static browser demo** *(live on GitHub Pages: https://alexrosen23.github.io/impossible-compiler-works/)*: the Compiler wing runs offline in the page; the Witness wing's checker runs in a Web Worker with an in-browser adapter and in-memory store. Nothing is sent anywhere. The TLC cross-check, project save/history/fork, the Proof Cabinet and the pass-order panel say they need the full app. Built with `npm run build:demo` and published to the `gh-pages` branch by hand (README, "Try it in the browser"). `web/src/demo`, PR #6
 
 ## 5. Integrations
 
@@ -306,7 +306,7 @@ source are lower because some tests are generated in loops.
 - **Graph drawing** is capped at 5,000 states; counts and verdicts cover everything.
 - **Single user, loopback only, no authentication.**
 - **TLC** needs Java or Docker; otherwise `INTERNAL_ONLY`.
-- **Static demo:** the exact build command is not documented; TLC, saved projects and receipts storage are unavailable in it.
+- **Static demo:** TLC, saved projects and receipts storage are unavailable in it. Publishing to `gh-pages` is a manual step; merging to `main` does not update it.
 - Not built (named as out of scope in the docs): symbolic engine, partial-order reduction, symmetry, Alloy.
 
 ## 9. Change log

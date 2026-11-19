@@ -16,6 +16,16 @@ A laboratory with two wings that check each other:
   optimization passes, checked against the reference interpreter
   ([docs/CROSS_FEATURE_PASS_ORDERS.md](docs/CROSS_FEATURE_PASS_ORDERS.md)).
 
+**In plain words:** two small teaching tools in one app. One compiles a tiny drawing language to bytecode and runs it.
+The other is a model checker: it explores every possible interleaving of a small concurrent system and shows the shortest
+sequence of steps that breaks it, such as two threads losing an update. Each tool is checked by an independent second
+implementation, and results are saved as receipts anyone can re-run.
+
+**Who it is for:** people learning how compilers and model checkers work, and reviewers who want to see correctness
+claims backed by differential testing and cross-checks (for example, against the TLC model checker) rather than assertion.
+
+**Try it now:** the live static demo is at <https://alexrosen23.github.io/impossible-compiler-works/>, with no install or server. To run it locally, see the quick start below.
+
 ![Both wings under one shell: the Witness wing](evidence/screenshots/icw-witness-wing.png)
 
 > **Honest scope.** Verdicts cover a finite model, or one program with its fixtures and limits. They are never a

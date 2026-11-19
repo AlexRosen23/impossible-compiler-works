@@ -1,6 +1,6 @@
 # THE IMPOSSIBLE COMPILER WORKS
 
-**Write it, compile it, prove nothing impossible can happen.**
+**Model checker and compiler lab**
 
 *Formerly Paper Tiger Compiler Works and The Impossible Witness.*
 

@@ -91,9 +91,6 @@ class Compiler {
   private err(code: string, message: string, span?: Span): never {
     throw new DiagnosticError(code, message, span);
   }
-  private soft(code: string, message: string, span?: Span): void {
-    this.diags.push({ code, severity: 'error', message, span });
-  }
   private warn(code: string, message: string, span?: Span): void {
     this.diags.push({ code, severity: 'warning', message, span });
   }

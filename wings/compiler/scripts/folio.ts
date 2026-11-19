@@ -1,11 +1,12 @@
-// CLI: node scripts/folio.ts <file.folio> [--opt] [--ir] [--bc] [--fixtures dir]
+// CLI: node scripts/folio.ts <file.folio> [--opt] [--ir] [--bc]
 import { readFileSync } from 'node:fs';
 import { compile, disassemble, interpret, printModule, runVM, sceneHash, SAFE_PASSES } from '../core/index.ts';
 import { loadExampleFixtures } from './lib.ts';
 
 const file = process.argv[2];
 if (!file) { console.error('usage: folio <file.folio> [--opt] [--ir] [--bc]'); process.exit(2); }
-const src = readFileSync(file, 'utf8');
+let src: string;
+try { src = readFileSync(file, 'utf8'); } catch (e) { console.error(`cannot read ${file}: ${(e as Error).message}`); process.exit(2); }
 const opt = process.argv.includes('--opt');
 const c = compile(src, { passes: opt ? SAFE_PASSES : [], fixtures: loadExampleFixtures() });
 for (const d of c.diagnostics) console.log(`${file}:${d.span.line}:${d.span.col} ${d.severity} ${d.code}: ${d.message}${d.hint ? `\n    hint: ${d.hint}` : ''}`);

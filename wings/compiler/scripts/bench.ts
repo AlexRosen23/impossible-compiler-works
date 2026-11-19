@@ -1,12 +1,11 @@
 // Benchmark: VM wall time per example, optimizations off vs on. Warmup runs are discarded; we report median,
 // p95, mean and standard deviation of N timed runs, plus VM instruction counts (deterministic). Results are
 // written to evidence/benchmarks.json with the exact environment. No result is extrapolated.
-import { writeFileSync } from 'node:fs';
+import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { cpus, platform, release, totalmem } from 'node:os';
 import { join } from 'node:path';
 import { SAFE_PASSES, compile, runVM, sceneHash } from '../core/index.ts';
 import { ROOT, gitCommit, loadExampleFixtures } from './lib.ts';
-import { readdirSync, readFileSync } from 'node:fs';
 
 const WARMUP = Number(process.env.WARMUP ?? 5);
 const RUNS = Number(process.env.RUNS ?? 25);
@@ -15,7 +14,7 @@ const files = readdirSync(join(ROOT, 'examples')).filter((f) => /^\d\d-.*\.folio
 const stats = (xs: number[]) => {
   const s = [...xs].sort((a, b) => a - b);
   const mean = xs.reduce((a, b) => a + b, 0) / xs.length;
-  const sd = Math.sqrt(xs.reduce((a, b) => a + (b - mean) ** 2, 0) / (xs.length - 1));
+  const sd = Math.sqrt(xs.reduce((a, b) => a + (b - mean) ** 2, 0) / Math.max(1, xs.length - 1));
   const pick = (p: number) => s[Math.min(s.length - 1, Math.ceil(p * s.length) - 1)];
   return { median: r3(pick(0.5)), p95: r3(pick(0.95)), mean: r3(mean), sd: r3(sd), min: r3(s[0]), max: r3(s[s.length - 1]) };
 };

@@ -271,7 +271,6 @@ export async function runTlcCrossCheck(source: string, model: CompiledModel, int
     const run = await runTlc(exp, c.cfg, c.name, opts);
     version ??= run.version;
     let property = c.purpose;
-    let tlcStatus: string = run.status;
     let replayNote = '';
     let replayOk = true;
     if (run.trace && run.status !== 'NO_ERROR') {

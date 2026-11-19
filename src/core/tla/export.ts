@@ -79,7 +79,7 @@ export function exportTla(m: CompiledModel): TlaExport {
   L.push(`vars == <<${varNames.join(', ')}>>`);
   L.push('');
   L.push('TypeOK ==');
-  m.vars.forEach((v, i) => L.push(`    /\\ ${varNames[i]} \\in ${domainSet(i)}`));
+  m.vars.forEach((_v, i) => L.push(`    /\\ ${varNames[i]} \\in ${domainSet(i)}`));
   L.push('');
   L.push('Init ==');
   m.vars.forEach((v, i) => L.push(v.init.length === 1 ? `    /\\ ${varNames[i]} = ${val(v.type.kind, v.init[0])}` : `    /\\ ${varNames[i]} \\in ${domainSet(i, v.init)}`));

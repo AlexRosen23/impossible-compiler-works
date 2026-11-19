@@ -7,7 +7,8 @@ import { ROOT, gitCommit, loadExampleFixtures } from './lib.ts';
 const file = process.argv[2];
 if (!file) { console.error('usage: receipt <file.folio> [outDir]'); process.exit(2); }
 const out = process.argv[3] ?? join(ROOT, 'evidence', 'receipts', basename(file, '.folio'));
-const source = readFileSync(file, 'utf8');
+let source: string;
+try { source = readFileSync(file, 'utf8'); } catch (e) { console.error(`cannot read ${file}: ${(e as Error).message}`); process.exit(2); }
 // Embed only the fixtures the program declares.
 const all = loadExampleFixtures();
 const used = Object.fromEntries(Object.entries(all).filter(([k]) => source.includes(`"${k}"`)));

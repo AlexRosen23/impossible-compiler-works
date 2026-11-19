@@ -30,10 +30,9 @@ class FnLowerer {
   cur: BasicBlock;
   scopes: Map<string, Binding>[] = [];
   private check: CheckResult;
-  private mod: IRModule;
   private ids: { next: number };
   constructor(check: CheckResult, mod: IRModule, ids: { next: number }, name: string, ret: string | null) {
-    this.check = check; this.mod = mod; this.ids = ids;
+    this.check = check; this.ids = ids;
     this.f = { name, nparams: 0, slots: [], nregs: 0, blocks: [], ret, regTypes: [] };
     this.cur = this.newBlock('entry');
     const g = new Map<string, Binding>();
